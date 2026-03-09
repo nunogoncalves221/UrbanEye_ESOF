@@ -2,11 +2,11 @@
 
 > [!NOTE] In this file, you will find the structure you should follow to document your mobile app in the README.md file for LEIC-ES-2025-26. It is a single file with guidelines, as comments, only seen in Edit mode, not in Preview mode. You can add more sections, but for assessment reasons and automation, please make sure to include all sections of this template. Your professors will clarify about specificities of your app.
 
-# _[your product name]_ Development Report
+# _UrbanEye_ Development Report
 
-Welcome to the documentation of _[your product name]_!
+Welcome to the documentation of _UrbanEye_!
 
-This Software Development Report, tailored for LEIC-ES-2025-26, provides comprehensive details about _[your product name]_, starting from an high-level vision and going into low-level implementation decisions. 
+This Software Development Report, tailored for LEIC-ES-2025-26, provides comprehensive details about _UrbanEye_, starting from an high-level vision and going into low-level implementation decisions. 
 
 It is organised by the following activities: 
 
@@ -34,78 +34,125 @@ Please contact us!
 
 Thank you!
 
-* team member name and email
+* Guilherme Dias - guilhermectpdias@gmail.com
 * team member name and email
 * team member name and email
 * team member name and email
 * team member name and email
 
 ---
+
 ## Business Modelling
 
 Business modeling in software development involves defining the product's vision, understanding market needs, aligning features with user expectations, and setting the groundwork for strategic planning and execution.
 
 ### Product Vision
 
-<!-- 
-Start by defining a clear and concise product vision for your app, to help members of the team, contributors, and users into focusing their often disparate views into a concise, visual, and short textual form. 
+#### Project Overview & Vision
 
-The vision should provide a "high concept" of the product for marketers, developers, and managers.
+The UrbanEye Application  application aims to bridge the gap between civic engagement and urban maintenance by providing a real-time platform where citizens can report local infrastructure issues, such as waste accumulation, malfunctioning streetlights, floods, or illegal dumping. By leveraging crowdsourced data, the application provides a centralised map interface that visualises the geographical distribution of urban incidents.
 
-A product vision describes the essential of the product and sets the direction to where a product is headed, and what the product will deliver in the future. 
+The ultimate goal is to empower city councils and local authorities to transition toward a **Smart City model**, enabling them to make more sustainable and resource-efficient decisions. By analysing report density and patterns, authorities can reduce urban waste of resources, such as:
 
-**We favor a catchy and concise statement, ideally one sentence.**
+- **Logistical inefficiencies:** Optimising collection routes based on actual demand rather than fixed schedules.
 
-We suggest you use the product vision template described in the following link:
-* [How To Create A Convincing Product Vision To Guide Your Team, by uxstudioteam.com](https://uxstudioteam.com/ux-blog/product-vision/)
+- **Response lag:** Identifying critical infrastructure failures (like floods or lighting) before they escalate into costly public safety hazards.
 
-To learn more about how to write a good product vision, please read:
-* [Vision, by scrumbook.org](http://scrumbook.org/value-stream/vision.html)
-* [Product Management: Product Vision, by ProductPlan](https://www.productplan.com/glossary/product-vision/)
-* [20 Inspiring Vision Statement Examples (2019 Updated), by lifehack.org](https://www.lifehack.org/articles/work/20-sample-vision-statement-for-the-new-startup.html)
--->
+- **Budget misallocation:** Prioritizing interventions in high-incident areas based on real-time data rather than anecdotal evidence.
+
+#### Core Value Proposition
+
+The platform transforms the passive role of a resident into an active **"city sensor"**. This synergy between citizens and government not only speeds up the resolution of urban problems but also fosters a sense of shared responsibility for the environment. Through the integration of geolocation and media uploads (photos/videos), the platform ensures that every report is actionable, verifiable, and transparent, leading to a cleaner, safer, and more resilient urban landscape.
+
+#### Strategic Alignment with SDGs:
+
+The project supports the UN 2030 Agenda by improving urban management and citizen participation. It contributes to SDG 11 through better urban sustainability and waste collection, SDG 12 by helping authorities reduce waste with better data, and SDG 16 by promoting transparency and stronger communication between citizens and government.
 
 
 ### Features and Assumptions
-<!-- 
-Indicate an  initial/tentative list of high-level features - high-level capabilities or desired services of the system that are necessary to deliver benefits to the users.
- - Feature XPTO - a few words to briefly describe the feature
- - Feature ABCD - ...
-...
 
-Optionally, indicate an initial/tentative list of assumptions that you are doing about the app and dependencies of the app to other systems.
--->
+#### Features:
+
+**User Management:** Secure Registration, Authentication, and Password Recovery.
+
+**Interactive Geolocation:** Automatic GPS positioning with manual map override.
+
+**Multimedia Reporting:** Photo uploads and descriptive metadata for incident verification.
+
+**Authority Dashboard:** Tools for status updates, incident filtering, and priority management.
+
+**Crowdsourced Validation:** Ability for other users to "Confirm" or "Deny" the existence of a reported problem (improving data reliability).
+
+**Real-time Alerts:** Push notifications for status updates and nearby incident alerts.
+
+#### Assumptions:
+
+**Connectivity:** Internet connection is required to submit the report and load map tiles. However, the application should be able to capture GPS coordinates offline, caching the report data locally until a network connection is restored.
+
+**Hardware:** User devices must be equipped with a GPS module and optionally a Camera.
+
+**Third-Party Services:** Reliable integration with a Map API (e.g., Google Maps).
+
+**Institutional Setup:** Local authorities have designated administrative accounts with appropriate permission levels.
 
 ## Requirements
 
 ### User Stories
-<!-- 
-In this section you should describe all kinds of requirements for your module: functional and non-functional requirements.
 
-For LEIC-ES-2025-26, the requirements will be gathered and documented as user stories. 
+1. As a user, I want to report problems so that the authorities know about them.
+    
+2. As a user, I want to mark the location of a problem on the map so that I can indicate exactly where it is.
+    
+3. As a registered user, I want to confirm whether a problem exists or indicate that it does not exist, so that the credibility of the reports is ensured.
+    
+4. As a registered user, I want that whenever I report a problem I am able to include a photo so that the problem is clear.
+    
+5. As a not registered user, I want to create a new account on the app so that I can access features that require registration.
+    
+6. As a registered user, I want to log into the app so I can access my reports and the map.
+    
+7. As an authority, I want to update the status of a problem, so users are informed.
+    
+8. As an authority, I want multiple reports of the same problem to be grouped into a single alert so that I can see how many users reported it and prioritise the issue.
+    
+9. As a user, I want to get more information on a reported problem.
+    
+10. As a registered user, I want to consult my previous reports.
 
-Please add in this section a concise summary of all the user stories (not each user story!).
+#### Most important Story Details:
 
-**User stories as GitHub Project Items**
-The user stories themselves should be created and described as items in your GitHub Project with the label "user story". 
+*As a* user,
 
-A user story is a description of a desired functionality told from the perspective of the user or customer. A starting template for the description of a user story is *As a < user role >, I want < goal > so that < reason >.*
+*I want to* report problems
 
-Name the item with either the full user story or a shorter name (recommended). In the “comments” field, add relevant notes, mockup images, and acceptance test scenarios, linking to the acceptance tests when available, and finally estimate value and effort.
+*so that* the authorities know about them.
 
-**INVEST in good user stories**. 
-You may add more details after, but the shorter and complete, the better. In order to decide if the user story is good, please follow the [INVEST guidelines](https://xp123.com/articles/invest-in-good-stories-and-smart-tasks/).
+##### Business Value:
 
-**User interface mockups**.
-After the user story text, you should add a draft of the corresponding user interfaces, a simple mockup or draft, if applicable.
+Enables rapid response to urban hazards by crowdsourcing incident detection. This allows authorities to stop environmental damage and budget-draining repairs before they escalate, while significantly increasing civic engagement by giving citizens a direct role in improving their community.
 
-**Acceptance tests**.
-For each user story you should write also the acceptance tests (textually in [Gherkin](https://cucumber.io/docs/gherkin/reference/)), i.e., a description of scenarios (situations) that will help to confirm that the system satisfies the requirements addressed by the user story.
+Assumptions/Dependencies: It is assumed that citizens have access to GPS-enabled mobile devices and are willing to grant the app permission to access their location and optionally their camera.
 
-**Value and effort**.
-At the end, it is good to add a rough indication of the value of the user story to the customers (e.g. [MoSCoW](https://en.wikipedia.org/wiki/MoSCoW_method) method) and the team should add an estimation of the effort to implement it using points in a kind-of-a Fibonnacci scale (1,2,3,5,8,13,20,40, no idea).
+The dependencies include integration with a map service (such as Google Maps) to convert coordinates into addresses, as well as a back-end server configured to receive and store image files and associated metadata.
 
--->
+##### Scenarios:
+
+**Normal case:**
+
+->A user detects a problem and has an active internet connection (GPS and network are functional).<br>
+The user shares their location.<br>
+The user selects the "Problem Type" from a list or types a custom description under "Others".<br>
+The user provides a brief description and optionally uploads a photo.
+
+- The system must successfully convert coordinates into an address and store the metadata.
+- The user must receive a "Successo!" confirmation message
+
+->A user detects a problem but there is no network coverage at the location.<br>
+User attempts to report the incident.<br><br>User selects "SIM” to the "Guardar Localização?" prompt.<br>
+User moves to an area with network coverage.
+
+- The system must successfully capture and cache GPS coordinates while offline.
+- The report must be automatically processed/synchronized once network is restored (the steps 2/3/4 of the normal case mockup must then appear)
 
 ### Domain model
 

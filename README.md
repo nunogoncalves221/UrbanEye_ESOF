@@ -34,11 +34,11 @@ Please contact us!
 
 Thank you!
 
+* Ana Baldaque - up202405858@up.pt
 * Guilherme Dias - guilhermectpdias@gmail.com
-* team member name and email
-* team member name and email
-* team member name and email
-* team member name and email
+* Maria Luísa Ferreira - up202406040@up.pt
+* Nuno Gonçalves - up202403355@up.pt
+* Raquel Silva - up202404971@up.pt
 
 ---
 
@@ -139,20 +139,38 @@ The dependencies include integration with a map service (such as Google Maps) to
 
 **Normal case:**
 
-->A user detects a problem and has an active internet connection (GPS and network are functional).<br>
+- A user detects a problem and has an active internet connection (GPS and network are functional).<br>
 The user shares their location.<br>
 The user selects the "Problem Type" from a list or types a custom description under "Others".<br>
 The user provides a brief description and optionally uploads a photo.
 
-- The system must successfully convert coordinates into an address and store the metadata.
-- The user must receive a "Successo!" confirmation message
+  - The system must successfully convert coordinates into an address and store the metadata.
+  - The user must receive a "Successo!" confirmation message
 
-->A user detects a problem but there is no network coverage at the location.<br>
+- A user detects a problem but there is no network coverage at the location.<br>
 User attempts to report the incident.<br><br>User selects "SIM” to the "Guardar Localização?" prompt.<br>
 User moves to an area with network coverage.
 
-- The system must successfully capture and cache GPS coordinates while offline.
-- The report must be automatically processed/synchronized once network is restored (the steps 2/3/4 of the normal case mockup must then appear)
+  - The system must successfully capture and cache GPS coordinates while offline.
+  - The report must be automatically processed/synchronized once network is restored (the steps 2/3/4 of the normal case mockup must then appear)
+
+![Normal case](docs/images/mockup_normal.png)
+
+
+**Exceptional case:**
+
+- A user detects a problem but there is no network coverage at the location.
+User attempts to report the incident.
+User selects "SIM” to the "Guardar Localização?" prompt.
+User moves to an area with network coverage.
+
+  - The system must successfully capture and cache GPS coordinates while offline.
+
+  - The report must be automatically processed/synchronized once network is restored (the steps 2/3/4 of the normal case mockup must then appear)
+
+![Exceptional case](docs/images/mockup_exceptional.png)
+
+
 
 ### Domain model
 

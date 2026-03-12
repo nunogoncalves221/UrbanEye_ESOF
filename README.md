@@ -35,7 +35,7 @@ Please contact us!
 Thank you!
 
 * Ana Baldaque - up202405858@up.pt
-* Guilherme Dias - guilhermectpdias@gmail.com
+* Guilherme Dias - up202403340@up.pt
 * Maria Luísa Ferreira - up202406040@up.pt
 * Nuno Gonçalves - up202403355@up.pt
 * Raquel Silva - up202404971@up.pt

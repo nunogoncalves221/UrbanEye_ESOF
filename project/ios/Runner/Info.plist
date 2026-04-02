@@ -66,5 +66,8 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+    <string>É necessário que permita a partilha da sua localização para que consigamos identificar o local em que se encontra </string>
+    
 </dict>
 </plist>

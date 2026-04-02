@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'features/auth_page.dart';
 import 'features/map_prototype_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -23,6 +25,18 @@ class HomePage extends StatelessWidget {
               );
             },
             child: const Text('Mapa Prototype'),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AuthPage(),
+                ),
+              );
+            },
+            child: const Text('Login / Register Prototype'),
           ),
         ],
       ),

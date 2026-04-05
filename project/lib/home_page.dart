@@ -3,6 +3,7 @@ import 'features/location.dart';
 import 'features/auth_page.dart';
 import 'features/map_prototype_page.dart';
 import 'features/img_picker.dart';
+import 'features/img_taker.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -59,6 +60,16 @@ class HomePage extends StatelessWidget {
               );
             },
             child: const Text('Image Picker Prototype'),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ImgTakerPage()),
+              );
+            },
+            child: const Text('Camera Prototype'),
           ),
         ],
       ),

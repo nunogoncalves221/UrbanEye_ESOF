@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'features/location.dart';
 import 'features/auth_page.dart';
 import 'features/map_prototype_page.dart';
+import 'features/report_problem.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -52,6 +53,19 @@ class HomePage extends StatelessWidget {
               backgroundColor: Colors.blue.shade50, 
             ),
             child: const Text('Localização Prototype'),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  // Make sure this matches the class name in your file!
+                  builder: (context) => const ReportProblemPrototype(), 
+                ),
+              );
+            },
+            child: const Text('Report Problem Prototype'),
           ),
         ],
       ),

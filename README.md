@@ -1,7 +1,5 @@
 <!-- Template file for README.md for LEIC-ES-2025-26 -->
 
-> [!NOTE] In this file, you will find the structure you should follow to document your mobile app in the README.md file for LEIC-ES-2025-26. It is a single file with guidelines, as comments, only seen in Edit mode, not in Preview mode. You can add more sections, but for assessment reasons and automation, please make sure to include all sections of this template. Your professors will clarify about specificities of your app.
-
 # _UrbanEye_ Development Report
 
 Welcome to the documentation of _UrbanEye_!
@@ -196,6 +194,7 @@ Example of _UML package diagram_ showing a _logical view_ of the Eletronic Ticke
 
 ![LogicalView](https://user-images.githubusercontent.com/9655877/160585416-b1278ad7-18d7-463c-b8c6-afa4f7ac7639.png)
 -->
+![Logical architecture](docs/images/logical_architecture.png)
 
 
 ### Physical architecture

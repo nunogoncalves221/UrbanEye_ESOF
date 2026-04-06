@@ -208,6 +208,8 @@ Example of _UML deployment diagram_ showing a _deployment view_ of the Eletronic
 
 ![DeploymentView](https://user-images.githubusercontent.com/9655877/160592491-20e85af9-0758-4e1e-a704-0db1be3ee65d.png)
 -->
+The UrbanEye mobile application runs in the operating system environment of the user's mobile device. The UI allows users to interact with the platform, such as submitting incident reports and browsing reported issues. The application logic handles each of these actions accordingly. Persistent data, including user profiles and incident reports, is stored and managed through Firebase, while map tiles are retrieved from an external tile server.
+
 ![Physical architecture](docs/images/physical_architecture.png)
 
 

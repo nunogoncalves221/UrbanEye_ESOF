@@ -3,6 +3,7 @@ import 'features/location.dart';
 import 'features/auth_page.dart';
 import 'features/map_prototype_page.dart';
 import 'features/report_problem.dart';
+import 'features/problems_list.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -66,6 +67,18 @@ class HomePage extends StatelessWidget {
               );
             },
             child: const Text('Report Problem Prototype'),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProblemsList(),
+                ),
+              );
+            },
+            child: const Text('Ver Problemas'),
           ),
         ],
       ),

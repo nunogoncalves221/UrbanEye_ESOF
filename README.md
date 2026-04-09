@@ -145,11 +145,16 @@ The user provides a brief description and optionally uploads a photo.
   - The system must successfully convert coordinates into an address and store the metadata.
   - The user must receive a "Successo!" confirmation message
 
-![Logical architecture](docs/images/Normal1.png)
-![Logical architecture](docs/images/Normal&Exceptional_2.png)
-![Logical architecture](docs/images/Normal&Exceptional_3.png)
-![Logical architecture](docs/images/Normal4_Exceptional_5.png)
-![Logical architecture](docs/images/Normal5_Exceptional_6.png)
+<p>
+ <img src="docs/images/Normal1.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal&Exceptional_2.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal&Exceptional_3.png" alt="Logical architecture" width="32%">
+</p>
+<p>
+ <img src="docs/images/Normal4_Exceptional5.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal5_Exceptional6.png" alt="Logical architecture" width="32%">
+</p>
+ 
 
 **Exceptional case:**
 
@@ -162,12 +167,17 @@ User moves to an area with network coverage.
 
   - The report must be automatically processed/synchronized once network is restored (the steps 2/3/4 of the normal case mockup must then appear)
 
-![Logical architecture](docs/images/Exceptional1.png)
-![Logical architecture](docs/images/Normal&Exceptional_2.png)
-![Logical architecture](docs/images/Normal&Exceptional_3.png)
-![Logical architecture](docs/images/Exceptional4.png)
-![Logical architecture](docs/images/Normal4_Exceptional_5.png)
-![Logical architecture](docs/images/Normal5_Exceptional_6.png)
+<p>
+ <img src="docs/images/Exceptional1.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal&Exceptional_2.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal&Exceptional_3.png" alt="Logical architecture" width="32%">
+</p>
+<p>
+ <img src="docs/images/Exceptional4.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal4_Exceptional5.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal5_Exceptional6.png" alt="Logical architecture" width="32%">
+</p>
+
 
 
 ### Domain model

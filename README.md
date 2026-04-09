@@ -246,6 +246,7 @@ You can find below information and references related with the project managemen
 ### Sprint 0
 
 ### Sprint 1
+![Sprint1 Start](docs/images/sprint1_start.png)
 
 ### Sprint 2
 

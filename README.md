@@ -145,11 +145,16 @@ The user provides a brief description and optionally uploads a photo.
   - The system must successfully convert coordinates into an address and store the metadata.
   - The user must receive a "Successo!" confirmation message
 
-<img width="33%" alt="Normal scenario image 1" src="https://github.com/user-attachments/assets/f03cb1ec-09a3-499c-803b-c45fbd3bd842" />
-<img width="33%" alt="Normal scenario image 2" src="https://github.com/user-attachments/assets/f9452027-1af9-4c5d-bdcf-b37972ce3ac1" />
-<img width="33%" alt="Normal scenario image 3" src="https://github.com/user-attachments/assets/ca971b24-6c6d-47ff-9a8b-bc02436f5acf" />
-<img width="33%" alt="Normal scenario image 4" src="https://github.com/user-attachments/assets/5e8c15d0-5e6a-429f-8abc-2f7e95566c2b" />
-<img width="33%" alt="Normal scenario image 5" src="https://github.com/user-attachments/assets/57610dff-34b2-4ebd-bf3a-308156472522" />
+<p>
+ <img src="docs/images/Normal1.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal&Exceptional_2.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal&Exceptional_3.png" alt="Logical architecture" width="32%">
+</p>
+<p>
+ <img src="docs/images/Normal4_Exceptional5.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal5_Exceptional6.png" alt="Logical architecture" width="32%">
+</p>
+ 
 
 **Exceptional case:**
 
@@ -162,12 +167,18 @@ User moves to an area with network coverage.
 
   - The report must be automatically processed/synchronized once network is restored (the steps 2/3/4 of the normal case mockup must then appear)
 
-<img width="33%" alt="Exceptional scenario image 1" src="https://github.com/user-attachments/assets/74a202c3-b688-4599-bfba-031e7054ef6b" />
-<img width="33%" alt="Exceptional scenario image 2" src="https://github.com/user-attachments/assets/111fcb42-c876-4b87-86c6-b4cabef9f862" />
-<img width="33%" alt="Exceptional scenario image 3" src="https://github.com/user-attachments/assets/c320a9ed-0a7f-4931-bea1-dfdf2dbcf032" />
-<img width="33%" alt="Exceptional scenario image 4" src="https://github.com/user-attachments/assets/a110ec63-5639-4876-8283-1ce60e09268e" />
-<img width="33%" alt="Exceptional scenario image 5" src="https://github.com/user-attachments/assets/bf44d826-2696-4229-b93c-7223e840ac88" />
-<img width="33%" alt="Exceptional scenario image 6" src="https://github.com/user-attachments/assets/46e5a555-76d8-4087-a577-03c5d8b23859" />
+<p>
+ <img src="docs/images/Exceptional1.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal&Exceptional_2.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal&Exceptional_3.png" alt="Logical architecture" width="32%">
+</p>
+<p>
+ <img src="docs/images/Exceptional4.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal4_Exceptional5.png" alt="Logical architecture" width="32%">
+ <img src="docs/images/Normal5_Exceptional6.png" alt="Logical architecture" width="32%">
+</p>
+
+
 
 ### Domain model
 <img width="100%" alt="Domain modeling" src="https://github.com/user-attachments/assets/c70b8f54-d235-4a28-9404-f15c82da94eb" />

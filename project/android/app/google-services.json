@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "453778628016",
+    "project_id": "esof-login",
+    "storage_bucket": "esof-login.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:453778628016:android:817429cc5e1a00777b0a75",
+        "android_client_info": {
+          "package_name": "com.example.project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzWAPHlvAlERaNWXysnhNd70414J0nhho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

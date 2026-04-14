@@ -1,23 +1,32 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 import '../services/auth_service.dart';
 
 class AuthPage extends StatefulWidget {
-  const AuthPage({super.key});
+  final AuthService authService;
+
+  const AuthPage({
+    super.key,
+    AuthService? authService,
+  }) : authService = authService ?? const AuthService();
 
   @override
   State<AuthPage> createState() => _AuthPageState();
 }
 
 class _AuthPageState extends State<AuthPage> {
-  final AuthService _authService = AuthService();
+  late final AuthService _authService;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  bool _isLoading = false;
   String _message = '';
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = widget.authService;
+  }
 
   Future<void> _login() async {
     setState(() {
@@ -27,20 +36,17 @@ class _AuthPageState extends State<AuthPage> {
 
     try {
       final userCredential = await _authService.signIn(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        email: _emailController.text,
+        password: _passwordController.text,
       );
 
       setState(() {
-        _message = 'Login feito com sucesso: ${userCredential.user?.email}';
+        _message =
+            'Login successful: ${userCredential.user?.email ?? ''}';
       });
-    } on FirebaseAuthException catch (e) {
+    } catch (e) {
       setState(() {
-        _message = e.message ?? 'Erro ao fazer login.';
-      });
-    } catch (_) {
-      setState(() {
-        _message = 'Erro inesperado ao fazer login.';
+        _message = e.toString();
       });
     } finally {
       setState(() {
@@ -57,20 +63,17 @@ class _AuthPageState extends State<AuthPage> {
 
     try {
       final userCredential = await _authService.register(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        email: _emailController.text,
+        password: _passwordController.text,
       );
 
       setState(() {
-        _message = 'Conta criada com sucesso: ${userCredential.user?.email}';
+        _message =
+            'Account created successfully: ${userCredential.user?.email ?? ''}';
       });
-    } on FirebaseAuthException catch (e) {
+    } catch (e) {
       setState(() {
-        _message = e.message ?? 'Erro ao criar conta.';
-      });
-    } catch (_) {
-      setState(() {
-        _message = 'Erro inesperado ao criar conta.';
+        _message = e.toString();
       });
     } finally {
       setState(() {
@@ -83,20 +86,13 @@ class _AuthPageState extends State<AuthPage> {
     await _authService.signOut();
 
     setState(() {
-      _message = 'Sessão terminada.';
+      _message = 'Logged out.';
     });
   }
 
   @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final currentUser = _authService.currentUser;
+    final user = _authService.currentUser;
 
     return Scaffold(
       appBar: AppBar(
@@ -106,59 +102,46 @@ class _AuthPageState extends State<AuthPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            if (currentUser != null) ...[
-              Text(
-                'Utilizador atual: ${currentUser.email}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-            ],
+            if (user != null)
+              Text('Current user: ${user.email ?? ''}'),
+
+            const SizedBox(height: 16),
+
             TextField(
               controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Email'),
             ),
-            const SizedBox(height: 12),
+
+            const SizedBox(height: 8),
+
             TextField(
               controller: _passwordController,
+              decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-              ),
             ),
+
             const SizedBox(height: 16),
+
             if (_isLoading)
               const CircularProgressIndicator()
-            else
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ElevatedButton(
-                    onPressed: _login,
-                    child: const Text('Login'),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: _register,
-                    child: const Text('Register'),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: _logout,
-                    child: const Text('Logout'),
-                  ),
-                ],
+            else ...[
+              ElevatedButton(
+                onPressed: _login,
+                child: const Text('Login'),
               ),
-            const SizedBox(height: 20),
-            if (_message.isNotEmpty)
-              Text(
-                _message,
-                textAlign: TextAlign.center,
+              ElevatedButton(
+                onPressed: _register,
+                child: const Text('Register'),
               ),
+              ElevatedButton(
+                onPressed: _logout,
+                child: const Text('Logout'),
+              ),
+            ],
+
+            const SizedBox(height: 16),
+
+            Text(_message),
           ],
         ),
       ),

@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
-import 'features/location.dart';
-import 'features/auth_page.dart';
-import 'features/map_prototype_page.dart';
-import 'features/report_problem.dart';
-import 'features/problems_list.dart';
-import 'features/img_picker.dart';
-import 'features/img_taker.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+import 'auth_page.dart';
+import 'img_picker.dart';
+import 'img_taker.dart';
+import 'location.dart';
+import 'map_prototype_page.dart';
+import 'problems_list.dart';
+import 'report_problem.dart';
+
+class PrototypeListPage extends StatelessWidget {
+  const PrototypeListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Feature Prototypes')),
+      appBar: AppBar(
+        title: const Text('Prototypes'),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -22,34 +25,11 @@ class HomePage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const MapPrototypePage(),
+                  builder: (_) => const MapPrototypePage(),
                 ),
               );
             },
-            child: const Text('Mapa Prototype'),
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AuthPage()),
-              );
-            },
-            child: const Text('Login / Register Prototype'),
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LocationScreen()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade50,
-            ),
-            child: const Text('Localização Prototype'),
+            child: const Text('Map Prototype'),
           ),
           const SizedBox(height: 12),
           ElevatedButton(
@@ -57,8 +37,31 @@ class HomePage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  // Make sure this matches the class name in your file!
-                  builder: (context) => const ReportProblemPrototype(),
+                  builder: (_) => const AuthPage(),
+                ),
+              );
+            },
+            child: const Text('Auth Prototype'),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LocationScreen(),
+                ),
+              );
+            },
+            child: const Text('Location Prototype'),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ReportProblemPrototype(),
                 ),
               );
             },
@@ -69,10 +72,12 @@ class HomePage extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ProblemsList()),
+                MaterialPageRoute(
+                  builder: (_) => const ProblemsList(),
+                ),
               );
             },
-            child: const Text('Ver Problemas'),
+            child: const Text('Problems List Prototype'),
           ),
           const SizedBox(height: 12),
           ElevatedButton(
@@ -80,7 +85,7 @@ class HomePage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const ImagePickerPage(),
+                  builder: (_) => const ImagePickerPage(),
                 ),
               );
             },
@@ -91,7 +96,9 @@ class HomePage extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ImgTakerPage()),
+                MaterialPageRoute(
+                  builder: (_) => const ImgTakerPage(),
+                ),
               );
             },
             child: const Text('Camera Prototype'),

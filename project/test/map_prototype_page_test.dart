@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:project/features/map_prototype_page.dart';
+import 'package:project/prototypes/map_prototype_page.dart';
 
 void main() {
   group('MapPrototypePage', () {

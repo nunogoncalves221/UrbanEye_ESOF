@@ -181,7 +181,7 @@ User moves to an area with network coverage.
 
 
 ### Domain model
-<img width="100%" alt="Domain modeling" src="https://github.com/user-attachments/assets/c70b8f54-d235-4a28-9404-f15c82da94eb" />
+![Logical architecture](docs/images/DomainModeling.png)
 
 ## Architecture and Design
 <!--

@@ -1,0 +1,50 @@
+class ReportModel {
+  final String? id;
+  final String category;
+  final String description;
+  final double latitude;
+  final double longitude;
+  final String? photoUrl;
+  final String? userId;
+  final String status;
+  final DateTime createdAt;
+
+  ReportModel({
+    this.id,
+    required this.category,
+    required this.description,
+    required this.latitude,
+    required this.longitude,
+    this.photoUrl,
+    this.userId,
+    this.status = 'pending',
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
+
+  Map<String, dynamic> toMap() {
+    return {
+      'category': category,
+      'description': description,
+      'latitude': latitude,
+      'longitude': longitude,
+      'photoUrl': photoUrl,
+      'userId': userId,
+      'status': status,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory ReportModel.fromMap(String id, Map<String, dynamic> map) {
+    return ReportModel(
+      id: id,
+      category: map['category'] ?? '',
+      description: map['description'] ?? '',
+      latitude: (map['latitude'] ?? 0).toDouble(),
+      longitude: (map['longitude'] ?? 0).toDouble(),
+      photoUrl: map['photoUrl'],
+      userId: map['userId'],
+      status: map['status'] ?? 'pending',
+      createdAt: DateTime.parse(map['createdAt']),
+    );
+  }
+}

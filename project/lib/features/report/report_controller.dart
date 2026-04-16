@@ -4,7 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'report_model.dart';
-import 'report_service.dart';
+import '../../services/report_service.dart';
 
 class ReportController extends ChangeNotifier {
   final ReportService _service;

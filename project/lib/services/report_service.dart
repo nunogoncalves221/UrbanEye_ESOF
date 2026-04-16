@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'report_model.dart';
+import '../features/report/report_model.dart';
 
 class ReportService {
   const ReportService();

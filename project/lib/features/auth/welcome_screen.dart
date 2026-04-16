@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:project/features/auth/login_screen.dart';
 import 'package:project/features/auth/register_screen.dart';
 import 'package:project/prototypes/prototype_list_page.dart';
+import 'package:project/features/report/report_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -19,6 +20,13 @@ class WelcomeScreen extends StatelessWidget {
       MaterialPageRoute(builder: (_) => const RegisterScreen()),
     );
   }
+
+  void _openReport(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const ReportScreen()),
+  );
+}
 
   void _openPrototypes(BuildContext context) {
     Navigator.push(
@@ -53,6 +61,11 @@ class WelcomeScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 16),
+
+            ElevatedButton(
+              onPressed: () => _openReport(context),
+              child: const Text('Report a problem'),
+            ),
 
             TextButton(
               onPressed: () => _openPrototypes(context),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'report_controller.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -36,7 +37,6 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Future<void> _handleSubmit() async {
     // Sync text fields into controller before submitting
-    _controller.selectedCategory = _categoryController.text;
     _controller.description = _descriptionController.text;
 
     final success = await _controller.submitReport();
@@ -72,10 +72,40 @@ class _ReportScreenState extends State<ReportScreen> {
     }
   }
 
-  Future<void> _handlePickPhoto() async {
-    await _controller.pickPhoto();
+  Future<void> _handlePickPhoto(ImageSource source) async {
+    await _controller.pickPhoto(source);
     if (!mounted) return;
     setState(() {});
+  }
+
+  void _showPhotoSourceModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _handlePickPhoto(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take a Photo'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _handlePickPhoto(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -133,16 +163,16 @@ class _ReportScreenState extends State<ReportScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     // Photo button — turns green when photo is picked
-                    OutlinedButton.icon(
-                      onPressed: _controller.isLoading ? null : _handlePickPhoto,
-                      icon: Icon(
-                        Icons.camera_alt,
-                        color: _controller.photo != null ? Colors.green : null,
-                      ),
-                      label: Text(
-                        _controller.photo != null ? 'Photo added ✓' : 'Photo',
-                      ),
+                   OutlinedButton.icon(
+                    onPressed: _controller.isLoading ? null : _showPhotoSourceModal, // <-- Chama o modal aqui
+                    icon: Icon(
+                      Icons.camera_alt,
+                      color: _controller.photo != null ? Colors.green : null,
                     ),
+                    label: Text(
+                      _controller.photo != null ? 'Photo added ✓' : 'Photo',
+                    ),
+                  ),
 
                     // Location button — shows coords when fetched
                     OutlinedButton.icon(

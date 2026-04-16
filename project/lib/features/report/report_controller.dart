@@ -62,9 +62,9 @@ class ReportController extends ChangeNotifier {
 
   // ─── Photo ──────────────────────────────────────────────────
 
-  Future<void> pickPhoto() async {
+  Future<void> pickPhoto(ImageSource source) async {
     try {
-      final XFile? picked = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? picked = await _picker.pickImage(source: source);
       if (picked != null) {
         photo = File(picked.path);
         notifyListeners();

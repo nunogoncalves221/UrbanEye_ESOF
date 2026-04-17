@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ReportModel {
   final String? id;
   final String category;
@@ -30,11 +32,21 @@ class ReportModel {
       'photoUrl': photoUrl,
       'userId': userId,
       'status': status,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 
   factory ReportModel.fromMap(String id, Map<String, dynamic> map) {
+    DateTime parsedDate;
+    final raw = map['createdAt'];
+    if (raw is Timestamp) {
+      parsedDate = raw.toDate();
+    } else if (raw is String) {
+      parsedDate = DateTime.parse(raw);
+    } else {
+      parsedDate = DateTime.now();
+    }
+
     return ReportModel(
       id: id,
       category: map['category'] ?? '',
@@ -44,7 +56,7 @@ class ReportModel {
       photoUrl: map['photoUrl'],
       userId: map['userId'],
       status: map['status'] ?? 'pending',
-      createdAt: DateTime.parse(map['createdAt']),
+      createdAt: parsedDate,
     );
   }
 }

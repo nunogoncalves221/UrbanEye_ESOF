@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'report_controller.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
+import 'location_picker_screen.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -58,19 +60,23 @@ class _ReportScreenState extends State<ReportScreen> {
     }
   }
 
-  Future<void> _handleFetchLocation() async {
-    await _controller.fetchLocation();
-    if (!mounted) return;
-    setState(() {}); // Refresh UI to show coordinates or error
-    if (_controller.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_controller.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+Future<void> _handlePickLocation() async {
+  final LatLng? result = await Navigator.push<LatLng>(
+    context,
+    MaterialPageRoute(
+      builder: (_) => LocationPickerScreen(
+        initialLatitude: _controller.latitude,
+        initialLongitude: _controller.longitude,
+      ),
+    ),
+  );
+
+  if (result != null) {
+    _controller.latitude = result.latitude;
+    _controller.longitude = result.longitude;
+    _controller.notifyListeners();
   }
+}
 
   Future<void> _handlePickPhoto(ImageSource source) async {
     await _controller.pickPhoto(source);
@@ -177,7 +183,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     // Location button — shows coords when fetched
                     OutlinedButton.icon(
                       onPressed:
-                          _controller.isLoading ? null : _handleFetchLocation,
+                          _controller.isLoading ? null : _handlePickLocation,
                       icon: Icon(
                         Icons.location_on,
                         color: _controller.latitude != null ? Colors.green : null,

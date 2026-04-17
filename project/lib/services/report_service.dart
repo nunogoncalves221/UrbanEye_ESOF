@@ -9,16 +9,16 @@ class ReportService {
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
   FirebaseStorage get _storage => FirebaseStorage.instance;
 
-  /// Uploads a photo to Firebase Storage and returns its download URL.
   Future<String?> _uploadPhoto(File photo, String reportId) async {
     final ref = _storage.ref().child('reports/$reportId/photo.jpg');
-    await ref.putFile(photo);
+    await ref.putFile(photo).timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => throw Exception('Upload timed out. Check your connection or Firebase Storage rules.'),
+    );
     return await ref.getDownloadURL();
   }
 
-  /// Saves a report to Firestore, uploading the photo first if provided.
   Future<void> submitReport(ReportModel report, {File? photo}) async {
-    // Create the document first to get an ID
     final docRef = _firestore.collection('reports').doc();
 
     String? photoUrl;
@@ -26,7 +26,6 @@ class ReportService {
       photoUrl = await _uploadPhoto(photo, docRef.id);
     }
 
-    // Build final report with photo URL and document ID
     final finalReport = ReportModel(
       id: docRef.id,
       category: report.category,
@@ -42,7 +41,19 @@ class ReportService {
     await docRef.set(finalReport.toMap());
   }
 
-  /// Fetches all reports for a given user.
+  /// Stream em tempo real dos reports do utilizador
+  Stream<List<ReportModel>> watchReportsByUser(String userId) {
+    return _firestore
+        .collection('reports')
+        .where('userId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
+            .toList());
+  }
+
+  /// Fetch one-time dos reports do utilizador
   Future<List<ReportModel>> getReportsByUser(String userId) async {
     final snapshot = await _firestore
         .collection('reports')
@@ -53,5 +64,16 @@ class ReportService {
     return snapshot.docs
         .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
         .toList();
+  }
+
+  /// Apaga o report e a foto associada
+  Future<void> deleteReport(ReportModel report) async {
+    if (report.photoUrl != null) {
+      try {
+        final ref = _storage.refFromURL(report.photoUrl!);
+        await ref.delete();
+      } catch (_) {}
+    }
+    await _firestore.collection('reports').doc(report.id).delete();
   }
 }

@@ -10,8 +10,21 @@ class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   void _openLogin(BuildContext context) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()));
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          // This creates a simple Fade transition
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        // Optional: Adjust the speed of the fade (300-500ms is usually best)
+        transitionDuration: const Duration(milliseconds: 400),
+      ),
+    );
   }
 
   void _openRegister(BuildContext context) {
@@ -83,9 +96,9 @@ class WelcomeScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                 ],
 
-                TextButton(
+                /*TextButton(
                     onPressed: () => _openPrototypes(context),
-                    child: const Text('View prototypes')),
+                    child: const Text('View prototypes')), */
               ],
             ),
           );

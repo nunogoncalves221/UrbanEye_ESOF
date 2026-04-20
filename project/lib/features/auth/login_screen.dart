@@ -33,6 +33,11 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _message = 'Login successful';
       });
+
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) Navigator.pop(context);
+      });
+      
     } on FirebaseAuthException catch (e) {
       setState(() {
         _message = e.message ?? 'Login failed';
@@ -94,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
             Text(
               _message,
-              style: const TextStyle(color: Colors.red),
+              style: const TextStyle(color: Colors.green),
             ),
           ],
         ),

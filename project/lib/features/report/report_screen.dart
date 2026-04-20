@@ -5,14 +5,15 @@ import 'package:latlong2/latlong.dart';
 import 'location_picker_screen.dart';
 
 class ReportScreen extends StatefulWidget {
-  const ReportScreen({super.key});
+  final ReportController? controller;
+  const ReportScreen({super.key, this.controller});
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
 }
 
 class _ReportScreenState extends State<ReportScreen> {
-  final ReportController _controller = ReportController();
+  late final ReportController _controller;
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
@@ -28,6 +29,12 @@ class _ReportScreenState extends State<ReportScreen> {
     'Abandoned Vehicle',
     'Trash',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? ReportController();
+  }
 
   @override
   void dispose() {

@@ -8,9 +8,11 @@ import '../../services/report_service.dart';
 
 class ReportController extends ChangeNotifier {
   final ReportService _service;
+  final FirebaseAuth _auth;
 
-  ReportController({ReportService? service})
-      : _service = service ?? const ReportService();
+  ReportController({ReportService? service, FirebaseAuth? auth})
+      : _service = service ?? const ReportService(),
+        _auth = auth ?? FirebaseAuth.instance;
 
   // Form state
   String? selectedCategory;
@@ -105,7 +107,7 @@ class ReportController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
+      final userId = _auth.currentUser?.uid;
 
       final report = ReportModel(
         category: selectedCategory!,

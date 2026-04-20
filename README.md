@@ -257,8 +257,14 @@ You can find below information and references related with the project managemen
 ### Sprint 0
 
 ### Sprint 1
+Initial GitHub Project screenshot:
 ![Sprint1 Start](docs/images/sprint1_start.png)
 
+Retrospectives:
+
+During Sprint 1, we achieved the functionalities planned for this sprint. The system now supports reporting urban issues, such as power failures and water leaks, through a user-friendly interface.
+
+One important design decision made during this sprint was the revision of user roles. Initially, the system differentiated strictly between "clients" and "authorities", with only clients being able to report issues. However, we recognized the need for greater flexibility and updated the authority role to also include client functionalities, namely the ability to report problems. This adjustment enhances the overall usability and practicality of the application.
 ### Sprint 2
 
 ### Sprint 3

@@ -7,10 +7,10 @@ import 'report_model.dart';
 import '../../services/report_service.dart';
 
 class ReportController extends ChangeNotifier {
-  final ReportService _service;
+  final ReportServiceBase _service;
   final FirebaseAuth _auth;
 
-  ReportController({ReportService? service, FirebaseAuth? auth})
+  ReportController({ReportServiceBase? service, FirebaseAuth? auth})
       : _service = service ?? const ReportService(),
         _auth = auth ?? FirebaseAuth.instance;
 

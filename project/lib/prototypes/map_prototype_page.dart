@@ -27,9 +27,9 @@ class _MapPrototypePageState extends State<MapPrototypePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mapa Prototype'),
-      ),
+      //appBar: AppBar(
+      //title: const Text('Mapa Prototype'),
+      //),
       body: Stack(
         children: [
           FlutterMap(
@@ -62,7 +62,7 @@ class _MapPrototypePageState extends State<MapPrototypePage> {
           ),
           Positioned(
             right: 16,
-            bottom: 16,
+            bottom: 100,
             child: Column(
               children: [
                 FloatingActionButton(

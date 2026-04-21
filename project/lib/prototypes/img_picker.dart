@@ -4,16 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ImagePickerPage extends StatefulWidget {
-  const ImagePickerPage({super.key});
+  final ImagePicker picker;
+
+  ImagePickerPage({super.key, ImagePicker? picker})
+    : picker = picker ?? ImagePicker();
 
   @override
   State<ImagePickerPage> createState() => _ImagePickerPageState();
 }
 
 class _ImagePickerPageState extends State<ImagePickerPage> {
-  final ImagePicker _picker = ImagePicker();
+  late final ImagePicker _picker;
   File? _image;
   String _statusMessage = "Clica no botão para escolher uma imagem";
+
+  @override
+  void initState() {
+    super.initState();
+    _picker = widget.picker;
+  }
 
   Future<void> _pickImage() async {
     try {

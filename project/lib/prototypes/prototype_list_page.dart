@@ -14,9 +14,7 @@ class PrototypeListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Prototypes'),
-      ),
+      appBar: AppBar(title: const Text('Prototypes')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -24,9 +22,7 @@ class PrototypeListPage extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const MapPrototypePage(),
-                ),
+                MaterialPageRoute(builder: (_) => const MapPrototypePage()),
               );
             },
             child: const Text('Map Prototype'),
@@ -36,9 +32,7 @@ class PrototypeListPage extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const AuthPage(),
-                ),
+                MaterialPageRoute(builder: (_) => const AuthPage()),
               );
             },
             child: const Text('Auth Prototype'),
@@ -48,9 +42,7 @@ class PrototypeListPage extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const LocationScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const LocationScreen()),
               );
             },
             child: const Text('Location Prototype'),
@@ -72,9 +64,7 @@ class PrototypeListPage extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const ProblemsList(),
-                ),
+                MaterialPageRoute(builder: (_) => const ProblemsList()),
               );
             },
             child: const Text('Problems List Prototype'),
@@ -84,9 +74,7 @@ class PrototypeListPage extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const ImagePickerPage(),
-                ),
+                MaterialPageRoute(builder: (_) => ImagePickerPage()),
               );
             },
             child: const Text('Image Picker Prototype'),
@@ -96,9 +84,7 @@ class PrototypeListPage extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const ImgTakerPage(),
-                ),
+                MaterialPageRoute(builder: (_) => ImgTakerPage()),
               );
             },
             child: const Text('Camera Prototype'),

@@ -16,6 +16,7 @@ class MainScreen extends StatelessWidget {
     this.reportService = const ReportService(),
   });
 
+  // navigate to ReportScreen
   void _openReport(BuildContext context) {
     Navigator.push(
       context,
@@ -23,6 +24,7 @@ class MainScreen extends StatelessWidget {
     );
   }
 
+  // navigate to MyReportsScreen
   void _openProfile(BuildContext context) {
     Navigator.push(
       context,
@@ -32,16 +34,20 @@ class MainScreen extends StatelessWidget {
     );
   }
 
+  // navigate to WelcomeScreen
   void _goToWelcome(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      MaterialPageRoute(
+        builder: (_) => WelcomeScreen(auth: auth, service: reportService),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // show map and report button
       appBar: AppBar(
         title: const Text('Home Screen'),
         automaticallyImplyLeading: false,
@@ -60,7 +66,7 @@ class MainScreen extends StatelessWidget {
               } else {
                 //logged in
                 return TextButton(
-                  onPressed: () => _openProfile(context),
+                  onPressed: () => _goToWelcome(context),
                   child: const Text('Profile'),
                 );
               }

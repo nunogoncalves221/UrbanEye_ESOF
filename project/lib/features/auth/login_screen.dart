@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:project/features/main_screen.dart';
 import 'package:project/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -35,7 +36,14 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) Navigator.pop(context);
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MainScreen(auth: FirebaseAuth.instance),
+            ),
+          );
+        }
       });
       
     } on FirebaseAuthException catch (e) {

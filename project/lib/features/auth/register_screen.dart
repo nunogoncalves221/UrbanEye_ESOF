@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:project/features/main_screen.dart';
 import 'package:project/services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -32,6 +33,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       setState(() {
         _message = 'Account created successfully';
+      });
+
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MainScreen(auth: FirebaseAuth.instance),
+            ),
+          );
+        }
       });
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {

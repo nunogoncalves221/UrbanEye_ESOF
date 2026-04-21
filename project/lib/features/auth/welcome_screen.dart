@@ -6,9 +6,12 @@ import 'package:project/prototypes/prototype_list_page.dart';
 import 'package:project/features/report/report_screen.dart';
 import 'package:project/features/report/my_reports_screen.dart';
 import 'package:project/features/main_screen.dart';
+import 'package:project/services/report_service.dart';
 
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key});
+  final FirebaseAuth? auth;
+  final ReportServiceBase service;
+  const WelcomeScreen({super.key, this.auth, this.service = const ReportService()});
 
   void _openLogin(BuildContext context) {
     Navigator.push(
@@ -36,14 +39,21 @@ class WelcomeScreen extends StatelessWidget {
   void _openReport(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const ReportScreen()),
+      MaterialPageRoute(
+        builder: (_) => ReportScreen(auth: auth ?? FirebaseAuth.instance),
+      ),
     );
   }
 
   void _openMyReports(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const MyReportsScreen()),
+      MaterialPageRoute(
+        builder: (_) => MyReportsScreen(
+          auth: auth ?? FirebaseAuth.instance,
+          service: service,
+        ),
+      ),
     );
   }
 
@@ -51,7 +61,7 @@ class WelcomeScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => MainScreen(auth: FirebaseAuth.instance),
+        builder: (_) => MainScreen(auth: auth ?? FirebaseAuth.instance),
       ),
     );
   }
@@ -67,7 +77,7 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
+        stream: (auth ?? FirebaseAuth.instance).authStateChanges(),
         builder: (context, snapshot) {
           final user = snapshot.data;
 
@@ -107,13 +117,13 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
-                    onPressed: () => _openReport(context),
+                    onPressed: () => _openMain(context),
                     icon: const Icon(Icons.add_circle_outline),
                     label: const Text('Report a problem'),
                   ),
                   const SizedBox(height: 16),
                   OutlinedButton(
-                    onPressed: () => FirebaseAuth.instance.signOut(),
+                    onPressed: () => (auth ?? FirebaseAuth.instance).signOut(),
                     child: const Text('Sign out'),
                   ),
                   const SizedBox(height: 16),

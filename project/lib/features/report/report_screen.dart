@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'report_controller.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,7 +7,8 @@ import 'location_picker_screen.dart';
 
 class ReportScreen extends StatefulWidget {
   final ReportController? controller;
-  const ReportScreen({super.key, this.controller});
+  final FirebaseAuth? auth;
+  const ReportScreen({super.key, this.controller, this.auth});
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
@@ -33,7 +35,7 @@ class _ReportScreenState extends State<ReportScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller ?? ReportController();
+    _controller = widget.controller ?? ReportController(auth: widget.auth);
   }
 
   @override
@@ -67,23 +69,23 @@ class _ReportScreenState extends State<ReportScreen> {
     }
   }
 
-Future<void> _handlePickLocation() async {
-  final LatLng? result = await Navigator.push<LatLng>(
-    context,
-    MaterialPageRoute(
-      builder: (_) => LocationPickerScreen(
-        initialLatitude: _controller.latitude,
-        initialLongitude: _controller.longitude,
+  Future<void> _handlePickLocation() async {
+    final LatLng? result = await Navigator.push<LatLng>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LocationPickerScreen(
+          initialLatitude: _controller.latitude,
+          initialLongitude: _controller.longitude,
+        ),
       ),
-    ),
-  );
+    );
 
-  if (result != null) {
-    _controller.latitude = result.latitude;
-    _controller.longitude = result.longitude;
-    _controller.notifyListeners();
+    if (result != null) {
+      _controller.latitude = result.latitude;
+      _controller.longitude = result.longitude;
+      _controller.notifyListeners();
+    }
   }
-}
 
   Future<void> _handlePickPhoto(ImageSource source) async {
     await _controller.pickPhoto(source);
@@ -124,9 +126,7 @@ Future<void> _handlePickLocation() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Report a Problem'),
-      ),
+      appBar: AppBar(title: const Text('Report a Problem')),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) {
@@ -136,8 +136,10 @@ Future<void> _handlePickLocation() async {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── Category ──────────────────────────────────
-                const Text('Category',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Category',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 DropdownMenu<String>(
                   controller: _categoryController,
@@ -145,10 +147,7 @@ Future<void> _handlePickLocation() async {
                   hintText: 'Select or type a category...',
                   requestFocusOnTap: true,
                   dropdownMenuEntries: _categories
-                      .map((c) => DropdownMenuEntry<String>(
-                            value: c,
-                            label: c,
-                          ))
+                      .map((c) => DropdownMenuEntry<String>(value: c, label: c))
                       .toList(),
                   onSelected: (value) {
                     _controller.selectedCategory = value;
@@ -157,8 +156,10 @@ Future<void> _handlePickLocation() async {
                 const SizedBox(height: 20),
 
                 // ── Description ───────────────────────────────
-                const Text('Description',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Description',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _descriptionController,
@@ -176,24 +177,29 @@ Future<void> _handlePickLocation() async {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     // Photo button — turns green when photo is picked
-                   OutlinedButton.icon(
-                    onPressed: _controller.isLoading ? null : _showPhotoSourceModal, // <-- Chama o modal aqui
-                    icon: Icon(
-                      Icons.camera_alt,
-                      color: _controller.photo != null ? Colors.green : null,
+                    OutlinedButton.icon(
+                      onPressed: _controller.isLoading
+                          ? null
+                          : _showPhotoSourceModal, // <-- Chama o modal aqui
+                      icon: Icon(
+                        Icons.camera_alt,
+                        color: _controller.photo != null ? Colors.green : null,
+                      ),
+                      label: Text(
+                        _controller.photo != null ? 'Photo added ✓' : 'Photo',
+                      ),
                     ),
-                    label: Text(
-                      _controller.photo != null ? 'Photo added ✓' : 'Photo',
-                    ),
-                  ),
 
                     // Location button — shows coords when fetched
                     OutlinedButton.icon(
-                      onPressed:
-                          _controller.isLoading ? null : _handlePickLocation,
+                      onPressed: _controller.isLoading
+                          ? null
+                          : _handlePickLocation,
                       icon: Icon(
                         Icons.location_on,
-                        color: _controller.latitude != null ? Colors.green : null,
+                        color: _controller.latitude != null
+                            ? Colors.green
+                            : null,
                       ),
                       label: Text(
                         _controller.latitude != null
@@ -225,8 +231,10 @@ Future<void> _handlePickLocation() async {
                     onPressed: _controller.isLoading ? null : _handleSubmit,
                     child: _controller.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('SUBMIT REPORT',
-                            style: TextStyle(fontSize: 16)),
+                        : const Text(
+                            'SUBMIT REPORT',
+                            style: TextStyle(fontSize: 16),
+                          ),
                   ),
                 ),
               ],

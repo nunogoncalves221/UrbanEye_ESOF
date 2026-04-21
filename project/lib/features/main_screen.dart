@@ -4,26 +4,39 @@ import 'package:project/features/report/report_screen.dart';
 import 'package:project/features/report/my_reports_screen.dart';
 import 'package:project/features/auth/welcome_screen.dart';
 import 'package:project/prototypes/map_prototype_page.dart';
+import 'package:project/services/report_service.dart';
 
 class MainScreen extends StatelessWidget {
-  const MainScreen({super.key});
+  final FirebaseAuth auth;
+  final ReportServiceBase reportService;
+
+  const MainScreen({
+    super.key,
+    required this.auth,
+    this.reportService = const ReportService(),
+  });
 
   void _openReport(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const ReportScreen()),
+      MaterialPageRoute(builder: (_) => ReportScreen(auth: auth)),
     );
   }
 
   void _openProfile(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const MyReportsScreen()),
+      MaterialPageRoute(
+        builder: (_) => MyReportsScreen(auth: auth, service: reportService),
+      ),
     );
   }
 
   void _goToWelcome(BuildContext context) {
-    Navigator.pop(context);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+    );
   }
 
   @override
@@ -34,7 +47,7 @@ class MainScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
         actions: [
           StreamBuilder<User?>(
-            stream: FirebaseAuth.instance.authStateChanges(),
+            stream: auth.authStateChanges(),
             builder: (context, snapshot) {
               final user = snapshot.data;
 

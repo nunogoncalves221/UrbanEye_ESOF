@@ -3,7 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../features/report/report_model.dart';
 
-class ReportService {
+abstract class ReportServiceBase {
+  const ReportServiceBase();
+  Stream<List<ReportModel>> watchReportsByUser(String userId);
+  Future<void> deleteReport(ReportModel report);
+  Future<void> submitReport(ReportModel report, {File? photo});
+}
+
+class ReportService extends ReportServiceBase {
   const ReportService();
 
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
@@ -11,13 +18,18 @@ class ReportService {
 
   Future<String?> _uploadPhoto(File photo, String reportId) async {
     final ref = _storage.ref().child('reports/$reportId/photo.jpg');
-    await ref.putFile(photo).timeout(
-      const Duration(seconds: 30),
-      onTimeout: () => throw Exception('Upload timed out. Check your connection or Firebase Storage rules.'),
-    );
+    await ref
+        .putFile(photo)
+        .timeout(
+          const Duration(seconds: 30),
+          onTimeout: () => throw Exception(
+            'Upload timed out. Check your connection or Firebase Storage rules.',
+          ),
+        );
     return await ref.getDownloadURL();
   }
 
+  @override
   Future<void> submitReport(ReportModel report, {File? photo}) async {
     final docRef = _firestore.collection('reports').doc();
 
@@ -42,15 +54,18 @@ class ReportService {
   }
 
   /// Stream em tempo real dos reports do utilizador
+  @override
   Stream<List<ReportModel>> watchReportsByUser(String userId) {
     return _firestore
         .collection('reports')
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   /// Fetch one-time dos reports do utilizador
@@ -67,6 +82,7 @@ class ReportService {
   }
 
   /// Apaga o report e a foto associada
+  @override
   Future<void> deleteReport(ReportModel report) async {
     if (report.photoUrl != null) {
       try {

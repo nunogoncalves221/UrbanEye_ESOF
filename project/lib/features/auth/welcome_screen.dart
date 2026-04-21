@@ -50,7 +50,9 @@ class WelcomeScreen extends StatelessWidget {
   void _openMain(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const MainScreen()),
+      MaterialPageRoute(
+        builder: (_) => MainScreen(auth: FirebaseAuth.instance),
+      ),
     );
   }
 

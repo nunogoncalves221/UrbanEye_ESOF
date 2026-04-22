@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// ajusta este import para o teu projeto
 import 'package:project/prototypes/problems_list.dart';
 
 void main() {

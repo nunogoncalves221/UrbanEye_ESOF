@@ -230,16 +230,12 @@ class MyReportsScreen extends StatelessWidget {
                                             vertical: 3,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: statusColor.withOpacity(
-                                              0.15,
-                                            ),
+                                            color: statusColor.withValues(alpha: 0.2),
                                             borderRadius: BorderRadius.circular(
                                               20,
                                             ),
                                             border: Border.all(
-                                              color: statusColor.withOpacity(
-                                                0.5,
-                                              ),
+                                              color: statusColor.withValues(alpha: 0.2),
                                             ),
                                           ),
                                           child: Text(

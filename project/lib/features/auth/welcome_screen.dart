@@ -2,8 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project/features/auth/login_screen.dart';
 import 'package:project/features/auth/register_screen.dart';
-import 'package:project/prototypes/prototype_list_page.dart';
-import 'package:project/features/report/report_screen.dart';
 import 'package:project/features/report/my_reports_screen.dart';
 import 'package:project/features/main_screen.dart';
 import 'package:project/services/report_service.dart';
@@ -40,15 +38,6 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 
-  void _openReport(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ReportScreen(auth: auth ?? FirebaseAuth.instance),
-      ),
-    );
-  }
-
   void _openMyReports(BuildContext context) {
     Navigator.push(
       context,
@@ -67,13 +56,6 @@ class WelcomeScreen extends StatelessWidget {
       MaterialPageRoute(
         builder: (_) => MainScreen(auth: auth ?? FirebaseAuth.instance),
       ),
-    );
-  }
-
-  void _openPrototypes(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const PrototypeListPage()),
     );
   }
 

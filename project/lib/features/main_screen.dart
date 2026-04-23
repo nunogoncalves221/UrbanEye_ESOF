@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project/features/report/report_screen.dart';
-import 'package:project/features/report/my_reports_screen.dart';
 import 'package:project/features/auth/welcome_screen.dart';
 import 'package:project/prototypes/map_prototype_page.dart';
 import 'package:project/services/report_service.dart';
@@ -21,16 +20,6 @@ class MainScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => ReportScreen(auth: auth)),
-    );
-  }
-
-  // navigate to MyReportsScreen
-  void _openProfile(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MyReportsScreen(auth: auth, service: reportService),
-      ),
     );
   }
 

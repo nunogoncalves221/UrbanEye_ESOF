@@ -11,7 +11,11 @@ import 'package:project/services/report_service.dart';
 class WelcomeScreen extends StatelessWidget {
   final FirebaseAuth? auth;
   final ReportServiceBase service;
-  const WelcomeScreen({super.key, this.auth, this.service = const ReportService()});
+  const WelcomeScreen({
+    super.key,
+    this.auth,
+    this.service = const ReportService(),
+  });
 
   void _openLogin(BuildContext context) {
     Navigator.push(

@@ -45,7 +45,6 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }
       });
-      
     } on FirebaseAuthException catch (e) {
       setState(() {
         _message = e.message ?? 'Login failed';
@@ -65,9 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   InputDecoration _inputDecoration() {
-    return const InputDecoration(
-      border: OutlineInputBorder(),
-    );
+    return const InputDecoration(border: OutlineInputBorder());
   }
 
   @override
@@ -98,17 +95,11 @@ class _LoginScreenState extends State<LoginScreen> {
             if (_isLoading)
               const CircularProgressIndicator()
             else
-              ElevatedButton(
-                onPressed: _login,
-                child: const Text('Login'),
-              ),
+              ElevatedButton(onPressed: _login, child: const Text('Login')),
 
             const SizedBox(height: 16),
 
-            Text(
-              _message,
-              style: const TextStyle(color: Colors.green),
-            ),
+            Text(_message, style: const TextStyle(color: Colors.green)),
           ],
         ),
       ),

@@ -13,7 +13,10 @@ Future<String?> defaultReverseGeocode(double lat, double lon) async {
       'https://nominatim.openstreetmap.org/reverse'
       '?lat=$lat&lon=$lon&format=json',
     );
-    final response = await http.get(uri, headers: {'User-Agent': 'project-app/1.0'});
+    final response = await http.get(
+      uri,
+      headers: {'User-Agent': 'project-app/1.0'},
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['display_name'] as String?;
@@ -27,7 +30,10 @@ Future<LatLng?> defaultSearchAddress(String query) async {
     'https://nominatim.openstreetmap.org/search'
     '?q=${Uri.encodeComponent(query)}&format=json&limit=1',
   );
-  final response = await http.get(uri, headers: {'User-Agent': 'project-app/1.0'});
+  final response = await http.get(
+    uri,
+    headers: {'User-Agent': 'project-app/1.0'},
+  );
   if (response.statusCode == 200) {
     final List results = jsonDecode(response.body);
     if (results.isNotEmpty) {
@@ -73,12 +79,14 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   void initState() {
     super.initState();
     if (widget.initialLatitude != null && widget.initialLongitude != null) {
-      _selectedPoint = LatLng(widget.initialLatitude!, widget.initialLongitude!);
+      _selectedPoint = LatLng(
+        widget.initialLatitude!,
+        widget.initialLongitude!,
+      );
     }
   }
 
-  LatLng get _mapCenter =>
-      _selectedPoint ?? _defaultCenter;
+  LatLng get _mapCenter => _selectedPoint ?? _defaultCenter;
 
   // ── Tap on map ────────────────────────────────────────────────
   void _onMapTap(TapPosition _, LatLng point) {
@@ -92,35 +100,41 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   // ── Reverse geocode (coordinates → address label) ─────────────
   Future<void> _reverseGeocode(LatLng point) async {
-      final label = await widget.reverseGeocode(point.latitude, point.longitude);
-  if (mounted) setState(() => _addressLabel = label);
+    final label = await widget.reverseGeocode(point.latitude, point.longitude);
+    if (mounted) setState(() => _addressLabel = label);
   }
 
   // ── Search by address ─────────────────────────────────────────
   Future<void> _searchAddress() async {
-  final query = _addressController.text.trim();
-  if (query.isEmpty) return;
+    final query = _addressController.text.trim();
+    if (query.isEmpty) return;
 
-  setState(() { _isSearching = true; _searchError = null; });
+    setState(() {
+      _isSearching = true;
+      _searchError = null;
+    });
 
-  try {
-    final point = await widget.searchAddress(query);
-    if (point != null) {
-      setState(() { _selectedPoint = point; _isSearching = false; });
-      _mapController.move(point, 16);
-      _reverseGeocode(point);
-    } else {
+    try {
+      final point = await widget.searchAddress(query);
+      if (point != null) {
+        setState(() {
+          _selectedPoint = point;
+          _isSearching = false;
+        });
+        _mapController.move(point, 16);
+        _reverseGeocode(point);
+      } else {
+        setState(() {
+          _searchError = 'Address not found. Try a different query.';
+          _isSearching = false;
+        });
+      }
+    } catch (_) {
       setState(() {
-        _searchError = 'Address not found. Try a different query.';
+        _searchError = 'Search failed. Check your connection.';
         _isSearching = false;
       });
     }
-  } catch (_) {
-    setState(() {
-      _searchError = 'Search failed. Check your connection.';
-      _isSearching = false;
-    });
-  }
   }
 
   void _confirm() {
@@ -165,7 +179,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                       hintText: 'Type a street address...',
                       border: const OutlineInputBorder(),
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       errorText: _searchError,
                     ),
                     onSubmitted: (_) => _searchAddress(),
@@ -179,7 +195,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Icon(Icons.search),
                 ),
@@ -223,32 +241,38 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                       ),
                   ],
                 ),
-              
-              Positioned(
-                right: 16,
-                bottom: 80,
-                child: Column(
-                  children: [
-                    FloatingActionButton(
-                      heroTag: 'zoomIn',
-                      onPressed: () {
-                        final current = _mapController.camera.zoom;
-                        _mapController.move(_mapController.camera.center, current + 1);
-                      },
-                      child: const Icon(Icons.add),
-                    ),
-                    const SizedBox(height: 12),
-                    FloatingActionButton(
-                      heroTag: 'zoomOut',
-                      onPressed: () {
-                        final current = _mapController.camera.zoom;
-                        _mapController.move(_mapController.camera.center, current - 1);
-                      },
-                      child: const Icon(Icons.remove),
-                    ),
-                  ],
+
+                Positioned(
+                  right: 16,
+                  bottom: 80,
+                  child: Column(
+                    children: [
+                      FloatingActionButton(
+                        heroTag: 'zoomIn',
+                        onPressed: () {
+                          final current = _mapController.camera.zoom;
+                          _mapController.move(
+                            _mapController.camera.center,
+                            current + 1,
+                          );
+                        },
+                        child: const Icon(Icons.add),
+                      ),
+                      const SizedBox(height: 12),
+                      FloatingActionButton(
+                        heroTag: 'zoomOut',
+                        onPressed: () {
+                          final current = _mapController.camera.zoom;
+                          _mapController.move(
+                            _mapController.camera.center,
+                            current - 1,
+                          );
+                        },
+                        child: const Icon(Icons.remove),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
                 // Hint overlay when nothing is selected yet
                 if (_selectedPoint == null)
@@ -260,7 +284,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                       child: Card(
                         child: Padding(
                           padding: EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                           child: Text('Tap the map to place a pin'),
                         ),
                       ),
@@ -281,8 +307,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   Text(
                     'Lat: ${_selectedPoint!.latitude.toStringAsFixed(5)}, '
                     'Lng: ${_selectedPoint!.longitude.toStringAsFixed(5)}',
-                    style: const TextStyle(
-                        fontSize: 12, color: Colors.grey),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                   if (_addressLabel != null) ...[
                     const SizedBox(height: 2),

@@ -4,12 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:project/prototypes/problems_list.dart';
 
 void main() {
-  testWidgets('ProblemsList displays all problems', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: ProblemsList(),
-      ),
-    );
+  testWidgets('ProblemsList displays all problems', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: ProblemsList()));
 
     // Verifica se o título aparece
     expect(find.text('Lista de Problemas'), findsOneWidget);
@@ -25,11 +23,7 @@ void main() {
   });
 
   testWidgets('Tapping a problem shows SnackBar', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: ProblemsList(),
-      ),
-    );
+    await tester.pumpWidget(const MaterialApp(home: ProblemsList()));
 
     // Clica no primeiro item
     await tester.tap(find.text('Rua Augusta'));

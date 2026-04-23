@@ -8,11 +8,7 @@ void main() {
     testWidgets('shows app bar, map, marker, and zoom buttons', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: MapPrototypePage(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: MapPrototypePage()));
 
       expect(find.text('Mapa Prototype'), findsOneWidget);
       expect(find.byType(FlutterMap), findsOneWidget);
@@ -25,11 +21,7 @@ void main() {
     testWidgets('allows tapping zoom buttons without crashing', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: MapPrototypePage(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: MapPrototypePage()));
 
       await tester.tap(find.byIcon(Icons.add));
       await tester.pump();

@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
-
 class LocationScreen extends StatefulWidget {
   const LocationScreen({super.key});
 
@@ -11,7 +10,7 @@ class LocationScreen extends StatefulWidget {
 }
 
 class _LocationScreenState extends State<LocationScreen> {
-String _locationMessage = "Clica no botão para ativar a localização";
+  String _locationMessage = "Clica no botão para ativar a localização";
 
   Future<void> _determinePosition() async {
     bool serviceEnabled;
@@ -25,25 +24,32 @@ String _locationMessage = "Clica no botão para ativar a localização";
     }
 
     // 2. Check and request permissions
-    permission = await Geolocator.checkPermission(); //ve se o user ja deu a permissao no passado 
-    if (permission == LocationPermission.denied) { // ou e a 1a vez q abre a app ou disse anteriormente nao
-      permission = await Geolocator.requestPermission(); // faz aparecer o popup a pedir permissão
+    permission =
+        await Geolocator.checkPermission(); //ve se o user ja deu a permissao no passado
+    if (permission == LocationPermission.denied) {
+      // ou e a 1a vez q abre a app ou disse anteriormente nao
+      permission =
+          await Geolocator.requestPermission(); // faz aparecer o popup a pedir permissão
       if (permission == LocationPermission.denied) {
         setState(() => _locationMessage = 'Permissões foram negadas');
         return;
       }
     }
-    
+
     if (permission == LocationPermission.deniedForever) {
-      setState(() => _locationMessage = 'Por favor permita a partilha da sua localização, através das definições do seu dispositivo');
+      setState(
+        () => _locationMessage =
+            'Por favor permita a partilha da sua localização, através das definições do seu dispositivo',
+      );
       await Geolocator.openAppSettings(); //abre a pagina das settings da app do dispositivo
       return;
-    } 
+    }
 
     // 3. Get the current position
     Position position = await Geolocator.getCurrentPosition();
     setState(() {
-      _locationMessage = "Lat: ${position.latitude}, Long: ${position.longitude}";
+      _locationMessage =
+          "Lat: ${position.latitude}, Long: ${position.longitude}";
     });
   }
 

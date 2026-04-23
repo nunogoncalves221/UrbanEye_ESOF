@@ -33,9 +33,7 @@ void main() {
   });
 
   Widget buildPage() {
-    return MaterialApp(
-      home: AuthPage(authService: mockAuthService),
-    );
+    return MaterialApp(home: AuthPage(authService: mockAuthService));
   }
 
   group('AuthPage', () {
@@ -55,10 +53,8 @@ void main() {
       WidgetTester tester,
     ) async {
       when(
-        () => mockAuthService.signIn(
-          email: 'test@email.com',
-          password: '123456',
-        ),
+        () =>
+            mockAuthService.signIn(email: 'test@email.com', password: '123456'),
       ).thenAnswer((_) async => mockUserCredential);
 
       await tester.pumpWidget(buildPage());
@@ -140,10 +136,8 @@ void main() {
       WidgetTester tester,
     ) async {
       when(
-        () => mockAuthService.signIn(
-          email: 'test@email.com',
-          password: '123456',
-        ),
+        () =>
+            mockAuthService.signIn(email: 'test@email.com', password: '123456'),
       ).thenAnswer((_) async {
         await Future<void>.delayed(const Duration(milliseconds: 100));
         return mockUserCredential;

@@ -4,10 +4,8 @@ import '../services/auth_service.dart';
 class AuthPage extends StatefulWidget {
   final AuthService authService;
 
-  const AuthPage({
-    super.key,
-    AuthService? authService,
-  }) : authService = authService ?? const AuthService();
+  const AuthPage({super.key, AuthService? authService})
+    : authService = authService ?? const AuthService();
 
   @override
   State<AuthPage> createState() => _AuthPageState();
@@ -41,8 +39,7 @@ class _AuthPageState extends State<AuthPage> {
       );
 
       setState(() {
-        _message =
-            'Login successful: ${userCredential.user?.email ?? ''}';
+        _message = 'Login successful: ${userCredential.user?.email ?? ''}';
       });
     } catch (e) {
       setState(() {
@@ -95,15 +92,12 @@ class _AuthPageState extends State<AuthPage> {
     final user = _authService.currentUser;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login / Register Prototype'),
-      ),
+      appBar: AppBar(title: const Text('Login / Register Prototype')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            if (user != null)
-              Text('Current user: ${user.email ?? ''}'),
+            if (user != null) Text('Current user: ${user.email ?? ''}'),
 
             const SizedBox(height: 16),
 
@@ -125,18 +119,12 @@ class _AuthPageState extends State<AuthPage> {
             if (_isLoading)
               const CircularProgressIndicator()
             else ...[
-              ElevatedButton(
-                onPressed: _login,
-                child: const Text('Login'),
-              ),
+              ElevatedButton(onPressed: _login, child: const Text('Login')),
               ElevatedButton(
                 onPressed: _register,
                 child: const Text('Register'),
               ),
-              ElevatedButton(
-                onPressed: _logout,
-                child: const Text('Logout'),
-              ),
+              ElevatedButton(onPressed: _logout, child: const Text('Logout')),
             ],
 
             const SizedBox(height: 16),

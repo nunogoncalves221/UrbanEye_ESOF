@@ -64,7 +64,9 @@ void main() {
 
   // unauthenticated tests
   group('unauthenticated', () {
-    testWidgets('shows Sign in / Create account / Sign in as guest', (tester) async {
+    testWidgets('shows Sign in / Create account / Sign in as guest', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWelcomePage(FakeFirebaseAuth(null)));
       await tester.pump();
       expect(find.text('Sign in'), findsOneWidget);
@@ -72,7 +74,9 @@ void main() {
       expect(find.text('Sign in as guest'), findsOneWidget);
     });
 
-    testWidgets('navigates to LoginScreen when Sign in is tapped', (tester) async {
+    testWidgets('navigates to LoginScreen when Sign in is tapped', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWelcomePage(FakeFirebaseAuth(null)));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sign in'));
@@ -80,7 +84,9 @@ void main() {
       expect(find.byType(LoginScreen), findsOneWidget);
     });
 
-    testWidgets('navigates to RegisterScreen when Create account is tapped', (tester) async {
+    testWidgets('navigates to RegisterScreen when Create account is tapped', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWelcomePage(FakeFirebaseAuth(null)));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Create account'));
@@ -88,7 +94,9 @@ void main() {
       expect(find.byType(RegisterScreen), findsOneWidget);
     });
 
-    testWidgets('navigates to MainScreen when Sign in as guest is tapped', (tester) async {
+    testWidgets('navigates to MainScreen when Sign in as guest is tapped', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWelcomePage(FakeFirebaseAuth(null)));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sign in as guest'));
@@ -105,7 +113,9 @@ void main() {
       expect(find.text('Hello, test@example.com'), findsOneWidget);
     });
 
-    testWidgets('shows My Reports / Report a problem / Sign out', (tester) async {
+    testWidgets('shows My Reports / Report a problem / Sign out', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWelcomePage(FakeFirebaseAuth(user)));
       await tester.pump();
       expect(find.text('My Reports'), findsOneWidget);
@@ -113,7 +123,9 @@ void main() {
       expect(find.text('Sign out'), findsOneWidget);
     });
 
-    testWidgets('navigates to MyReportsScreen when My Reports is tapped', (tester) async {
+    testWidgets('navigates to MyReportsScreen when My Reports is tapped', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWelcomePage(FakeFirebaseAuth(user)));
       await tester.pumpAndSettle();
       await tester.tap(find.text('My Reports'));
@@ -121,16 +133,15 @@ void main() {
       expect(find.byType(MyReportsScreen), findsOneWidget);
     });
 
-    testWidgets(
-      'navigates to MainScreen when Report a problem is tapped',
-      (tester) async {
-        await tester.pumpWidget(buildWelcomePage(FakeFirebaseAuth(user)));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Report a problem'));
-        await tester.pumpAndSettle();
-        expect(find.byType(MainScreen), findsOneWidget);
-      },
-    );
+    testWidgets('navigates to MainScreen when Report a problem is tapped', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildWelcomePage(FakeFirebaseAuth(user)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Report a problem'));
+      await tester.pumpAndSettle();
+      expect(find.byType(MainScreen), findsOneWidget);
+    });
 
     testWidgets('calls signOut when Sign out is tapped', (tester) async {
       final fakeAuth = FakeFirebaseAuth(user);

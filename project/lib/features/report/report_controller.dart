@@ -11,8 +11,8 @@ class ReportController extends ChangeNotifier {
   final FirebaseAuth _auth;
 
   ReportController({ReportServiceBase? service, FirebaseAuth? auth})
-      : _service = service ?? const ReportService(),
-        _auth = auth ?? FirebaseAuth.instance;
+    : _service = service ?? const ReportService(),
+      _auth = auth ?? FirebaseAuth.instance;
 
   // Form state
   String? selectedCategory;
@@ -49,7 +49,8 @@ class ReportController extends ChangeNotifier {
     }
 
     if (permission == LocationPermission.deniedForever) {
-      errorMessage = 'Location permission permanently denied. Please enable it in settings.';
+      errorMessage =
+          'Location permission permanently denied. Please enable it in settings.';
       await Geolocator.openAppSettings();
       notifyListeners();
       return;

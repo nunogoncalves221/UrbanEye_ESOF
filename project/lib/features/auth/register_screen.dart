@@ -59,9 +59,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   InputDecoration _inputDecoration() {
-    return const InputDecoration(
-      border: OutlineInputBorder(),
-    );
+    return const InputDecoration(border: OutlineInputBorder());
   }
 
   @override
@@ -86,10 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
 
             if (_emailError.isNotEmpty)
-              Text(
-                _emailError,
-                style: const TextStyle(color: Colors.red),
-              ),
+              Text(_emailError, style: const TextStyle(color: Colors.red)),
 
             const SizedBox(height: 12),
 
@@ -102,17 +97,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
             const SizedBox(height: 20),
 
-            ElevatedButton(
-              onPressed: _register,
-              child: const Text('Register'),
-            ),
+            ElevatedButton(onPressed: _register, child: const Text('Register')),
 
             const SizedBox(height: 16),
 
-            Text(
-              _message,
-              style: const TextStyle(color: Colors.red),
-            ),
+            Text(_message, style: const TextStyle(color: Colors.red)),
           ],
         ),
       ),

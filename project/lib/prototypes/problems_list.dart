@@ -14,9 +14,7 @@ class ProblemsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lista de Problemas'),
-      ),
+      appBar: AppBar(title: const Text('Lista de Problemas')),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: problems.length,

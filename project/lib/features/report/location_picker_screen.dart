@@ -4,14 +4,54 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+typedef ReverseGeocodeFn = Future<String?> Function(double lat, double lon);
+typedef SearchAddressFn = Future<LatLng?> Function(String query);
+
+Future<String?> defaultReverseGeocode(double lat, double lon) async {
+  try {
+    final uri = Uri.parse(
+      'https://nominatim.openstreetmap.org/reverse'
+      '?lat=$lat&lon=$lon&format=json',
+    );
+    final response = await http.get(uri, headers: {'User-Agent': 'project-app/1.0'});
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['display_name'] as String?;
+    }
+  } catch (_) {}
+  return null;
+}
+
+Future<LatLng?> defaultSearchAddress(String query) async {
+  final uri = Uri.parse(
+    'https://nominatim.openstreetmap.org/search'
+    '?q=${Uri.encodeComponent(query)}&format=json&limit=1',
+  );
+  final response = await http.get(uri, headers: {'User-Agent': 'project-app/1.0'});
+  if (response.statusCode == 200) {
+    final List results = jsonDecode(response.body);
+    if (results.isNotEmpty) {
+      return LatLng(
+        double.parse(results[0]['lat'] as String),
+        double.parse(results[0]['lon'] as String),
+      );
+    }
+  }
+  return null;
+}
+
 class LocationPickerScreen extends StatefulWidget {
   final double? initialLatitude;
   final double? initialLongitude;
+  final ReverseGeocodeFn reverseGeocode;
+  final SearchAddressFn searchAddress;
 
   const LocationPickerScreen({
     super.key,
     this.initialLatitude,
     this.initialLongitude,
+    this.reverseGeocode = defaultReverseGeocode,
+    this.searchAddress = defaultSearchAddress,
   });
 
   @override
@@ -52,70 +92,35 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   // ── Reverse geocode (coordinates → address label) ─────────────
   Future<void> _reverseGeocode(LatLng point) async {
-    try {
-      final uri = Uri.parse(
-        'https://nominatim.openstreetmap.org/reverse'
-        '?lat=${point.latitude}&lon=${point.longitude}&format=json',
-      );
-      final response = await http.get(uri, headers: {
-        'User-Agent': 'project-app/1.0',
-      });
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _addressLabel = data['display_name'] as String?;
-        });
-      }
-    } catch (_) {
-      // silent — address label is optional
-    }
+      final label = await widget.reverseGeocode(point.latitude, point.longitude);
+  if (mounted) setState(() => _addressLabel = label);
   }
 
   // ── Search by address ─────────────────────────────────────────
   Future<void> _searchAddress() async {
-    final query = _addressController.text.trim();
-    if (query.isEmpty) return;
+  final query = _addressController.text.trim();
+  if (query.isEmpty) return;
 
-    setState(() {
-      _isSearching = true;
-      _searchError = null;
-    });
+  setState(() { _isSearching = true; _searchError = null; });
 
-    try {
-      final uri = Uri.parse(
-        'https://nominatim.openstreetmap.org/search'
-        '?q=${Uri.encodeComponent(query)}&format=json&limit=1',
-      );
-      final response = await http.get(uri, headers: {
-        'User-Agent': 'project-app/1.0',
-      });
-
-      if (response.statusCode == 200) {
-        final List results = jsonDecode(response.body);
-        if (results.isNotEmpty) {
-          final lat = double.parse(results[0]['lat'] as String);
-          final lon = double.parse(results[0]['lon'] as String);
-          final point = LatLng(lat, lon);
-
-          setState(() {
-            _selectedPoint = point;
-            _addressLabel = results[0]['display_name'] as String?;
-            _isSearching = false;
-          });
-          _mapController.move(point, 16);
-        } else {
-          setState(() {
-            _searchError = 'Address not found. Try a different query.';
-            _isSearching = false;
-          });
-        }
-      }
-    } catch (e) {
+  try {
+    final point = await widget.searchAddress(query);
+    if (point != null) {
+      setState(() { _selectedPoint = point; _isSearching = false; });
+      _mapController.move(point, 16);
+      _reverseGeocode(point);
+    } else {
       setState(() {
-        _searchError = 'Search failed. Check your connection.';
+        _searchError = 'Address not found. Try a different query.';
         _isSearching = false;
       });
     }
+  } catch (_) {
+    setState(() {
+      _searchError = 'Search failed. Check your connection.';
+      _isSearching = false;
+    });
+  }
   }
 
   void _confirm() {

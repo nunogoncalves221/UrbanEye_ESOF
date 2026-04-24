@@ -2,18 +2,23 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project/features/auth/login_screen.dart';
 import 'package:project/features/auth/register_screen.dart';
-import 'package:project/features/report/my_reports_screen.dart';
 import 'package:project/features/main_screen.dart';
+import 'package:project/features/report/my_reports_screen.dart';
 import 'package:project/services/report_service.dart';
+import 'package:project/services/user_role.dart';
+import 'package:project/services/user_role_service.dart';
 
 class WelcomeScreen extends StatelessWidget {
   final FirebaseAuth? auth;
   final ReportServiceBase service;
+
   const WelcomeScreen({
     super.key,
     this.auth,
     this.service = const ReportService(),
   });
+
+  FirebaseAuth get _auth => auth ?? FirebaseAuth.instance;
 
   void _openLogin(BuildContext context) {
     Navigator.push(
@@ -22,10 +27,8 @@ class WelcomeScreen extends StatelessWidget {
         pageBuilder: (context, animation, secondaryAnimation) =>
             const LoginScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // This creates a simple Fade transition
           return FadeTransition(opacity: animation, child: child);
         },
-        // Optional: Adjust the speed of the fade (300-500ms is usually best)
         transitionDuration: const Duration(milliseconds: 400),
       ),
     );
@@ -42,10 +45,7 @@ class WelcomeScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => MyReportsScreen(
-          auth: auth ?? FirebaseAuth.instance,
-          service: service,
-        ),
+        builder: (_) => MyReportsScreen(auth: _auth, service: service),
       ),
     );
   }
@@ -53,9 +53,7 @@ class WelcomeScreen extends StatelessWidget {
   void _openMain(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => MainScreen(auth: auth ?? FirebaseAuth.instance),
-      ),
+      MaterialPageRoute(builder: (_) => MainScreen(auth: _auth)),
     );
   }
 
@@ -63,7 +61,7 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder<User?>(
-        stream: (auth ?? FirebaseAuth.instance).authStateChanges(),
+        stream: _auth.authStateChanges(),
         builder: (context, snapshot) {
           final user = snapshot.data;
 
@@ -73,11 +71,41 @@ class WelcomeScreen extends StatelessWidget {
               children: [
                 const Text('UrbanEye', style: TextStyle(fontSize: 40)),
                 const SizedBox(height: 8),
-                if (user != null)
+                if (user != null) ...[
                   Text(
                     'Hello, ${user.email ?? 'user'}',
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
+                  const SizedBox(height: 6),
+                  // Show authority badge if the user has the role
+                  FutureBuilder<UserRole>(
+                    future: const UserRoleService().getRole(user),
+                    builder: (context, roleSnapshot) {
+                      if (roleSnapshot.data == UserRole.authority) {
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.verified_user,
+                              size: 14,
+                              color: Colors.blue.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Autoridade',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue.shade700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
                 const SizedBox(height: 60),
 
                 if (user == null) ...[
@@ -109,15 +137,11 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   OutlinedButton(
-                    onPressed: () => (auth ?? FirebaseAuth.instance).signOut(),
+                    onPressed: () => _auth.signOut(),
                     child: const Text('Sign out'),
                   ),
                   const SizedBox(height: 16),
                 ],
-
-                /*TextButton(
-                    onPressed: () => _openPrototypes(context),
-                    child: const Text('View prototypes')), */
               ],
             ),
           );

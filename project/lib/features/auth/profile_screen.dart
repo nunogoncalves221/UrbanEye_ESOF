@@ -91,7 +91,17 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             OutlinedButton(
-              onPressed: () => auth.signOut(),
+              onPressed: () async {
+                await auth.signOut();
+                if (context.mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MainScreen(auth: auth),
+                    ),
+                  );
+                }
+              },
               child: const Text('Sign out'),
             ),
           ],

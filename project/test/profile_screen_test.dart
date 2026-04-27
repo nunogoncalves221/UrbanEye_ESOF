@@ -117,4 +117,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(fakeAuth.signOutCalled, isTrue);
   });
+
+  // navigate to MainScreen after sign out
+  testWidgets('navigates to MainScreen after sign out', (tester) async {
+    final fakeAuth = FakeFirebaseAuth(user);
+    await tester.pumpWidget(buildProfilePage(fakeAuth));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MainScreen), findsOneWidget);
+  });
 }

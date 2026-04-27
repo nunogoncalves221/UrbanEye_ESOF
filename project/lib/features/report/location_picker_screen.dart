@@ -3,10 +3,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'report_model.dart';
+ 
 typedef ReverseGeocodeFn = Future<String?> Function(double lat, double lon);
 typedef SearchAddressFn = Future<LatLng?> Function(String query);
-
+ 
 Future<String?> defaultReverseGeocode(double lat, double lon) async {
   try {
     final uri = Uri.parse(
@@ -24,7 +26,7 @@ Future<String?> defaultReverseGeocode(double lat, double lon) async {
   } catch (_) {}
   return null;
 }
-
+ 
 Future<LatLng?> defaultSearchAddress(String query) async {
   final uri = Uri.parse(
     'https://nominatim.openstreetmap.org/search'
@@ -45,13 +47,13 @@ Future<LatLng?> defaultSearchAddress(String query) async {
   }
   return null;
 }
-
+ 
 class LocationPickerScreen extends StatefulWidget {
   final double? initialLatitude;
   final double? initialLongitude;
   final ReverseGeocodeFn reverseGeocode;
   final SearchAddressFn searchAddress;
-
+ 
   const LocationPickerScreen({
     super.key,
     this.initialLatitude,
@@ -59,22 +61,42 @@ class LocationPickerScreen extends StatefulWidget {
     this.reverseGeocode = defaultReverseGeocode,
     this.searchAddress = defaultSearchAddress,
   });
-
+ 
   @override
   State<LocationPickerScreen> createState() => _LocationPickerScreenState();
 }
-
+ 
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
   final MapController _mapController = MapController();
   final TextEditingController _addressController = TextEditingController();
-
+ 
   static const LatLng _defaultCenter = LatLng(38.7223, -9.1393); // Lisboa
-
+ 
   LatLng? _selectedPoint;
   String? _addressLabel;
   bool _isSearching = false;
   String? _searchError;
-
+  List<ReportModel> _existingReports = [];
+ 
+  static const Map<String, IconData> _categoryIcons = {
+    'Pothole': Icons.report_problem,
+    'Streetlight': Icons.lightbulb_outline,
+    'Street sign': Icons.signpost,
+    'Traffic light': Icons.traffic,
+    'Vandalism': Icons.format_paint,
+    'Blocked Sidewalk': Icons.block,
+    'Water leak/Flooding': Icons.water_damage,
+    'Overgrown Vegetation': Icons.park,
+    'Abandoned Vehicle': Icons.directions_car,
+    'Trash': Icons.delete_outline,
+  };
+ 
+  static const Map<String, Color> _statusColors = {
+    'pending': Colors.orange,
+    'in_progress': Colors.blue,
+    'resolved': Colors.green,
+  };
+ 
   @override
   void initState() {
     super.initState();
@@ -84,10 +106,22 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         widget.initialLongitude!,
       );
     }
+    _loadExistingReports();
   }
-
+ 
+  Future<void> _loadExistingReports() async {
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('reports').get();
+      final reports = snapshot.docs
+          .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
+          .toList();
+      if (mounted) setState(() => _existingReports = reports);
+    } catch (_) {}
+  }
+ 
   LatLng get _mapCenter => _selectedPoint ?? _defaultCenter;
-
+ 
   // ── Tap on map ────────────────────────────────────────────────
   void _onMapTap(TapPosition _, LatLng point) {
     setState(() {
@@ -97,23 +131,23 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     });
     _reverseGeocode(point);
   }
-
+ 
   // ── Reverse geocode (coordinates → address label) ─────────────
   Future<void> _reverseGeocode(LatLng point) async {
     final label = await widget.reverseGeocode(point.latitude, point.longitude);
     if (mounted) setState(() => _addressLabel = label);
   }
-
+ 
   // ── Search by address ─────────────────────────────────────────
   Future<void> _searchAddress() async {
     final query = _addressController.text.trim();
     if (query.isEmpty) return;
-
+ 
     setState(() {
       _isSearching = true;
       _searchError = null;
     });
-
+ 
     try {
       final point = await widget.searchAddress(query);
       if (point != null) {
@@ -136,19 +170,78 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       });
     }
   }
-
+ 
+  void _showReportInfo(ReportModel report) {
+    final color = _statusColors[report.status] ?? Colors.grey;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  _categoryIcons[report.category] ?? Icons.flag,
+                  color: color,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  report.category,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    report.status,
+                    style: TextStyle(
+                        color: color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(report.description,
+                style: const TextStyle(fontSize: 14)),
+            const SizedBox(height: 8),
+            Text(
+              'Lat: ${report.latitude.toStringAsFixed(5)}, Lng: ${report.longitude.toStringAsFixed(5)}',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+ 
   void _confirm() {
     if (_selectedPoint != null) {
       Navigator.pop(context, _selectedPoint);
     }
   }
-
+ 
   @override
   void dispose() {
     _addressController.dispose();
     super.dispose();
   }
-
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -204,7 +297,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               ],
             ),
           ),
-
+ 
           // ── Map ───────────────────────────────────────────────
           Expanded(
             child: Stack(
@@ -224,9 +317,45 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                           'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.project',
                     ),
-                    if (_selectedPoint != null)
-                      MarkerLayer(
-                        markers: [
+                    // ── Existing reports ────────────────────────
+                    MarkerLayer(
+                      markers: [
+                        ..._existingReports.map((report) {
+                          final color =
+                              _statusColors[report.status] ?? Colors.grey;
+                          final icon =
+                              _categoryIcons[report.category] ?? Icons.flag;
+                          return Marker(
+                            point:
+                                LatLng(report.latitude, report.longitude),
+                            width: 36,
+                            height: 36,
+                            child: GestureDetector(
+                              onTap: () => _showReportInfo(report),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: color.withValues(alpha: 0.9),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 4,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(icon,
+                                    size: 18, color: Colors.white),
+                              ),
+                            ),
+                          );
+                        }),
+                        // ── Selected pin ────────────────────────
+                        if (_selectedPoint != null)
                           Marker(
                             point: _selectedPoint!,
                             width: 48,
@@ -237,11 +366,36 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                               color: Colors.red,
                             ),
                           ),
-                        ],
-                      ),
+                      ],
+                    ),
                   ],
                 ),
-
+ 
+                // Legend
+                Positioned(
+                  left: 12,
+                  top: 12,
+                  child: Card(
+                    elevation: 3,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _LegendDot(
+                              color: Colors.orange, label: 'Pending'),
+                          const SizedBox(height: 4),
+                          _LegendDot(
+                              color: Colors.blue, label: 'In Progress'),
+                          const SizedBox(height: 4),
+                          _LegendDot(
+                              color: Colors.green, label: 'Resolved'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+ 
                 Positioned(
                   right: 16,
                   bottom: 80,
@@ -273,7 +427,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     ],
                   ),
                 ),
-
+ 
                 // Hint overlay when nothing is selected yet
                 if (_selectedPoint == null)
                   const Positioned(
@@ -295,7 +449,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               ],
             ),
           ),
-
+ 
           // ── Selected location info ─────────────────────────────
           if (_selectedPoint != null)
             Container(
@@ -334,3 +488,26 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     );
   }
 }
+ 
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+  const _LegendDot({required this.color, required this.label});
+ 
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(fontSize: 11)),
+      ],
+    );
+  }
+}
+ 

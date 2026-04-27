@@ -5,7 +5,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:project/features/report/report_screen.dart';
-import 'package:project/features/auth/welcome_screen.dart';
+import 'package:project/features/auth/auth_screen.dart';
+import 'package:project/features/auth/profile_screen.dart';
 import 'package:project/services/report_service.dart';
 
 class MainScreen extends StatefulWidget {
@@ -87,13 +88,25 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  // navigate to WelcomeScreen
-  void _goToWelcome(BuildContext context) {
+  // navigate to AuthScreen
+  void _goToAuth(BuildContext context) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            WelcomeScreen(auth: widget.auth, service: widget.reportService),
+        builder: (_) => AuthScreen(service: widget.reportService),
+      ),
+    );
+  }
+
+  // navigate to ProfileScreen
+  void _goToProfile(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfileScreen(
+          auth: widget.auth,
+          service: widget.reportService,
+        ),
       ),
     );
   }
@@ -114,13 +127,13 @@ class _MainScreenState extends State<MainScreen> {
               if (user == null) {
                 //not logged in
                 return TextButton(
-                  onPressed: () => _goToWelcome(context),
+                  onPressed: () => _goToAuth(context),
                   child: const Text('Login / Register'),
                 );
               } else {
                 //logged in
                 return TextButton(
-                  onPressed: () => _goToWelcome(context),
+                  onPressed: () => _goToProfile(context),
                   child: const Text('Profile'),
                 );
               }

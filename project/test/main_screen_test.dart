@@ -9,7 +9,8 @@ import 'package:project/features/main_screen.dart';
 import 'package:project/features/report/report_model.dart';
 import 'package:project/services/report_service.dart';
 import 'package:project/features/report/report_screen.dart';
-import 'package:project/features/auth/welcome_screen.dart';
+import 'package:project/features/auth/auth_screen.dart';
+import 'package:project/features/auth/profile_screen.dart';
 
 // instantiate FakeReportService
 class FakeReportService extends ReportServiceBase {
@@ -56,11 +57,6 @@ Widget buildPage(
   );
 }
 
-// instantiate buildWelcomePage helper
-Widget buildWelcomePage(FirebaseAuth auth) {
-  return MaterialApp(home: WelcomeScreen(auth: auth));
-}
-
 void main() {
   // instantiate user
   final user = FakeUser();
@@ -86,6 +82,22 @@ void main() {
     expect(find.text('Profile'), findsOneWidget); // Check for Profile text
   });
 
+  // navigate to AuthScreen when Login / Register is clicked
+  testWidgets('navigates to AuthScreen when Login / Register is clicked', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildPage(FakeFirebaseAuth(null), reportService: FakeReportService()),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Login / Register')); // Tap Login / Register
+    await tester.pumpAndSettle(); // Wait for navigation
+    expect(
+      find.byType(AuthScreen),
+      findsOneWidget,
+    ); // Check if AuthScreen appears
+  });
+
   testWidgets('navigates to ReportScreen when button is clicked', (
     tester,
   ) async {
@@ -101,7 +113,7 @@ void main() {
     ); // Check if ReportScreen appears
   });
 
-  testWidgets('navigates to WelcomeScreen when Profile is clicked', (
+  testWidgets('navigates to ProfileScreen when Profile is clicked', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -111,24 +123,11 @@ void main() {
     await tester.tap(find.text('Profile')); // Tap Profile
     await tester.pumpAndSettle(); // Wait for navigation
     expect(
-      find.byType(WelcomeScreen),
+      find.byType(ProfileScreen),
       findsOneWidget,
-    ); // Check if WelcomeScreen appears
+    ); // Check if ProfileScreen appears
   });
 
-  testWidgets(
-    'navigates to MainScreen when Report a problem is clicked on WelcomeScreen',
-    (tester) async {
-      await tester.pumpWidget(buildWelcomePage(FakeFirebaseAuth(user)));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Report a problem')); // Tap button
-      await tester.pumpAndSettle(); // Wait for navigation
-      expect(
-        find.byType(MainScreen),
-        findsOneWidget,
-      ); // Check if MainScreen appears
-    },
-  );
 
   // new tests for search bar and map functionality
 

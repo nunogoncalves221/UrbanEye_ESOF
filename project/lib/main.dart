@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:project/features/auth/welcome_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:project/features/main_screen.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -23,7 +24,7 @@ class UrbanEyeApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const WelcomeScreen(),
+      home: MainScreen(auth: FirebaseAuth.instance),
     );
   }
 }

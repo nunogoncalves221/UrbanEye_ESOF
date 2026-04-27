@@ -1,3 +1,10 @@
+// ============================================================
+// THIS FILE IS NOT USED -> KEPT FOR REFERENCE
+// Functionality split into:
+//   - AuthScreen (unauthenticated)
+//   - ProfileScreen (authenticated)
+// ============================================================
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project/features/auth/login_screen.dart';

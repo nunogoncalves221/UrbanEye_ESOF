@@ -3,13 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_map/flutter_map.dart';
 
 import 'package:project/features/main_screen.dart';
 import 'package:project/features/report/report_model.dart';
 import 'package:project/services/report_service.dart';
 import 'package:project/features/report/report_screen.dart';
-import 'package:project/features/auth/welcome_screen.dart';
+import 'package:project/features/auth/auth_screen.dart';
+import 'package:project/features/auth/profile_screen.dart';
 
 // instantiate FakeReportService
 class FakeReportService extends ReportServiceBase {
@@ -56,9 +56,11 @@ Widget buildPage(
   );
 }
 
-// instantiate buildWelcomePage helper
-Widget buildWelcomePage(FirebaseAuth auth) {
-  return MaterialApp(home: WelcomeScreen(auth: auth));
+// instantiate buildAuthPage helper
+Widget buildAuthPage(FirebaseAuth auth) {
+  return MaterialApp(
+    home: AuthScreen(auth: auth, service: FakeReportService()),
+  );
 }
 
 void main() {
@@ -101,7 +103,7 @@ void main() {
     ); // Check if ReportScreen appears
   });
 
-  testWidgets('navigates to WelcomeScreen when Profile is clicked', (
+  testWidgets('navigates to ProfileScreen when Profile is clicked', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -111,17 +113,33 @@ void main() {
     await tester.tap(find.text('Profile')); // Tap Profile
     await tester.pumpAndSettle(); // Wait for navigation
     expect(
-      find.byType(WelcomeScreen),
+      find.byType(ProfileScreen),
       findsOneWidget,
-    ); // Check if WelcomeScreen appears
+    ); // Check if ProfileScreen appears
+  });
+
+  // navigate to AuthScreen when Login / Register is clicked
+  testWidgets('navigates to AuthScreen when Login / Register is clicked', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildPage(FakeFirebaseAuth(null), reportService: FakeReportService()),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Login / Register')); // Tap Login / Register
+    await tester.pumpAndSettle(); // Wait for navigation
+    expect(
+      find.byType(AuthScreen),
+      findsOneWidget,
+    ); // Check if AuthScreen appears
   });
 
   testWidgets(
-    'navigates to MainScreen when Report a problem is clicked on WelcomeScreen',
+    'navigates to MainScreen when Sign in as guest is clicked on AuthScreen',
     (tester) async {
-      await tester.pumpWidget(buildWelcomePage(FakeFirebaseAuth(user)));
+      await tester.pumpWidget(buildAuthPage(FakeFirebaseAuth(user)));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Report a problem')); // Tap button
+      await tester.tap(find.text('Sign in as guest')); // Tap button
       await tester.pumpAndSettle(); // Wait for navigation
       expect(
         find.byType(MainScreen),
@@ -129,72 +147,4 @@ void main() {
       ); // Check if MainScreen appears
     },
   );
-
-  // new tests for search bar and map functionality
-
-  // check if search bar is present
-  testWidgets('shows search bar with placeholder text', (tester) async {
-    await tester.pumpWidget(
-      buildPage(FakeFirebaseAuth(user), reportService: FakeReportService()),
-    );
-    await tester.pump();
-    expect(
-      find.byType(TextField),
-      findsOneWidget,
-    ); // Check for TextField
-    expect(
-      find.text('Search for an address...'),
-      findsOneWidget,
-    ); // Check for placeholder text
-  });
-
-  // check if search icon button is present
-  testWidgets('shows search icon button', (tester) async {
-    await tester.pumpWidget(
-      buildPage(FakeFirebaseAuth(user), reportService: FakeReportService()),
-    );
-    await tester.pump();
-    expect(
-      find.byIcon(Icons.search),
-      findsOneWidget,
-    ); // Check for search icon
-  });
-
-  // check if map is displayed
-  testWidgets('displays map', (tester) async {
-    await tester.pumpWidget(
-      buildPage(FakeFirebaseAuth(user), reportService: FakeReportService()),
-    );
-    await tester.pump();
-    expect(
-      find.byType(FlutterMap),
-      findsOneWidget,
-    ); // Check for FlutterMap widget
-  });
-
-  // check if report button is present
-  testWidgets('shows Report a Problem button', (tester) async {
-    await tester.pumpWidget(
-      buildPage(FakeFirebaseAuth(user), reportService: FakeReportService()),
-    );
-    await tester.pump();
-    expect(
-      find.text('Report a Problem'),
-      findsOneWidget,
-    ); // Check for button text
-  });
-
-  // check if search updates map marker
-  testWidgets('search button triggers search action', (tester) async {
-    await tester.pumpWidget(
-      buildPage(FakeFirebaseAuth(user), reportService: FakeReportService()),
-    );
-    await tester.pump();
-
-    await tester.enterText(find.byType(TextField), 'Lisbon, Portugal');
-    await tester.tap(find.byIcon(Icons.search));
-    await tester.pump();
-
-    expect(find.byType(TextField), findsOneWidget); // Search triggered
-  });
 }

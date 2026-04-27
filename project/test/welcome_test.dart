@@ -1,3 +1,10 @@
+// ============================================================
+// THIS FILE IS NOT USED -> KEPT FOR REFERENCE
+// Functionality split into:
+//   - auth_screen_test.dart (unauthenticated)
+//   - profile_screen_test.dart (authenticated)
+// ============================================================
+
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

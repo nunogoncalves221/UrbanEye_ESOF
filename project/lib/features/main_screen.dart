@@ -23,12 +23,25 @@ class MainScreen extends StatelessWidget {
     );
   }
 
-  // navigate to WelcomeScreen
-  void _goToWelcome(BuildContext context) {
+  // navigate to AuthScreen
+  void _goToAuth(BuildContext context) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => WelcomeScreen(auth: auth, service: reportService),
+        builder: (_) => AuthScreen(service: reportService),
+      ),
+    );
+  }
+
+  // navigate to ProfileScreen
+  void _goToProfile(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfileScreen(
+          auth: auth,
+          service: reportService,
+        ),
       ),
     );
   }
@@ -49,13 +62,13 @@ class MainScreen extends StatelessWidget {
               if (user == null) {
                 //not logged in
                 return TextButton(
-                  onPressed: () => _goToWelcome(context),
+                  onPressed: () => _goToAuth(context),
                   child: const Text('Login / Register'),
                 );
               } else {
                 //logged in
                 return TextButton(
-                  onPressed: () => _goToWelcome(context),
+                  onPressed: () => _goToProfile(context),
                   child: const Text('Profile'),
                 );
               }

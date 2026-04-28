@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final FirebaseAuth? auth;
+  final FirebaseFirestore? firestore;
 
-  const EditProfileScreen({super.key, this.auth});
+  const EditProfileScreen({
+    super.key,
+    this.auth,
+    this.firestore,
+  });
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -20,6 +25,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _saving = false;
 
   FirebaseAuth get _auth => widget.auth ?? FirebaseAuth.instance;
+  FirebaseFirestore get _firestore =>
+      widget.firestore ?? FirebaseFirestore.instance;
 
   @override
   void initState() {
@@ -34,6 +41,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   DateTime _parse(String s) {
     final p = s.split('-');
+
     return DateTime(
       int.parse(p[2]),
       int.parse(p[1]),
@@ -43,34 +51,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _load() async {
     final user = _auth.currentUser!;
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
 
+    final doc = await _firestore.collection('users').doc(user.uid).get();
     final data = doc.data()!;
 
     _nameController.text = data['name'];
     _usernameController.text = data['username'];
     _birthDateController.text = _formatDate(data['birthDate']);
 
-    setState(() => _loading = false);
+    setState(() {
+      _loading = false;
+    });
   }
 
   Future<void> _save() async {
     final user = _auth.currentUser!;
 
-    setState(() => _saving = true);
-
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-      'name': _nameController.text,
-      'username': _usernameController.text,
-      'birthDate': Timestamp.fromDate(_parse(_birthDateController.text)),
+    setState(() {
+      _saving = true;
     });
 
-    await user.updateDisplayName(_nameController.text);
+    await _firestore.collection('users').doc(user.uid).update({
+      'name': _nameController.text.trim(),
+      'username': _usernameController.text.trim(),
+      'birthDate': Timestamp.fromDate(_parse(_birthDateController.text.trim())),
+    });
+
+    await user.updateDisplayName(_nameController.text.trim());
 
     if (!mounted) return;
+
     Navigator.pop(context);
   }
 
@@ -100,21 +110,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Name'),
             ),
-
             TextField(
               controller: _usernameController,
               decoration: const InputDecoration(labelText: 'Username'),
             ),
-
             TextField(
               controller: _birthDateController,
               decoration: const InputDecoration(
                 labelText: 'Birth date (dd-mm-yyyy)',
               ),
             ),
-
             const SizedBox(height: 20),
-
             if (_saving)
               const CircularProgressIndicator()
             else

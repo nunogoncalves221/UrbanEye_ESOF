@@ -2,13 +2,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project/features/auth/edit_profile_screen.dart';
+import 'package:project/services/user_role.dart';
+import 'package:project/services/user_role_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   final FirebaseAuth? auth;
+  final FirebaseFirestore? firestore;
 
-  const ProfileScreen({super.key, this.auth});
+  const ProfileScreen({
+    super.key,
+    this.auth,
+    this.firestore,
+  });
 
   FirebaseAuth get _auth => auth ?? FirebaseAuth.instance;
+  FirebaseFirestore get _firestore =>
+      firestore ?? FirebaseFirestore.instance;
 
   String _formatDate(Timestamp ts) {
     final d = ts.toDate();
@@ -26,12 +35,11 @@ class ProfileScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+      ),
       body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        future: FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get(),
+        future: _firestore.collection('users').doc(user.uid).get(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -42,10 +50,43 @@ class ProfileScreen extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   'Hello, ${data['name']}',
+                  textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 20),
+                ),
+
+                const SizedBox(height: 8),
+
+                // 🔵 Authority badge
+                FutureBuilder<UserRole>(
+                  future: const UserRoleService().getRole(user),
+                  builder: (context, snapshot) {
+                    if (snapshot.data == UserRole.authority) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.verified_user,
+                            size: 16,
+                            color: Colors.blue.shade700,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Autoridade',
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    return const SizedBox.shrink();
+                  },
                 ),
 
                 const SizedBox(height: 24),
@@ -72,12 +113,28 @@ class ProfileScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => EditProfileScreen(auth: _auth),
+                        builder: (_) => EditProfileScreen(
+                          auth: _auth,
+                          firestore: _firestore,
+                        ),
                       ),
                     );
                   },
                   icon: const Icon(Icons.edit),
                   label: const Text('Edit profile'),
+                ),
+
+                const SizedBox(height: 16),
+
+                OutlinedButton(
+                  onPressed: () async {
+                    await _auth.signOut();
+
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Sign out'),
                 ),
               ],
             ),

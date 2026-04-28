@@ -110,8 +110,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
-      body: Padding(
+      appBar: AppBar(
+        title: const Text('Register'),
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
@@ -148,7 +150,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
 
             if (_emailError.isNotEmpty)
-              Text(_emailError, style: const TextStyle(color: Colors.red)),
+              Text(
+                _emailError,
+                style: const TextStyle(color: Colors.red),
+              ),
 
             const SizedBox(height: 12),
 
@@ -161,11 +166,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
             const SizedBox(height: 20),
 
-            ElevatedButton(onPressed: _register, child: const Text('Register')),
+            ElevatedButton(
+              onPressed: _register,
+              child: const Text('Register'),
+            ),
 
             const SizedBox(height: 16),
 
-            Text(_message, style: const TextStyle(color: Colors.red)),
+            Text(
+              _message,
+              style: const TextStyle(color: Colors.red),
+            ),
           ],
         ),
       ),

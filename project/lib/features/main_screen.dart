@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project/features/report/report_screen.dart';
-import 'package:project/features/auth/welcome_screen.dart';
+import 'package:project/features/auth/auth_screen.dart';
+import 'package:project/features/auth/profile_screen.dart';
 import 'package:project/features/map_screen.dart';
 import 'package:project/services/report_service.dart';
 

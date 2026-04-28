@@ -1,111 +1,145 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:project/features/main_screen.dart';
-import 'package:project/features/report/my_reports_screen.dart';
-import 'package:project/services/report_service.dart';
+import 'package:project/features/auth/edit_profile_screen.dart';
 import 'package:project/services/user_role.dart';
 import 'package:project/services/user_role_service.dart';
 
 class ProfileScreen extends StatelessWidget {
-  final FirebaseAuth auth;
-  final ReportServiceBase service;
+  final FirebaseAuth? auth;
+  final FirebaseFirestore? firestore;
 
   const ProfileScreen({
     super.key,
-    required this.auth,
-    this.service = const ReportService(),
+    this.auth,
+    this.firestore,
   });
 
-  // navigate to MyReportsScreen
-  void _openMyReports(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MyReportsScreen(auth: auth, service: service),
-      ),
-    );
-  }
+  FirebaseAuth get _auth => auth ?? FirebaseAuth.instance;
+  FirebaseFirestore get _firestore =>
+      firestore ?? FirebaseFirestore.instance;
 
-  // navigate to MainScreen
-  void _openMain(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => MainScreen(auth: auth)),
-    );
+  String _formatDate(Timestamp ts) {
+    final d = ts.toDate();
+    return '${d.day.toString().padLeft(2, '0')}-${d.month.toString().padLeft(2, '0')}-${d.year}';
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = auth.currentUser;
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: Text('Not logged in')),
+      );
+    }
 
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('UrbanEye', style: TextStyle(fontSize: 40)),
-            const SizedBox(height: 8),
-            Text(
-              'Hello, ${user?.email ?? 'user'}',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 6),
-            FutureBuilder<UserRole>(
-              future: const UserRoleService().getRole(user!),
-              builder: (context, roleSnapshot) {
-                if (roleSnapshot.data == UserRole.authority) {
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.verified_user,
-                        size: 14,
-                        color: Colors.blue.shade700,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Autoridade',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue.shade700,
-                          fontWeight: FontWeight.w600,
+      appBar: AppBar(
+        title: const Text('Profile'),
+      ),
+      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        future: _firestore.collection('users').doc(user.uid).get(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final data = snapshot.data!.data()!;
+
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Hello, ${data['name']}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 20),
+                ),
+
+                const SizedBox(height: 8),
+
+                // 🔵 Authority badge
+                FutureBuilder<UserRole>(
+                  future: const UserRoleService().getRole(user),
+                  builder: (context, snapshot) {
+                    if (snapshot.data == UserRole.authority) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.verified_user,
+                            size: 16,
+                            color: Colors.blue.shade700,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Autoridade',
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    return const SizedBox.shrink();
+                  },
+                ),
+
+                const SizedBox(height: 24),
+
+                ListTile(
+                  title: const Text('Username'),
+                  subtitle: Text(data['username']),
+                ),
+
+                ListTile(
+                  title: const Text('Birth date'),
+                  subtitle: Text(_formatDate(data['birthDate'])),
+                ),
+
+                ListTile(
+                  title: const Text('Email'),
+                  subtitle: Text(data['email']),
+                ),
+
+                const SizedBox(height: 24),
+
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditProfileScreen(
+                          auth: _auth,
+                          firestore: _firestore,
                         ),
                       ),
-                    ],
-                  );
-                }
-                return const SizedBox.shrink();
-              },
+                    );
+                  },
+                  icon: const Icon(Icons.edit),
+                  label: const Text('Edit profile'),
+                ),
+
+                const SizedBox(height: 16),
+
+                OutlinedButton(
+                  onPressed: () async {
+                    await _auth.signOut();
+
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Sign out'),
+                ),
+              ],
             ),
-            const SizedBox(height: 60),
-            FilledButton.icon(
-              onPressed: () => _openMyReports(context),
-              icon: const Icon(Icons.list_alt),
-              label: const Text('My Reports'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => _openMain(context),
-              icon: const Icon(Icons.add_circle_outline),
-              label: const Text('Report a problem'),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton(
-              onPressed: () async {
-                await auth.signOut();
-                if (context.mounted) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => MainScreen(auth: auth),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Sign out'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

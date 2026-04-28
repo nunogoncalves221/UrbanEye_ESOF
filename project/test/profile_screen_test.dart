@@ -1,130 +1,124 @@
-import 'dart:io';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:project/features/auth/edit_profile_screen.dart';
 import 'package:project/features/auth/profile_screen.dart';
-import 'package:project/features/main_screen.dart';
-import 'package:project/features/report/my_reports_screen.dart';
-import 'package:project/features/report/report_model.dart';
-import 'package:project/services/report_service.dart';
 
-// instantiate FakeFirebaseAuth
 class FakeFirebaseAuth extends Fake implements FirebaseAuth {
   final User? _user;
-  bool signOutCalled = false;
+
   FakeFirebaseAuth(this._user);
 
   @override
-  Stream<User?> authStateChanges() => Stream.value(_user);
-
-  @override
   User? get currentUser => _user;
-
-  @override
-  Future<void> signOut() async {
-    signOutCalled = true;
-  }
 }
 
-// instantiate FakeUser
 class FakeUser extends Fake implements User {
   @override
   String get uid => '123';
 
   @override
   String get email => 'test@example.com';
+
+  @override
+  Future<void> updateDisplayName(String? displayName) async {}
 }
 
-// instantiate FakeReportService
-class FakeReportService extends ReportServiceBase {
-  @override
-  Stream<List<ReportModel>> watchReportsByUser(String uid) {
-    return Stream.value([]);
-  }
+Future<FakeFirebaseFirestore> createFirestore() async {
+  final firestore = FakeFirebaseFirestore();
 
-  @override
-  Future<void> deleteReport(ReportModel report) async {}
+  await firestore.collection('users').doc('123').set({
+    'uid': '123',
+    'email': 'test@example.com',
+    'name': 'Diogo',
+    'username': 'diogo123',
+    'birthDate': Timestamp.fromDate(DateTime(2004, 5, 21)),
+  });
 
-  @override
-  Future<void> submitReport(ReportModel report, {File? photo}) async {}
+  return firestore;
 }
 
-// instantiate buildProfilePage helper
-Widget buildProfilePage(FirebaseAuth auth, {ReportServiceBase? service}) {
+Widget buildProfilePage({
+  required FirebaseAuth auth,
+  required FirebaseFirestore firestore,
+}) {
   return MaterialApp(
-    home: ProfileScreen(auth: auth, service: service ?? FakeReportService()),
+    home: ProfileScreen(
+      auth: auth,
+      firestore: firestore,
+    ),
   );
 }
 
 void main() {
-  // instantiate user
-  final user = FakeUser();
+  testWidgets('shows profile data from Firestore', (tester) async {
+    final firestore = await createFirestore();
 
-  // show branding
-  testWidgets('shows UrbanEye branding', (tester) async {
-    await tester.pumpWidget(buildProfilePage(FakeFirebaseAuth(user)));
-    await tester.pump();
-    expect(find.text('UrbanEye'), findsOneWidget);
+    await tester.pumpWidget(
+      buildProfilePage(
+        auth: FakeFirebaseAuth(FakeUser()),
+        firestore: firestore,
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Profile'), findsWidgets);
+    expect(find.text('Hello, Diogo'), findsOneWidget);
+    expect(find.text('diogo123'), findsOneWidget);
+    expect(find.text('21-05-2004'), findsOneWidget);
+    expect(find.text('test@example.com'), findsOneWidget);
   });
 
-  // show greeting with user email
-  testWidgets('shows greeting with user email', (tester) async {
-    await tester.pumpWidget(buildProfilePage(FakeFirebaseAuth(user)));
-    await tester.pump();
-    expect(find.text('Hello, test@example.com'), findsOneWidget);
+  testWidgets('shows Edit profile button', (tester) async {
+    final firestore = await createFirestore();
+
+    await tester.pumpWidget(
+      buildProfilePage(
+        auth: FakeFirebaseAuth(FakeUser()),
+        firestore: firestore,
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Edit profile'), findsOneWidget);
   });
 
-  // show My Reports / Report a problem / Sign out
-  testWidgets('shows My Reports / Report a problem / Sign out', (
+  testWidgets('navigates to EditProfileScreen when Edit profile is tapped', (
     tester,
   ) async {
-    await tester.pumpWidget(buildProfilePage(FakeFirebaseAuth(user)));
-    await tester.pump();
-    expect(find.text('My Reports'), findsOneWidget);
-    expect(find.text('Report a problem'), findsOneWidget);
-    expect(find.text('Sign out'), findsOneWidget);
+    final firestore = await createFirestore();
+
+    await tester.pumpWidget(
+      buildProfilePage(
+        auth: FakeFirebaseAuth(FakeUser()),
+        firestore: firestore,
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Edit profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EditProfileScreen), findsOneWidget);
   });
 
-  // navigate to MyReportsScreen when My Reports is tapped
-  testWidgets('navigates to MyReportsScreen when My Reports is tapped', (
-    tester,
-  ) async {
-    await tester.pumpWidget(buildProfilePage(FakeFirebaseAuth(user)));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('My Reports'));
-    await tester.pumpAndSettle();
-    expect(find.byType(MyReportsScreen), findsOneWidget);
-  });
+  testWidgets('shows Not logged in when user is null', (tester) async {
+    final firestore = FakeFirebaseFirestore();
 
-  // navigate to MainScreen when Report a problem is tapped
-  testWidgets('navigates to MainScreen when Report a problem is tapped', (
-    tester,
-  ) async {
-    await tester.pumpWidget(buildProfilePage(FakeFirebaseAuth(user)));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Report a problem'));
-    await tester.pumpAndSettle();
-    expect(find.byType(MainScreen), findsOneWidget);
-  });
+    await tester.pumpWidget(
+      buildProfilePage(
+        auth: FakeFirebaseAuth(null),
+        firestore: firestore,
+      ),
+    );
 
-  // call signOut when Sign out is tapped
-  testWidgets('calls signOut when Sign out is tapped', (tester) async {
-    final fakeAuth = FakeFirebaseAuth(user);
-    await tester.pumpWidget(buildProfilePage(fakeAuth));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Sign out'));
-    await tester.pumpAndSettle();
-    expect(fakeAuth.signOutCalled, isTrue);
-  });
 
-  // navigate to MainScreen after sign out
-  testWidgets('navigates to MainScreen after sign out', (tester) async {
-    final fakeAuth = FakeFirebaseAuth(user);
-    await tester.pumpWidget(buildProfilePage(fakeAuth));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Sign out'));
-    await tester.pumpAndSettle();
-    expect(find.byType(MainScreen), findsOneWidget);
+    expect(find.text('Not logged in'), findsOneWidget);
   });
 }

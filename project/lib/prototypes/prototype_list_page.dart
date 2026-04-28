@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'auth_page.dart';
+import 'auth_page_prototype.dart';
 import 'img_picker.dart';
 import 'img_taker.dart';
 import 'location.dart';

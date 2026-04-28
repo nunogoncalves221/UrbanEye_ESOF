@@ -33,6 +33,15 @@ class FakeReportService extends ReportServiceBase {
 
   @override
   Future<void> submitReport(ReportModel report, {File? photo}) async {}
+
+  @override
+  Future<bool> checkReportExists(String reportId) async => true;
+
+  @override
+  Future<void> confirmProblem(String reportId, String userId, bool confirmed) async {}
+
+  @override
+  Future<bool> hasUserConfirmed(String reportId, String userId) async => false;
 }
 
 // instantiate buildAuthPage helper

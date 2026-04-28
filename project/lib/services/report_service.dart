@@ -8,6 +8,9 @@ abstract class ReportServiceBase {
   Stream<List<ReportModel>> watchReportsByUser(String userId);
   Future<void> deleteReport(ReportModel report);
   Future<void> submitReport(ReportModel report, {File? photo});
+  Future<bool> checkReportExists(String reportId);
+  Future<void> confirmProblem(String reportId, String userId, bool confirmed);
+  Future<bool> hasUserConfirmed(String reportId, String userId);
 }
 
 class ReportService extends ReportServiceBase {
@@ -91,5 +94,61 @@ class ReportService extends ReportServiceBase {
       } catch (_) {}
     }
     await _firestore.collection('reports').doc(report.id).delete();
+  }
+
+  // verify if a report exists in the database
+  @override
+  Future<bool> checkReportExists(String reportId) async {
+    final doc = await _firestore.collection('reports').doc(reportId).get();
+    return doc.exists;
+  }
+
+  // confirm whether a problem exists or not
+  @override
+  Future<void> confirmProblem(String reportId, String userId, bool confirmed) async {
+    final confirmationDoc = _firestore.collection('problem_confirmations').doc('${reportId}_$userId');
+    final doc = await confirmationDoc.get();
+    if (doc.exists) return;
+
+    await confirmationDoc.set({
+      'reportId': reportId,
+      'userId': userId,
+      'confirmed': confirmed,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    final reportRef = _firestore.collection('reports').doc(reportId);
+    if (confirmed) {
+      await reportRef.update({'exists_confirmations': FieldValue.increment(1)});
+    } else {
+      await reportRef.update({'not_exists_confirmations': FieldValue.increment(1)});
+
+      final reportDoc = await reportRef.get();
+      final data = reportDoc.data();
+      if (data != null) {
+        final existsCount = (data['exists_confirmations'] as int?) ?? 0;
+        final notExistsCount = (data['not_exists_confirmations'] as int?) ?? 0;
+        if (existsCount * 1.25 + 5 < notExistsCount) {
+          final photoUrl = data['photoUrl'] as String?;
+          if (photoUrl != null) {
+            try {
+              final ref = _storage.refFromURL(photoUrl);
+              await ref.delete();
+            } catch (_) {}
+          }
+          await reportRef.delete();
+        }
+      }
+    }
+  }
+
+  // check if user has already confirmed a report
+  @override
+  Future<bool> hasUserConfirmed(String reportId, String userId) async {
+    final doc = await _firestore
+        .collection('problem_confirmations')
+        .doc('${reportId}_$userId')
+        .get();
+    return doc.exists;
   }
 }

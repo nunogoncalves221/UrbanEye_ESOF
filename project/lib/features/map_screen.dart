@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'report/report_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:project/features/report/report_model.dart';
+import 'package:project/services/report_service.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -74,56 +76,190 @@ class _MapScreenState extends State<MapScreen> {
     final color = _statusColors[report.status] ?? Colors.grey;
     final icon = _categoryIcons[report.category] ?? Icons.flag;
     final statusLabel = _statusLabels[report.status] ?? report.status;
+    final user = FirebaseAuth.instance.currentUser;
+    final reportService = const ReportService();
 
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      builder: (_) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, color: color),
-                const SizedBox(width: 8),
-                Text(
-                  report.category,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
+                Row(
+                  children: [
+                    Icon(icon, color: color),
+                    const SizedBox(width: 8),
+                    Text(
+                      report.category,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        statusLabel,
+                        style: TextStyle(
+                            color: color,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
                 ),
-                const Spacer(),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    statusLabel,
-                    style: TextStyle(
-                        color: color,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600),
-                  ),
+                const SizedBox(height: 10),
+                Text(report.description, style: const TextStyle(fontSize: 14)),
+                const SizedBox(height: 8),
+                Text(
+                  'Lat: ${report.latitude.toStringAsFixed(5)}, Lng: ${report.longitude.toStringAsFixed(5)}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                _buildConfirmationSection(
+                  context,
+                  report,
+                  user,
+                  reportService,
+                  setModalState,
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(report.description, style: const TextStyle(fontSize: 14)),
-            const SizedBox(height: 8),
-            Text(
-              'Lat: ${report.latitude.toStringAsFixed(5)}, Lng: ${report.longitude.toStringAsFixed(5)}',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
+  }
+
+  // build the confirmation buttons or thank you message
+  Widget _buildConfirmationSection(
+    BuildContext context,
+    ReportModel report,
+    user,
+    ReportService reportService,
+    StateSetter setModalState,
+  ) {
+    if (user == null || user.uid == report.userId) {
+      return const SizedBox.shrink();
+    }
+
+    return FutureBuilder<bool>(
+      future: reportService.hasUserConfirmed(report.id!, user.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox.shrink();
+        }
+
+        if (snapshot.data == true) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Text(
+              'Thank you for your feedback!',
+              style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _handleConfirmation(
+                  context,
+                  report,
+                  user.uid,
+                  true,
+                  reportService,
+                  setModalState,
+                ),
+                icon: const Icon(Icons.check, color: Colors.white),
+                label: const Text('Exists'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _handleConfirmation(
+                  context,
+                  report,
+                  user.uid,
+                  false,
+                  reportService,
+                  setModalState,
+                ),
+                icon: const Icon(Icons.close, color: Colors.white),
+                label: const Text("Doesn't exist"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // handle user confirmation button click
+  Future<void> _handleConfirmation(
+    BuildContext context,
+    ReportModel report,
+    String userId,
+    bool confirmed,
+    ReportService reportService,
+    StateSetter setModalState,
+  ) async {
+    await reportService.confirmProblem(report.id!, userId, confirmed);
+
+    final exists = await reportService.checkReportExists(report.id!);
+    if (!exists) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('This issue no longer exists'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    setModalState(() {});
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Thank you for your feedback!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   @override

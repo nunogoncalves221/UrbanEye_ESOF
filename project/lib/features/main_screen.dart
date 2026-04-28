@@ -36,12 +36,11 @@ class MainScreen extends StatelessWidget {
 
   // navigate to ProfileScreen
   void _goToProfile(BuildContext context) {
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => ProfileScreen(
           auth: auth,
-          service: reportService,
         ),
       ),
     );

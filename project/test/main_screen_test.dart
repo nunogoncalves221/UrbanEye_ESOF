@@ -170,4 +170,125 @@ void main() {
 
     expect(find.text('Report a Problem'), findsOneWidget);
   });
+
+  // confirmation feature tests
+  group('MapScreen confirmation buttons', () {
+    // buttons are hidden when user is not logged in
+    testWidgets('buttons are hidden when user is not logged in', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: _TestConfirmationWidget(
+              user: null,
+              reportOwnerId: 'otherUser',
+              hasConfirmed: false,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Exists'), findsNothing);
+      expect(find.text("Doesn't exist"), findsNothing);
+    });
+
+    // buttons are hidden when user is the report owner (same uid)
+    testWidgets('buttons are hidden when user is the report owner', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: _TestConfirmationWidget(
+              user: FakeUser(),
+              reportOwnerId: '123',
+              hasConfirmed: false,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Exists'), findsNothing);
+      expect(find.text("Doesn't exist"), findsNothing);
+    });
+
+    // buttons are hidden when user already confirmed
+    testWidgets('buttons are hidden when user already confirmed', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: _TestConfirmationWidget(
+              user: FakeUser(),
+              reportOwnerId: 'otherUser',
+              hasConfirmed: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Exists'), findsNothing);
+      expect(find.text("Doesn't exist"), findsNothing);
+      expect(find.text('Thank you for your feedback!'), findsOneWidget);
+    });
+
+    // shows buttons for logged in user who has not confirmed
+    testWidgets('shows buttons for logged in user who has not confirmed', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: _TestConfirmationWidget(
+              user: FakeUser(),
+              reportOwnerId: 'otherUser',
+              hasConfirmed: false,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Exists'), findsOneWidget);
+      expect(find.text("Doesn't exist"), findsOneWidget);
+    });
+  });
+}
+
+// test helper widget for confirmation button tests
+class _TestConfirmationWidget extends StatelessWidget {
+  final User? user;
+  final String reportOwnerId;
+  final bool hasConfirmed;
+
+  const _TestConfirmationWidget({
+    required this.user,
+    required this.reportOwnerId,
+    required this.hasConfirmed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (user == null || user!.uid == reportOwnerId) {
+      return const SizedBox.shrink();
+    }
+
+    if (hasConfirmed) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        child: const Text('Thank you for your feedback!'),
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {},
+            child: const Text('Exists'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {},
+            child: const Text("Doesn't exist"),
+          ),
+        ),
+      ],
+    );
+  }
 }

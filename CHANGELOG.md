@@ -7,14 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.6.1] - 2026-04-29
+//colocar que foi adicionado o screenshot do sprint2
+
+## [1.6.1] 
 
 ### Added
 
 - Tests for checkReportExists, confirmProblem, hasUserConfirmed methods
 - Tests for confirmation buttons UI (not logged in, report owner, already confirmed)
 
-## [1.6.0] - 2026-04-28
+## [1.6.0] 
 
 ### Added
 

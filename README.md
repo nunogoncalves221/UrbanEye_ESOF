@@ -271,7 +271,7 @@ Final GitHub Project screenshot:
 
 ### Sprint 2
 Initial GitHub Project screenshot:
-![Sprint2 Start](docs/images/Sprint2_start.png)
+![Sprint2 Start](docs/images/sprint2_start.png)
 
 ### Sprint 3
 

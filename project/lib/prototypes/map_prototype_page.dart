@@ -11,17 +11,17 @@ class MapPrototypePage extends StatefulWidget {
 
 class _MapPrototypePageState extends State<MapPrototypePage> {
   final MapController _mapController = MapController();
-  final LatLng porto = LatLng(41.1496, -8.6109);
+  final LatLng lisbon = LatLng(38.7223, -9.1393);
   double currentZoom = 13;
 
   void _zoomIn() {
     currentZoom += 1;
-    _mapController.move(porto, currentZoom);
+    _mapController.move(lisbon, currentZoom);
   }
 
   void _zoomOut() {
     currentZoom -= 1;
-    _mapController.move(porto, currentZoom);
+    _mapController.move(lisbon, currentZoom);
   }
 
   @override
@@ -35,7 +35,7 @@ class _MapPrototypePageState extends State<MapPrototypePage> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: porto,
+              initialCenter: lisbon,
               initialZoom: currentZoom,
               minZoom: 3,
               maxZoom: 19,
@@ -46,13 +46,12 @@ class _MapPrototypePageState extends State<MapPrototypePage> {
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                 userAgentPackageName: 'com.example.project',
-                
+                userAgentPackageName: 'com.example.prototype_app',
               ),
               MarkerLayer(
                 markers: [
                   Marker(
-                    point: porto,
+                    point: lisbon,
                     width: 80,
                     height: 80,
                     child: const Icon(Icons.location_pin, size: 40),

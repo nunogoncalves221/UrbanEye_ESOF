@@ -13,7 +13,8 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
-  static const LatLng _lisbon = LatLng(38.7223, -9.1393);
+  static const LatLng _porto = LatLng(41.1496, -8.6109);
+
   double _currentZoom = 13;
 
   List<ReportModel> _reports = [];
@@ -133,7 +134,7 @@ class _MapScreenState extends State<MapScreen> {
         FlutterMap(
           mapController: _mapController,
           options: MapOptions(
-            initialCenter: _lisbon,
+            initialCenter: _porto,
             initialZoom: _currentZoom,
             minZoom: 3,
             maxZoom: 19,

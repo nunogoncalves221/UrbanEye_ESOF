@@ -3,12 +3,37 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'report_model.dart';
  
 typedef ReverseGeocodeFn = Future<String?> Function(double lat, double lon);
 typedef SearchAddressFn = Future<LatLng?> Function(String query);
- 
+
+// ───────────────────────────────────────────────────────────────
+// GPS CURRENT LOCATION
+// ───────────────────────────────────────────────────────────────
+Future<LatLng?> getCurrentLatLng() async {
+  LocationPermission permission = await Geolocator.checkPermission();
+
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+  }
+
+  if (permission == LocationPermission.deniedForever) {
+    return null;
+  }
+
+  final position = await Geolocator.getCurrentPosition(
+    desiredAccuracy: LocationAccuracy.high,
+  );
+
+  return LatLng(position.latitude, position.longitude);
+}
+
+// ───────────────────────────────────────────────────────────────
+// DEFAULT FUNCTIONS (mantidas iguais)
+// ───────────────────────────────────────────────────────────────
 Future<String?> defaultReverseGeocode(double lat, double lon) async {
   try {
     final uri = Uri.parse(
@@ -70,9 +95,11 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   final MapController _mapController = MapController();
   final TextEditingController _addressController = TextEditingController();
  
-  static const LatLng _defaultCenter = LatLng(38.7223, -9.1393); // Lisboa
+  static const LatLng _defaultCenter = LatLng(41.1496, -8.6109 ); // Porto
+   
  
   LatLng? _selectedPoint;
+   LatLng? _currentLocation;
   String? _addressLabel;
   bool _isSearching = false;
   String? _searchError;
@@ -97,17 +124,33 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     'resolved': Colors.green,
   };
  
-  @override
-  void initState() {
-    super.initState();
-    if (widget.initialLatitude != null && widget.initialLongitude != null) {
-      _selectedPoint = LatLng(
-        widget.initialLatitude!,
-        widget.initialLongitude!,
-      );
+
+ Future<void> _initLocation() async {
+    final loc = await getCurrentLatLng();
+    if (loc != null && mounted) {
+      setState(() {
+        _currentLocation = loc;
+      });
+
+      _mapController.move(loc, 15);
     }
-    _loadExistingReports();
   }
+  @override
+void initState() {
+  super.initState();
+
+  _initLocation(); // chama sempre GPS
+
+  if (widget.initialLatitude != null &&
+      widget.initialLongitude != null) {
+    _selectedPoint = LatLng(
+      widget.initialLatitude!,
+      widget.initialLongitude!,
+    );
+  }
+
+  _loadExistingReports();
+}
  
   Future<void> _loadExistingReports() async {
     try {
@@ -117,10 +160,17 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
           .toList();
       if (mounted) setState(() => _existingReports = reports);
+
+      
     } catch (_) {}
   }
  
-  LatLng get _mapCenter => _selectedPoint ?? _defaultCenter;
+  LatLng get _mapCenter =>
+    _selectedPoint ??
+    _currentLocation ??
+    _defaultCenter;
+  
+
  
   // ── Tap on map ────────────────────────────────────────────────
   void _onMapTap(TapPosition _, LatLng point) {
@@ -136,6 +186,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   Future<void> _reverseGeocode(LatLng point) async {
     final label = await widget.reverseGeocode(point.latitude, point.longitude);
     if (mounted) setState(() => _addressLabel = label);
+    
   }
  
   // ── Search by address ─────────────────────────────────────────

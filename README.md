@@ -270,6 +270,8 @@ Final GitHub Project screenshot:
 ![Sprint Finish](docs/images/sprint1_finish.png)
 
 ### Sprint 2
+Initial GitHub Project screenshot:
+![Sprint2 Start](docs/images/Sprint2_start.png)
 
 ### Sprint 3
 

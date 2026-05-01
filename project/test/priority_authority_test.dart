@@ -1,79 +1,90 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:project/features/report/report_model.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:project/features/report/report_controller.dart';
-import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:project/services/user_role_service.dart';
+import 'package:project/services/user_role.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import necessário para o Fake
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+
+// 1. Criamos um Fake para o User para que o Mocktail o reconheça
+class FakeUser extends Fake implements User {}
+
+// Criamos um Mock para o serviço de Roles
+class MockUserRoleService extends Mock implements UserRoleService {}
 
 void main() {
-  late FakeFirebaseFirestore fakeFirestore;
-  late MockFirebaseAuth fakeAuth;
+  // 2. Registamos o fallback value antes de qualquer teste
+  setUpAll(() {
+    registerFallbackValue(FakeUser());
+  });
+
   late ReportController controller;
+  late MockUserRoleService mockRoleService;
+  late MockFirebaseAuth mockAuth;
+  late FakeFirebaseFirestore fakeFirestore;
 
   setUp(() {
+    mockRoleService = MockUserRoleService();
     fakeFirestore = FakeFirebaseFirestore();
-    fakeAuth = MockFirebaseAuth();
     
-    // Injetamos os mocks no controller para ele não tentar ligar ao Firebase real
+    final user = MockUser(uid: 'auth_user_123', email: 'authority@test.com');
+    mockAuth = MockFirebaseAuth(signedIn: true, mockUser: user);
+
     controller = ReportController(
-      auth: fakeAuth,
+      auth: mockAuth,
+      roleService: mockRoleService,
+      firestore: fakeFirestore,
     );
   });
 
-  group('Authority Feature Tests', () {
+  group('Authority Feature Tests (Custom Claims)', () {
     
-    test('Should order reports by exists_confirmations descending', () async {
-      // Criar dados no fake firestore
+    test('Deve permitir ver reports se o Role for Authority', () async {
+      // O 'any()' agora já vai funcionar porque registámos o FakeUser acima
+      when(() => mockRoleService.getRole(any())).thenAnswer((_) async => UserRole.authority);
+
+      await controller.syncUserRole();
+
+      expect(controller.userRole, UserRole.authority);
+      
       await fakeFirestore.collection('reports').add({
         'category': 'Pothole',
-        'exists_confirmations': 2,
-        'isPriority': false,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-
-      await fakeFirestore.collection('reports').add({
-        'category': 'Broken Pipe',
         'exists_confirmations': 10,
-        'isPriority': false,
-        'createdAt': DateTime.now().toIso8601String(),
       });
-
-      // Simulamos a query que está no watchAuthorityReports
-      final snapshot = await fakeFirestore
-          .collection('reports')
-          .orderBy('exists_confirmations', descending: true)
-          .get();
-
-      final firstReport = snapshot.docs.first;
       
-      expect(firstReport.data()['exists_confirmations'], 10);
-      expect(snapshot.docs.length, 2);
+      final reports = await controller.watchAuthorityReports().first;
+      expect(reports.length, 1);
     });
 
-    test('togglePriority logic should update the document', () async {
-      // 1. Criar um documento
-      final docRef = await fakeFirestore.collection('reports').add({
-        'category': 'Test',
+    test('Deve bloquear reports e prioridade se o Role for Citizen', () async {
+      when(() => mockRoleService.getRole(any())).thenAnswer((_) async => UserRole.citizen);
+
+      await controller.syncUserRole();
+
+      expect(controller.userRole, UserRole.citizen);
+      
+      await fakeFirestore.collection('reports').add({'category': 'Pothole'});
+      
+      final reports = await controller.watchAuthorityReports().first;
+      expect(reports, isEmpty);
+
+      await controller.togglePriority('doc_123', false);
+      expect(controller.errorMessage, contains('Unauthorized'));
+    });
+
+    test('togglePriority deve atualizar Firestore se for Authority', () async {
+      when(() => mockRoleService.getRole(any())).thenAnswer((_) async => UserRole.authority);
+      await controller.syncUserRole();
+
+      final doc = await fakeFirestore.collection('reports').add({
         'isPriority': false,
       });
 
-      // 2. Simular a lógica de update
-      await fakeFirestore.collection('reports').doc(docRef.id).update({
-        'isPriority': true,
-      });
+      await controller.togglePriority(doc.id, false);
 
-      // 3. Verificar
-      final updatedDoc = await fakeFirestore.collection('reports').doc(docRef.id).get();
+      final updatedDoc = await fakeFirestore.collection('reports').doc(doc.id).get();
       expect(updatedDoc.data()!['isPriority'], true);
-    });
-
-    test('Authority Login Bypass Check', () {
-      // Teste direto da lógica de login que usaste no ecrã
-      const email = 'authority@gmail.com';
-      const pass = 'authority';
-
-      final isAuthority = (email == 'authority@gmail.com' && pass == 'authority');
-      
-      expect(isAuthority, isTrue);
     });
   });
 }

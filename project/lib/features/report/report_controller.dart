@@ -6,15 +6,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'report_model.dart';
 import '../../services/report_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/user_role_service.dart';
+import '../../services/user_role.dart';
 
 class ReportController extends ChangeNotifier {
   final ReportServiceBase _service;
   final FirebaseAuth _auth;
+  final UserRoleService _roleService;
+  final FirebaseFirestore _firestore;
 
-  ReportController({ReportServiceBase? service, FirebaseAuth? auth})
+  ReportController({ReportServiceBase? service, FirebaseAuth? auth, UserRoleService? roleService,FirebaseFirestore? firestore,})
     : _service = service ?? const ReportService(),
-      _auth = auth ?? FirebaseAuth.instance;
+      _auth = auth ?? FirebaseAuth.instance,
+      _roleService = roleService ?? const UserRoleService(),
+      _firestore = firestore ?? FirebaseFirestore.instance;
 
+  UserRole userRole = UserRole.citizen;
   // Form state
   String? selectedCategory;
   String description = '';
@@ -28,6 +35,15 @@ class ReportController extends ChangeNotifier {
   bool submitted = false;
 
   final ImagePicker _picker = ImagePicker();
+  Future<void> syncUserRole() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      userRole = await _roleService.getRole(user);
+    } else {
+      userRole = UserRole.citizen;
+    }
+    notifyListeners();
+  }
 
   // ─── Location ───────────────────────────────────────────────
 
@@ -136,8 +152,14 @@ class ReportController extends ChangeNotifier {
   // ─── Authority Methods (Limpas e sem duplicação) ────────────
 
   /// Stream que retorna os reports ordenados por confirmações.
+  /// Stream que retorna os reports. Agora valida se o user é autoridade.
   Stream<List<ReportModel>> watchAuthorityReports() {
-    return FirebaseFirestore.instance
+    // PROTEÇÃO: Se não for autoridade, retorna uma stream vazia.
+    if (userRole != UserRole.authority) {
+      return Stream.value([]); 
+    }
+
+    return _firestore
         .collection('reports')
         .orderBy('exists_confirmations', descending: true)
         .snapshots()
@@ -146,10 +168,17 @@ class ReportController extends ChangeNotifier {
             .toList());
   }
 
-  /// Alterna o estado de prioridade de um report.
+  /// Alterna o estado de prioridade. Agora valida se o user é autoridade.
   Future<void> togglePriority(String reportId, bool currentPriority) async {
+    // PROTEÇÃO: Impede a execução se não tiver permissão.
+    if (userRole != UserRole.authority) {
+      errorMessage = 'Unauthorized: Only authorities can set priority.';
+      notifyListeners();
+      return;
+    }
+
     try {
-      await FirebaseFirestore.instance
+      await _firestore
           .collection('reports')
           .doc(reportId)
           .update({'isPriority': !currentPriority});

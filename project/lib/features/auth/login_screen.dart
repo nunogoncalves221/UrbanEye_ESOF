@@ -1,10 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:project/features/main_screen.dart';
-import 'package:project/services/auth_service.dart';
-import 'package:project/features/authority/authority_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:project/features/report/report_controller.dart';
+import '../../features/report/report_controller.dart';
+import '../../services/user_role.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,68 +12,63 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final AuthService _authService = const AuthService();
-
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
-  String _message = '';
+  final _auth = FirebaseAuth.instance;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  
   bool _isLoading = false;
+  String? _errorMessage;
 
-  Future<void> _login() async {
-    setState(() {
-      _isLoading = true;
-      _message = '';
-    });
+  Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    
-    // --- Lógica de Authority ---
-    if (email == 'authority@gmail.com' && password == 'authority') {
-      Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-      builder: (_) => ChangeNotifierProvider(
-        create: (_) => ReportController(), // Cria o controller aqui
-        child:  AuthorityScreen(),
-      ),
-    ),
-  );
-   setState(() {
-        _isLoading = false;
-      });
-  return;
-}
-    
+    if (email.isEmpty || password.isEmpty) {
+      setState(() => _errorMessage = 'Por favor, preencha todos os campos.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      await _authService.signIn(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+      // 1. Autenticação no Firebase
+      await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
 
-      setState(() {
-        _message = 'Login successful';
-      });
+      // 2. Aceder ao ReportController via Provider
+      if (!mounted) return;
+      final reportController = Provider.of<ReportController>(context, listen: false);
 
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => MainScreen(auth: FirebaseAuth.instance),
-            ),
-          );
-        }
-      });
+      // 3. Sincronizar o Role (Claims do Firebase)
+      await reportController.syncUserRole();
+
+      // 4. Decisão de Navegação baseada no Role detetado
+      if (!mounted) return;
+      if (reportController.userRole == UserRole.authority) {
+        // Se for autoridade, vai para o painel de gestão
+        Navigator.pushReplacementNamed(context, '/authority_panel');
+      } else {
+        // Se for cidadão comum, vai para a lista/mapa geral
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+
     } on FirebaseAuthException catch (e) {
       setState(() {
-        _message = e.message ?? 'Login failed';
+        _errorMessage = e.message ?? 'Erro ao fazer login.';
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Ocorreu um erro inesperado.';
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -86,43 +79,41 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  InputDecoration _inputDecoration() {
-    return const InputDecoration(border: OutlineInputBorder());
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign in')),
+      appBar: AppBar(title: const Text('Login')),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Email'),
+            if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 15),
+                child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+              ),
             TextField(
               controller: _emailController,
-              decoration: _inputDecoration(),
+              decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
             ),
-
-            const SizedBox(height: 12),
-
-            const Text('Password'),
+            const SizedBox(height: 15),
             TextField(
               controller: _passwordController,
+              decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
-              decoration: _inputDecoration(),
             ),
-
-            const SizedBox(height: 20),
-
-            if (_isLoading)
-              const CircularProgressIndicator()
-            else
-              ElevatedButton(onPressed: _login, child: const Text('Login')),
-
-            const SizedBox(height: 16),
-
-            Text(_message, style: const TextStyle(color: Colors.green)),
+            const SizedBox(height: 30),
+            _isLoading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    child: const Text('Entrar'),
+                  ),
           ],
         ),
       ),

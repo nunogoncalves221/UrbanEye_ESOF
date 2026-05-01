@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../../features/report/report_controller.dart';
 import '../../services/user_role.dart';
+import '../../features/main_screen.dart'; 
+import '../authority/authority_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -51,19 +53,19 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       if (reportController.userRole == UserRole.authority) {
         // Se for autoridade, vai para o painel de gestão
-        Navigator.pushReplacementNamed(context, '/authority_panel');
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) =>  AuthorityScreen()),);
       } else {
         // Se for cidadão comum, vai para a lista/mapa geral
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainScreen(auth: FirebaseAuth.instance)),);
       }
 
     } on FirebaseAuthException catch (e) {
       setState(() {
-        _errorMessage = e.message ?? 'Erro ao fazer login.';
+        _errorMessage = e.message ?? 'Erro ao fazer login.$e';
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Ocorreu um erro inesperado.';
+        _errorMessage = 'Ocorreu um erro inesperado. $e';
       });
     } finally {
       if (mounted) {

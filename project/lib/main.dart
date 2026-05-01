@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:project/features/main_screen.dart';
 import 'firebase_options.dart';
+import 'package:provider/provider.dart';
+import 'package:project/features/report/report_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,14 +19,17 @@ class UrbanEyeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'UrbanEye',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (_) => ReportController(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'UrbanEye',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+          useMaterial3: true,
+        ),
+        home: MainScreen(auth: FirebaseAuth.instance),
       ),
-      home: MainScreen(auth: FirebaseAuth.instance),
     );
   }
 }

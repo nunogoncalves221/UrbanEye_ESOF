@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 //colocar que foi adicionado o screenshot do sprint2
 
+## [1.7.3] 
+
+### Tests
+
+- location_porto_test.dart
+- priority_authority_test.dart (both created and without errors)
+
+
+## [1.7.2] 
+
+### Added
+
+- authority users now have a page where it shows the reports in descending order of confirmations (by the users). They can also prioritise the report by marking it with a yellow star.
+
+## [1.6.2] 
+
+### Fixed 
+
+- Application now starts in Porto
+- For submitting the location of a certain report, the app asks if it can access the user's location, if it has permission centers around its location, otherwise, remains in Porto 
+
 ## [1.6.1] 
 
 ### Added

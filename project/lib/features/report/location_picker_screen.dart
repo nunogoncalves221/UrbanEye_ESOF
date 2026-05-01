@@ -88,18 +88,18 @@ class LocationPickerScreen extends StatefulWidget {
   });
  
   @override
-  State<LocationPickerScreen> createState() => _LocationPickerScreenState();
+  State<LocationPickerScreen> createState() => LocationPickerScreenState();
 }
  
-class _LocationPickerScreenState extends State<LocationPickerScreen> {
+class LocationPickerScreenState extends State<LocationPickerScreen> {
   final MapController _mapController = MapController();
   final TextEditingController _addressController = TextEditingController();
  
   static const LatLng _defaultCenter = LatLng(41.1496, -8.6109 ); // Porto
    
  
-  LatLng? _selectedPoint;
-   LatLng? _currentLocation;
+  LatLng? selectedPoint;
+   LatLng? currentLocation;
   String? _addressLabel;
   bool _isSearching = false;
   String? _searchError;
@@ -129,7 +129,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     final loc = await getCurrentLatLng();
     if (loc != null && mounted) {
       setState(() {
-        _currentLocation = loc;
+        currentLocation = loc;
       });
 
       _mapController.move(loc, 15);
@@ -143,7 +143,7 @@ void initState() {
 
   if (widget.initialLatitude != null &&
       widget.initialLongitude != null) {
-    _selectedPoint = LatLng(
+    selectedPoint = LatLng(
       widget.initialLatitude!,
       widget.initialLongitude!,
     );
@@ -165,9 +165,9 @@ void initState() {
     } catch (_) {}
   }
  
-  LatLng get _mapCenter =>
-    _selectedPoint ??
-    _currentLocation ??
+  LatLng get mapCenter =>
+    selectedPoint ??
+    currentLocation ??
     _defaultCenter;
   
 
@@ -175,7 +175,7 @@ void initState() {
   // ── Tap on map ────────────────────────────────────────────────
   void _onMapTap(TapPosition _, LatLng point) {
     setState(() {
-      _selectedPoint = point;
+      selectedPoint = point;
       _addressLabel = null;
       _searchError = null;
     });
@@ -203,7 +203,7 @@ void initState() {
       final point = await widget.searchAddress(query);
       if (point != null) {
         setState(() {
-          _selectedPoint = point;
+          selectedPoint = point;
           _isSearching = false;
         });
         _mapController.move(point, 16);
@@ -282,8 +282,8 @@ void initState() {
   }
  
   void _confirm() {
-    if (_selectedPoint != null) {
-      Navigator.pop(context, _selectedPoint);
+    if (selectedPoint != null) {
+      Navigator.pop(context, selectedPoint);
     }
   }
  
@@ -299,7 +299,7 @@ void initState() {
       appBar: AppBar(
         title: const Text('Choose Location'),
         actions: [
-          if (_selectedPoint != null)
+          if (selectedPoint != null)
             TextButton(
               onPressed: _confirm,
               child: const Text(
@@ -356,7 +356,7 @@ void initState() {
                 FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
-                    initialCenter: _mapCenter,
+                    initialCenter: mapCenter,
                     initialZoom: 13,
                     minZoom: 3,
                     maxZoom: 19,
@@ -406,9 +406,9 @@ void initState() {
                           );
                         }),
                         // ── Selected pin ────────────────────────
-                        if (_selectedPoint != null)
+                        if (selectedPoint != null)
                           Marker(
-                            point: _selectedPoint!,
+                            point: selectedPoint!,
                             width: 48,
                             height: 48,
                             child: const Icon(
@@ -480,7 +480,7 @@ void initState() {
                 ),
  
                 // Hint overlay when nothing is selected yet
-                if (_selectedPoint == null)
+                if (selectedPoint == null)
                   const Positioned(
                     bottom: 24,
                     left: 0,
@@ -502,7 +502,7 @@ void initState() {
           ),
  
           // ── Selected location info ─────────────────────────────
-          if (_selectedPoint != null)
+          if (selectedPoint != null)
             Container(
               color: Colors.grey.shade100,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -510,8 +510,8 @@ void initState() {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Lat: ${_selectedPoint!.latitude.toStringAsFixed(5)}, '
-                    'Lng: ${_selectedPoint!.longitude.toStringAsFixed(5)}',
+                    'Lat: ${selectedPoint!.latitude.toStringAsFixed(5)}, '
+                    'Lng: ${selectedPoint!.longitude.toStringAsFixed(5)}',
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                   if (_addressLabel != null) ...[

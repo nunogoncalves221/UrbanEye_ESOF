@@ -10,6 +10,8 @@ class ReportModel {
   final String? userId;
   final String status;
   final DateTime createdAt;
+  final int existsConfirmations;
+  final bool isPriority;
 
   ReportModel({
     this.id,
@@ -21,6 +23,8 @@ class ReportModel {
     this.userId,
     this.status = 'pending',
     DateTime? createdAt,
+    this.existsConfirmations = 0, // Default 0
+    this.isPriority = false,      // Default false
   }) : createdAt = createdAt ?? DateTime.now();
 
   Map<String, dynamic> toMap() {
@@ -33,6 +37,8 @@ class ReportModel {
       'userId': userId,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
+      'exists_confirmations': existsConfirmations,
+      'isPriority': isPriority,
     };
   }
 
@@ -57,6 +63,8 @@ class ReportModel {
       userId: map['userId'],
       status: map['status'] ?? 'pending',
       createdAt: parsedDate,
+      existsConfirmations: map['exists_confirmations'] ?? 0,
+      isPriority: map['isPriority'] ?? false,
     );
   }
 }

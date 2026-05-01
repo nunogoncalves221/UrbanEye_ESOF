@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'report_model.dart';
 import '../../services/report_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ReportController extends ChangeNotifier {
   final ReportServiceBase _service;
@@ -129,6 +130,33 @@ class ReportController extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  // ─── Authority Methods (Limpas e sem duplicação) ────────────
+
+  /// Stream que retorna os reports ordenados por confirmações.
+  Stream<List<ReportModel>> watchAuthorityReports() {
+    return FirebaseFirestore.instance
+        .collection('reports')
+        .orderBy('exists_confirmations', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
+            .toList());
+  }
+
+  /// Alterna o estado de prioridade de um report.
+  Future<void> togglePriority(String reportId, bool currentPriority) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('reports')
+          .doc(reportId)
+          .update({'isPriority': !currentPriority});
+      notifyListeners();
+    } catch (e) {
+      errorMessage = 'Failed to update priority: $e';
+      notifyListeners();
     }
   }
 

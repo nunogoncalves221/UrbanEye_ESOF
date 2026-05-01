@@ -2,6 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project/features/main_screen.dart';
 import 'package:project/services/auth_service.dart';
+import 'package:project/features/authority/authority_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:project/features/report/report_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,7 +27,27 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
       _message = '';
     });
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
+    
+    // --- Lógica de Authority ---
+    if (email == 'authority@gmail.com' && password == 'authority') {
+      Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ChangeNotifierProvider(
+        create: (_) => ReportController(), // Cria o controller aqui
+        child:  AuthorityScreen(),
+      ),
+    ),
+  );
+   setState(() {
+        _isLoading = false;
+      });
+  return;
+}
+    
     try {
       await _authService.signIn(
         email: _emailController.text.trim(),

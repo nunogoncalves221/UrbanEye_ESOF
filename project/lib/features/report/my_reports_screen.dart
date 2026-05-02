@@ -2,9 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'report_model.dart';
 import '../../services/report_service.dart';
+import '../../services/user_role.dart';
+import '../../services/user_role_service.dart';
 import 'report_screen.dart';
 
-class MyReportsScreen extends StatelessWidget {
+class MyReportsScreen extends StatefulWidget {
   final FirebaseAuth? auth;
   final ReportServiceBase service;
 
@@ -14,6 +16,11 @@ class MyReportsScreen extends StatelessWidget {
     this.service = const ReportService(),
   });
 
+  @override
+  State<MyReportsScreen> createState() => _MyReportsScreenState();
+}
+
+class _MyReportsScreenState extends State<MyReportsScreen> {
   static const Map<String, Color> _statusColors = {
     'pending': Colors.orange,
     'in_progress': Colors.blue,
@@ -39,10 +46,23 @@ class MyReportsScreen extends StatelessWidget {
     'Trash': Icons.delete_outline,
   };
 
+  UserRole _role = UserRole.citizen;
+  FirebaseAuth get _auth => widget.auth ?? FirebaseAuth.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = _auth.currentUser;
+    if (user != null) {
+      const UserRoleService().getRole(user).then((role) {
+        if (mounted) setState(() => _role = role);
+      });
+    }
+  }
+
   Future<void> _confirmDelete(
     BuildContext context,
     ReportModel report,
-    ReportServiceBase service,
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -67,11 +87,10 @@ class MyReportsScreen extends StatelessWidget {
 
     if (confirmed == true) {
       try {
-        await service.deleteReport(report);
+        await widget.service.deleteReport(report);
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Report deleted.')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('Report deleted.')));
         }
       } catch (_) {
         if (context.mounted) {
@@ -86,22 +105,100 @@ class MyReportsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _changeStatus(BuildContext context, ReportModel report) async {
+    const statuses = ['pending', 'in_progress', 'resolved'];
+    const labels = {
+      'pending': 'Pending',
+      'in_progress': 'In Progress',
+      'resolved': 'Resolved',
+    };
+    const colors = {
+      'pending': Colors.orange,
+      'in_progress': Colors.blue,
+      'resolved': Colors.green,
+    };
+
+    final newStatus = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Update Status'),
+        children: statuses.map((s) {
+          final isCurrent = report.status == s;
+          final color = colors[s]!;
+          return SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, s),
+            child: Row(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration:
+                      BoxDecoration(color: color, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  labels[s]!,
+                  style: TextStyle(
+                    fontWeight:
+                        isCurrent ? FontWeight.bold : FontWeight.normal,
+                    color: isCurrent ? color : null,
+                  ),
+                ),
+                if (isCurrent) ...[
+                  const SizedBox(width: 6),
+                  Icon(Icons.check, size: 16, color: color),
+                ],
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+
+    if (newStatus == null || newStatus == report.status) return;
+
+    try {
+      await widget.service.updateReportStatus(report.id!, newStatus);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Status updated to "${labels[newStatus] ?? newStatus}"'),
+            backgroundColor: colors[newStatus],
+          ),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to update status.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final user = (auth ?? FirebaseAuth.instance).currentUser;
+    final user = _auth.currentUser;
+    final isAuthority = _role == UserRole.authority;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Reports'),
+        title: Text(isAuthority ? 'All Reports' : 'My Reports'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'New Report',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => ReportScreen(auth: auth)),
+          if (!isAuthority)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'New Report',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => ReportScreen(auth: widget.auth)),
+              ),
             ),
-          ),
         ],
       ),
       body: user == null
@@ -112,7 +209,9 @@ class MyReportsScreen extends StatelessWidget {
               ),
             )
           : StreamBuilder<List<ReportModel>>(
-              stream: service.watchReportsByUser(user.uid),
+              stream: isAuthority
+                  ? widget.service.watchAllReports()
+                  : widget.service.watchReportsByUser(user.uid),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -123,11 +222,8 @@ class MyReportsScreen extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          Icons.error_outline,
-                          size: 48,
-                          color: Colors.red,
-                        ),
+                        const Icon(Icons.error_outline,
+                            size: 48, color: Colors.red),
                         const SizedBox(height: 12),
                         Text(
                           'Failed to load reports.\n${snapshot.error}',
@@ -145,24 +241,21 @@ class MyReportsScreen extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.inbox_outlined,
-                          size: 64,
-                          color: Colors.grey.shade400,
-                        ),
+                        Icon(Icons.inbox_outlined,
+                            size: 64, color: Colors.grey.shade400),
                         const SizedBox(height: 16),
                         Text(
                           'No reports yet.',
                           style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey.shade600,
+                              fontSize: 18, color: Colors.grey.shade600),
+                        ),
+                        if (!isAuthority) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'Tap + to report a problem.',
+                            style: TextStyle(color: Colors.grey.shade500),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Tap + to report a problem.',
-                          style: TextStyle(color: Colors.grey.shade500),
-                        ),
+                        ],
                       ],
                     ),
                   );
@@ -171,7 +264,7 @@ class MyReportsScreen extends StatelessWidget {
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: reports.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final report = reports[index];
                     final statusColor =
@@ -198,14 +291,15 @@ class MyReportsScreen extends StatelessWidget {
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primaryContainer,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(
                                   categoryIcon,
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color:
+                                      Theme.of(context).colorScheme.primary,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -224,30 +318,42 @@ class MyReportsScreen extends StatelessWidget {
                                             ),
                                           ),
                                         ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: statusColor.withValues(
-                                              alpha: 0.2,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            border: Border.all(
+                                        // Status chip — clicável para authority
+                                        GestureDetector(
+                                          onTap: isAuthority
+                                              ? () => _changeStatus(
+                                                  context, report)
+                                              : null,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
                                               color: statusColor.withValues(
-                                                alpha: 0.2,
-                                              ),
+                                                  alpha: 0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              border: Border.all(
+                                                  color: statusColor.withValues(
+                                                      alpha: 0.2)),
                                             ),
-                                          ),
-                                          child: Text(
-                                            statusLabel,
-                                            style: TextStyle(
-                                              color: statusColor,
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  statusLabel,
+                                                  style: TextStyle(
+                                                    color: statusColor,
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                                if (isAuthority) ...[
+                                                  const SizedBox(width: 4),
+                                                  Icon(Icons.edit,
+                                                      size: 11,
+                                                      color: statusColor),
+                                                ],
+                                              ],
                                             ),
                                           ),
                                         ),
@@ -266,48 +372,41 @@ class MyReportsScreen extends StatelessWidget {
                                     const SizedBox(height: 6),
                                     Row(
                                       children: [
-                                        Icon(
-                                          Icons.location_on_outlined,
-                                          size: 13,
-                                          color: Colors.grey.shade500,
-                                        ),
+                                        Icon(Icons.location_on_outlined,
+                                            size: 13,
+                                            color: Colors.grey.shade500),
                                         const SizedBox(width: 3),
                                         Text(
                                           '${report.latitude.toStringAsFixed(4)}, '
                                           '${report.longitude.toStringAsFixed(4)}',
                                           style: TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.grey.shade500,
-                                          ),
+                                              fontSize: 11,
+                                              color: Colors.grey.shade500),
                                         ),
                                         const Spacer(),
-                                        Icon(
-                                          Icons.access_time,
-                                          size: 12,
-                                          color: Colors.grey.shade400,
-                                        ),
+                                        Icon(Icons.access_time,
+                                            size: 12,
+                                            color: Colors.grey.shade400),
                                         const SizedBox(width: 3),
                                         Text(
                                           _formatDate(report.createdAt),
                                           style: TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.grey.shade400,
-                                          ),
+                                              fontSize: 11,
+                                              color: Colors.grey.shade400),
                                         ),
                                       ],
                                     ),
                                   ],
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.redAccent,
+                              if (!isAuthority)
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline,
+                                      color: Colors.redAccent),
+                                  tooltip: 'Delete',
+                                  onPressed: () =>
+                                      _confirmDelete(context, report),
                                 ),
-                                tooltip: 'Delete',
-                                onPressed: () =>
-                                    _confirmDelete(context, report, service),
-                              ),
                             ],
                           ),
                         ),
@@ -327,7 +426,11 @@ class MyReportsScreen extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => _ReportDetailSheet(report: report),
+      builder: (_) => _ReportDetailSheet(
+        report: report,
+        isAuthority: _role == UserRole.authority,
+        onChangeStatus: () => _changeStatus(context, report),
+      ),
     );
   }
 
@@ -340,10 +443,32 @@ class MyReportsScreen extends StatelessWidget {
 
 class _ReportDetailSheet extends StatelessWidget {
   final ReportModel report;
-  const _ReportDetailSheet({required this.report});
+  final bool isAuthority;
+  final VoidCallback onChangeStatus;
+
+  const _ReportDetailSheet({
+    required this.report,
+    required this.isAuthority,
+    required this.onChangeStatus,
+  });
+
+  static const Map<String, Color> _statusColors = {
+    'pending': Colors.orange,
+    'in_progress': Colors.blue,
+    'resolved': Colors.green,
+  };
+
+  static const Map<String, String> _statusLabels = {
+    'pending': 'Pending',
+    'in_progress': 'In Progress',
+    'resolved': 'Resolved',
+  };
 
   @override
   Widget build(BuildContext context) {
+    final statusColor = _statusColors[report.status] ?? Colors.grey;
+    final statusLabel = _statusLabels[report.status] ?? report.status;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.6,
       maxChildSize: 0.95,
@@ -370,9 +495,7 @@ class _ReportDetailSheet extends StatelessWidget {
               Text(
                 report.category,
                 style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+                    fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               if (report.photoUrl != null) ...[
@@ -383,12 +506,11 @@ class _ReportDetailSheet extends StatelessWidget {
                     height: 200,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
+                    errorBuilder: (_, __, ___) => Container(
                       height: 100,
                       color: Colors.grey.shade200,
                       child: const Center(
-                        child: Icon(Icons.broken_image, size: 40),
-                      ),
+                          child: Icon(Icons.broken_image, size: 40)),
                     ),
                   ),
                 ),
@@ -407,10 +529,56 @@ class _ReportDetailSheet extends StatelessWidget {
                     'Lat ${report.latitude.toStringAsFixed(5)}, Lng ${report.longitude.toStringAsFixed(5)}',
               ),
               const SizedBox(height: 12),
-              _DetailRow(
-                icon: Icons.info_outline,
-                label: 'Status',
-                value: report.status,
+              // Status row — authority pode clicar para mudar
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.info_outline,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Status',
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey.shade500)),
+                        const SizedBox(height: 4),
+                        GestureDetector(
+                          onTap: isAuthority ? onChangeStatus : null,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                  color: statusColor.withValues(alpha: 0.4)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  statusLabel,
+                                  style: TextStyle(
+                                    color: statusColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (isAuthority) ...[
+                                  const SizedBox(width: 6),
+                                  Icon(Icons.edit,
+                                      size: 14, color: statusColor),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               _DetailRow(
@@ -450,10 +618,9 @@ class _DetailRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-              ),
+              Text(label,
+                  style:
+                      TextStyle(fontSize: 12, color: Colors.grey.shade500)),
               Text(value, style: const TextStyle(fontSize: 15)),
             ],
           ),

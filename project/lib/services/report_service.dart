@@ -6,8 +6,10 @@ import '../features/report/report_model.dart';
 abstract class ReportServiceBase {
   const ReportServiceBase();
   Stream<List<ReportModel>> watchReportsByUser(String userId);
+  Stream<List<ReportModel>> watchAllReports();
   Future<void> deleteReport(ReportModel report);
   Future<void> submitReport(ReportModel report, {File? photo});
+  Future<void> updateReportStatus(String reportId, String newStatus);
   Future<bool> checkReportExists(String reportId);
   Future<void> confirmProblem(String reportId, String userId, bool confirmed);
   Future<bool> hasUserConfirmed(String reportId, String userId);
@@ -56,7 +58,6 @@ class ReportService extends ReportServiceBase {
     await docRef.set(finalReport.toMap());
   }
 
-  /// Stream em tempo real dos reports do utilizador
   @override
   Stream<List<ReportModel>> watchReportsByUser(String userId) {
     return _firestore
@@ -71,7 +72,20 @@ class ReportService extends ReportServiceBase {
         );
   }
 
-  /// Fetch one-time dos reports do utilizador
+  /// Stream em tempo real de todos os reports (uso exclusivo da authority)
+  @override
+  Stream<List<ReportModel>> watchAllReports() {
+    return _firestore
+        .collection('reports')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
+  }
+
   Future<List<ReportModel>> getReportsByUser(String userId) async {
     final snapshot = await _firestore
         .collection('reports')
@@ -84,7 +98,6 @@ class ReportService extends ReportServiceBase {
         .toList();
   }
 
-  /// Apaga o report e a foto associada
   @override
   Future<void> deleteReport(ReportModel report) async {
     if (report.photoUrl != null) {
@@ -96,14 +109,20 @@ class ReportService extends ReportServiceBase {
     await _firestore.collection('reports').doc(report.id).delete();
   }
 
-  // verify if a report exists in the database
+  /// Atualiza o status de um report (uso exclusivo da authority)
+  @override
+  Future<void> updateReportStatus(String reportId, String newStatus) async {
+    await _firestore.collection('reports').doc(reportId).update({
+      'status': newStatus,
+    });
+  }
+
   @override
   Future<bool> checkReportExists(String reportId) async {
     final doc = await _firestore.collection('reports').doc(reportId).get();
     return doc.exists;
   }
 
-  // confirm whether a problem exists or not
   @override
   Future<void> confirmProblem(String reportId, String userId, bool confirmed) async {
     final confirmationDoc = _firestore.collection('problem_confirmations').doc('${reportId}_$userId');
@@ -142,7 +161,6 @@ class ReportService extends ReportServiceBase {
     }
   }
 
-  // check if user has already confirmed a report
   @override
   Future<bool> hasUserConfirmed(String reportId, String userId) async {
     final doc = await _firestore

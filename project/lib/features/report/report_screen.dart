@@ -70,7 +70,7 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Future<void> _handlePickLocation() async {
-    final LatLng? result = await Navigator.push<LatLng>(
+    final Map<String, dynamic>? result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
         builder: (_) => LocationPickerScreen(
@@ -81,8 +81,9 @@ class _ReportScreenState extends State<ReportScreen> {
     );
 
     if (result != null) {
-      _controller.latitude = result.latitude;
-      _controller.longitude = result.longitude;
+      _controller.latitude = result['lat'];
+      _controller.longitude = result['lng'];
+      _controller.address = result['address'];
       _controller.notifyListeners();
     }
   }

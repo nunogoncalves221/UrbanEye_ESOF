@@ -6,6 +6,7 @@ class ReportModel {
   final String description;
   final double latitude;
   final double longitude;
+  final String? address;
   final String? photoUrl;
   final String? userId;
   final String status;
@@ -17,6 +18,7 @@ class ReportModel {
     required this.description,
     required this.latitude,
     required this.longitude,
+    this.address,
     this.photoUrl,
     this.userId,
     this.status = 'pending',
@@ -29,6 +31,7 @@ class ReportModel {
       'description': description,
       'latitude': latitude,
       'longitude': longitude,
+      'address': address,
       'photoUrl': photoUrl,
       'userId': userId,
       'status': status,
@@ -53,6 +56,7 @@ class ReportModel {
       description: map['description'] ?? '',
       latitude: (map['latitude'] ?? 0).toDouble(),
       longitude: (map['longitude'] ?? 0).toDouble(),
+      address: map['addres'],
       photoUrl: map['photoUrl'],
       userId: map['userId'],
       status: map['status'] ?? 'pending',

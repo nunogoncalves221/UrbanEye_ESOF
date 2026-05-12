@@ -403,8 +403,7 @@ class _ReportDetailSheet extends StatelessWidget {
               _DetailRow(
                 icon: Icons.location_on_outlined,
                 label: 'Location',
-                value:
-                    'Lat ${report.latitude.toStringAsFixed(5)}, Lng ${report.longitude.toStringAsFixed(5)}',
+                value: report.address ?? 'Coordinates: ${report.latitude}, ${report.longitude}',
               ),
               const SizedBox(height: 12),
               _DetailRow(

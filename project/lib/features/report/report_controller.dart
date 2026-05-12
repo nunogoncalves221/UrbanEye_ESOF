@@ -20,6 +20,7 @@ class ReportController extends ChangeNotifier {
   File? photo;
   double? latitude;
   double? longitude;
+  String? address;
 
   // UI state
   bool isLoading = false;
@@ -115,6 +116,7 @@ class ReportController extends ChangeNotifier {
         description: description.trim(),
         latitude: latitude!,
         longitude: longitude!,
+        address: address,
         userId: userId,
       );
 

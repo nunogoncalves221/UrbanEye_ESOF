@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 //colocar que foi adicionado o screenshot do sprint2
 
+## [1.8.1]
+
+### Added
+- Sprint 2 Visual Documentation: Added screenshots demonstrating the progress and new features implemented during the second sprint.
+
+- Sprint 2 Overview: Included descriptive texts detailing the goals achieved and improvements made during this development cycle.
+
+## [1.8.0]
+
+### Added
+- Authority Status Management: Authorities can now change the status of reported issues
+
 ## [1.7.3] 
 
 ### Tests

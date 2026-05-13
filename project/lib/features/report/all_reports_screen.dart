@@ -2,11 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'report_model.dart';
 
-// Sort options
+// sort options
 enum _SortField { date, status, category, location }
+
 enum _SortDirection { asc, desc }
 
-// AllReportsScreen
+// allReportsScreen
 class AllReportsScreen extends StatefulWidget {
   const AllReportsScreen({super.key});
 
@@ -55,6 +56,20 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     'Trash': Icons.delete_outline,
   };
 
+  // known categories
+  static const Set<String> _knownCategories = {
+    'Pothole',
+    'Streetlight',
+    'Street sign',
+    'Traffic light',
+    'Vandalism',
+    'Blocked Sidewalk',
+    'Water leak/Flooding',
+    'Overgrown Vegetation',
+    'Abandoned Vehicle',
+    'Trash',
+  };
+
   // lifecycle
   @override
   void initState() {
@@ -86,7 +101,8 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
   }
 
   // derived helpers
-  // returns available location zones derived from addresses
+
+  /// returns available location zones derived from addresses
   List<String> get _zones {
     final zones = <String>{};
     for (final r in _allReports) {
@@ -96,7 +112,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     return zones.toList()..sort();
   }
 
-  // heuristic: use the second-to-last comma segment of the address as "zone"
+  /// use the second-to-last comma segment of the address as zone
   String? _extractZone(ReportModel r) {
     if (r.address == null || r.address!.isEmpty) return null;
     final parts = r.address!.split(',');
@@ -111,11 +127,17 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     return cats..sort();
   }
 
-  // apply filters then sort
+  /// apply filters + sort
   List<ReportModel> get _filtered {
     var list = _allReports.where((r) {
       if (_filterStatus != null && r.status != _filterStatus) return false;
-      if (_filterCategory != null && r.category != _filterCategory) return false;
+      if (_filterCategory != null) {
+        if (_filterCategory == '__other__') {
+          if (_knownCategories.contains(r.category)) return false;
+        } else {
+          if (r.category != _filterCategory) return false;
+        }
+      }
       if (_filterZone != null && _extractZone(r) != _filterZone) return false;
       return true;
     }).toList();
@@ -289,7 +311,9 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
                     ),
                   if (_filterCategory != null)
                     _FilterChip(
-                      label: _filterCategory!,
+                      label: _filterCategory == '__other__'
+                          ? 'Other'
+                          : _filterCategory!,
                       onRemove: () =>
                           setState(() => _filterCategory = null),
                     ),
@@ -373,7 +397,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
   }
 }
 
-// Report card
+// report card
 class _ReportCard extends StatelessWidget {
   final ReportModel report;
   final Map<String, Color> statusColors;
@@ -510,7 +534,7 @@ class _ReportCard extends StatelessWidget {
   }
 }
 
-// Active filter chip
+// active filter chip
 class _FilterChip extends StatelessWidget {
   final String label;
   final Color color;
@@ -539,7 +563,7 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-// Filter & Sort bottom sheet
+// filter + sort bottom sheet
 class _FilterSortSheet extends StatefulWidget {
   final List<String> zones;
   final List<String> categories;
@@ -665,6 +689,12 @@ class _FilterSortSheetState extends State<_FilterSortSheet> {
                       onSelected: (_) =>
                           setState(() => _category = c),
                     )),
+                _ChoiceChip(
+                  label: 'Other',
+                  selected: _category == '__other__',
+                  onSelected: (_) =>
+                      setState(() => _category = '__other__'),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -767,7 +797,6 @@ class _FilterSortSheetState extends State<_FilterSortSheet> {
   }
 }
 
-// helpers
 class _SectionLabel extends StatelessWidget {
   final String label;
   const _SectionLabel({required this.label});

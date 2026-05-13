@@ -215,6 +215,7 @@ class MyReportsScreen extends StatelessWidget {
                                   children: [
                                     Row(
                                       children: [
+                                        const SizedBox(width: 3),
                                         Expanded(
                                           child: Text(
                                             report.category,
@@ -272,12 +273,15 @@ class MyReportsScreen extends StatelessWidget {
                                           color: Colors.grey.shade500,
                                         ),
                                         const SizedBox(width: 3),
-                                        Text(
-                                          '${report.latitude.toStringAsFixed(4)}, '
-                                          '${report.longitude.toStringAsFixed(4)}',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.grey.shade500,
+                                        Expanded(
+                                          child: Text(
+                                            report.address ?? '${report.latitude.toStringAsFixed(4)}, ${report.longitude.toStringAsFixed(4)}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey.shade500,
+                                            ),
                                           ),
                                         ),
                                         const Spacer(),
@@ -403,7 +407,7 @@ class _ReportDetailSheet extends StatelessWidget {
               _DetailRow(
                 icon: Icons.location_on_outlined,
                 label: 'Location',
-                value: report.address ?? 'Coordinates: ${report.latitude}, ${report.longitude}',
+                value: report.address ?? '${report.latitude.toStringAsFixed(5)}, ${report.longitude.toStringAsFixed(5)}',
               ),
               const SizedBox(height: 12),
               _DetailRow(

@@ -56,7 +56,7 @@ class ReportModel {
       description: map['description'] ?? '',
       latitude: (map['latitude'] ?? 0).toDouble(),
       longitude: (map['longitude'] ?? 0).toDouble(),
-      address: map['addres'],
+      address: map['address'],
       photoUrl: map['photoUrl'],
       userId: map['userId'],
       status: map['status'] ?? 'pending',

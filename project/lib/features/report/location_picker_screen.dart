@@ -53,6 +53,7 @@ class LocationPickerScreen extends StatefulWidget {
   final double? initialLongitude;
   final ReverseGeocodeFn reverseGeocode;
   final SearchAddressFn searchAddress;
+  final LatLng? initialLocation;
  
   const LocationPickerScreen({
     super.key,
@@ -60,6 +61,7 @@ class LocationPickerScreen extends StatefulWidget {
     this.initialLongitude,
     this.reverseGeocode = defaultReverseGeocode,
     this.searchAddress = defaultSearchAddress,
+    this.initialLocation,
   });
  
   @override
@@ -77,7 +79,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   bool _isSearching = false;
   String? _searchError;
   List<ReportModel> _existingReports = [];
- 
+  late LatLng _currentCenter;
+
   static const Map<String, IconData> _categoryIcons = {
     'Pothole': Icons.report_problem,
     'Streetlight': Icons.lightbulb_outline,

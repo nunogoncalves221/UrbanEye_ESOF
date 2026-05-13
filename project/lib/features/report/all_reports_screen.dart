@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:project/services/user_role.dart';
+import 'package:project/services/user_role_service.dart';
 import 'report_model.dart';
 
 // sort options
@@ -20,6 +23,9 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
   List<ReportModel> _allReports = [];
   bool _loading = true;
   String? _error;
+
+  // authority
+  bool _isAuthority = false;
 
   // filter state
   String? _filterStatus;
@@ -75,6 +81,16 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
   void initState() {
     super.initState();
     _loadReports();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final role = await const UserRoleService().getRole(user);
+    if (mounted) {
+      setState(() => _isAuthority = role == UserRole.authority);
+    }
   }
 
   Future<void> _loadReports() async {
@@ -177,6 +193,38 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
         _filterCategory = null;
         _filterZone = null;
       });
+
+  Future<void> _updateStatus(ReportModel report, String newStatus) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('reports')
+          .doc(report.id)
+          .update({'status': newStatus});
+      setState(() {
+        final idx = _allReports.indexWhere((r) => r.id == report.id);
+        if (idx != -1) {
+          _allReports[idx] = ReportModel(
+            id: report.id,
+            category: report.category,
+            description: report.description,
+            latitude: report.latitude,
+            longitude: report.longitude,
+            photoUrl: report.photoUrl,
+            userId: report.userId,
+            status: newStatus,
+            createdAt: report.createdAt,
+            address: report.address,
+          );
+        }
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update status: $e')),
+        );
+      }
+    }
+  }
 
   // filter / sort bottom sheet
 
@@ -376,6 +424,10 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
               categoryIcons: _categoryIcons,
               formatDate: _formatDate,
               extractZone: _extractZone,
+              isAuthority: _isAuthority,
+              onStatusChanged: _isAuthority
+                  ? (newStatus) => _updateStatus(reports[i], newStatus)
+                  : null,
             ),
           ),
         ),
@@ -405,6 +457,8 @@ class _ReportCard extends StatelessWidget {
   final Map<String, IconData> categoryIcons;
   final String Function(DateTime) formatDate;
   final String? Function(ReportModel) extractZone;
+  final bool isAuthority;
+  final void Function(String newStatus)? onStatusChanged;
 
   const _ReportCard({
     required this.report,
@@ -413,6 +467,8 @@ class _ReportCard extends StatelessWidget {
     required this.categoryIcons,
     required this.formatDate,
     required this.extractZone,
+    this.isAuthority = false,
+    this.onStatusChanged,
   });
 
   @override
@@ -460,21 +516,69 @@ class _ReportCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: statusColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          statusLabel,
-                          style: TextStyle(
-                              color: statusColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ),
+                      isAuthority && onStatusChanged != null
+                          ? PopupMenuButton<String>(
+                              padding: EdgeInsets.zero,
+                              tooltip: 'Change status',
+                              onSelected: onStatusChanged,
+                              itemBuilder: (_) => statusLabels.entries
+                                  .map((e) => PopupMenuItem(
+                                        value: e.key,
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 10,
+                                              height: 10,
+                                              margin: const EdgeInsets.only(right: 8),
+                                              decoration: BoxDecoration(
+                                                color: statusColors[e.key] ?? Colors.grey,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                            Text(e.value),
+                                          ],
+                                        ),
+                                      ))
+                                  .toList(),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      statusLabel,
+                                      style: TextStyle(
+                                          color: statusColor,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Icon(Icons.arrow_drop_down,
+                                        size: 14, color: statusColor),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                statusLabel,
+                                style: TextStyle(
+                                    color: statusColor,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ),
                     ],
                   ),
                   const SizedBox(height: 4),

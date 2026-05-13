@@ -122,9 +122,20 @@ class _MapScreenState extends State<MapScreen> {
                 const SizedBox(height: 10),
                 Text(report.description, style: const TextStyle(fontSize: 14)),
                 const SizedBox(height: 8),
-                Text(
-                  'Lat: ${report.latitude.toStringAsFixed(5)}, Lng: ${report.longitude.toStringAsFixed(5)}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        report.address ??
+                            'Lat: ${report.latitude.toStringAsFixed(5)}, Lng: ${report.longitude.toStringAsFixed(5)}',
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 _buildConfirmationSection(

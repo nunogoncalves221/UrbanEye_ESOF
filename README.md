@@ -260,9 +260,11 @@ You can find below information and references related with the project managemen
 Initial GitHub Project screenshot:
 ![Sprint1 Start](docs/images/sprint1_start.png)
 
-Retrospectives:
+Review:
 
 During Sprint 1, we achieved the functionalities planned for this sprint. The system now supports reporting urban issues, such as power failures and water leaks, through a user-friendly interface.
+
+Retrospectives:
 
 One important design decision made during this sprint was the revision of user roles. Initially, the system differentiated strictly between "clients" and "authorities", with only clients being able to report issues. However, we recognized the need for greater flexibility and updated the authority role to also include client functionalities, namely the ability to report problems. This adjustment enhances the overall usability and practicality of the application.
 
@@ -273,13 +275,15 @@ Final GitHub Project screenshot:
 Initial GitHub Project screenshot:
 ![Sprint2 Start](docs/images/sprint2_start.png)
 
+Review:
+
 During Sprint 2, we achieved the functionalities planned for this sprint, significantly expanding the application’s core features. We enhanced the user profile system by adding authority role indicators and enabling the editing of personal data such as name, username, and date of birth. On the interface side, we implemented a main screen search function and reordered navigation for better flow. A key adjustment was made to the map component: we corrected the default geographical focus so that it now correctly initializes at the Porto location rather than Lisbon, ensuring the tool is immediately relevant to our target area. Furthermore, we finalized filtering systems that allow authorities to prioritize issues by gravity and users to sort problems by type.
 
 Retrospectives:
 
 The team conducted a formal review of our progress and registered the findings in our GitHub repository. This process allowed us to analyze our development velocity and the integration of new features within the existing framework. We focused on how the team transitioned from basic reporting to more complex data management, ensuring that the new visualization and filtering tools remain intuitive for both regular users and authorities as the project grows in complexity.
 
-Strategy for Improvement
+Strategy for Improvement:
 
 Regarding areas for improvement, we recognized that some tasks suffered from initial ambiguity, specifically concerning UI reordering, which led to minor coordination delays. To address this, we have established a strategy with verifiable action points for the next sprint. First, we will ensure that every backlog item includes detailed acceptance criteria before the sprint starts to eliminate guesswork. Second, we will continue our established practice of requiring documented proof of testing for every Pull Request to maintain consistency. Finally, we will mandate that technical documentation is updated immediately upon the completion of each feature to ensure project clarity is maintained throughout the development process. 
 
@@ -287,7 +291,8 @@ Final GitHub Project screenshot:
 ![Sprint Finish](docs/images/sprint2_finish.png)
 
 ### Sprint 3
+Initial GitHub Project screenshot:
+![Sprint3 Start](docs/images/sprint3_start.png)
 
-### Sprint 4
 
 ### Final Release

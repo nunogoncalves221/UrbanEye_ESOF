@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-//colocar que foi adicionado o screenshot do sprint2
-
 ## [1.8.1]
 
 ### Added

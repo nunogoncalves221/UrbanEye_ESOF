@@ -4,14 +4,16 @@ import 'package:project/features/main_screen.dart';
 import 'package:project/services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final AuthService? authService;
+  final VoidCallback? onSuccess;
+  const RegisterScreen({super.key, this.authService, this.onSuccess});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final AuthService _authService = const AuthService();
+  late final AuthService _authService = widget.authService ?? const AuthService();
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
@@ -70,16 +72,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _message = 'Account created successfully';
       });
 
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => MainScreen(auth: FirebaseAuth.instance),
-            ),
-          );
-        }
-      });
+      if (widget.onSuccess != null) {
+        widget.onSuccess!();
+      } else {
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => MainScreen(auth: FirebaseAuth.instance),
+              ),
+            );
+          }
+        });
+      }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
         setState(() {

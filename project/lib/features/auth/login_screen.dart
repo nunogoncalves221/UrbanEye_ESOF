@@ -4,14 +4,16 @@ import 'package:project/features/main_screen.dart';
 import 'package:project/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final AuthService? authService;
+  final VoidCallback? onSuccess;
+  const LoginScreen({super.key, this.authService, this.onSuccess});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final AuthService _authService = const AuthService();
+  late final AuthService _authService = widget.authService ?? const AuthService();
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -35,16 +37,20 @@ class _LoginScreenState extends State<LoginScreen> {
         _message = 'Login successful';
       });
 
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => MainScreen(auth: FirebaseAuth.instance),
-            ),
-          );
-        }
-      });
+      if (widget.onSuccess != null) {
+        widget.onSuccess!();
+      } else {
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => MainScreen(auth: FirebaseAuth.instance),
+              ),
+            );
+          }
+        });
+      }
     } on FirebaseAuthException catch (e) {
       setState(() {
         _message = e.message ?? 'Login failed';

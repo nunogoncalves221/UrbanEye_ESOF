@@ -142,6 +142,7 @@ class ReportController extends ChangeNotifier {
     photo = null;
     latitude = null;
     longitude = null;
+    address = null;
     isLoading = false;
     errorMessage = null;
     submitted = false;

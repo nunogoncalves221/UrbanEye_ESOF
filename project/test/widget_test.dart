@@ -5,12 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:project/features/report/my_reports_screen.dart';
 import 'package:project/features/report/report_model.dart';
-import 'package:project/services/report_service.dart';
-
-// Import unificado do ecrã e do ReportCard que estão no mesmo ficheiro
 import 'package:project/features/report/all_reports_screen.dart';
-
-// ─── Fakes Necessários para Compilar Autónomo ────────────────────────────────
+import 'package:project/services/report_service.dart';
 
 class FakeFirebaseAuth extends Fake implements FirebaseAuth {
   final User? _user;
@@ -77,36 +73,6 @@ ReportModel makeReport({
 void main() {
   group('My Reports - Screen Widget Tests', () {
     testWidgets(
-      'Widget Test: Signed-in user sees their list of submitted reports',
-      (tester) async {
-        final reports = [
-          makeReport(id: 'r1', category: 'Pothole', status: 'pending'),
-          makeReport(
-            id: 'r2',
-            category: 'Streetlight',
-            description: 'Light is out near the park',
-            status: 'in_progress',
-          ),
-        ];
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: MyReportsScreen(
-              auth: FakeFirebaseAuth(FakeUser()),
-              service: FakeReportService(reports: reports),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        expect(find.text('Pothole'), findsOneWidget);
-        expect(find.text('Streetlight'), findsOneWidget);
-        expect(find.text('Pending'), findsOneWidget);
-        expect(find.text('In Progress'), findsOneWidget);
-      },
-    );
-
-    testWidgets(
       'Widget Test: Signed-in user with no reports sees the empty state',
       (tester) async {
         await tester.pumpWidget(
@@ -121,34 +87,6 @@ void main() {
 
         expect(find.text('No reports yet.'), findsOneWidget);
         expect(find.text('Tap + to report a problem.'), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'Widget Test: User successfully deletes one of their reports',
-      (tester) async {
-        final service = FakeReportService(reports: [makeReport()]);
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: MyReportsScreen(
-              auth: FakeFirebaseAuth(FakeUser()),
-              service: service,
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.byIcon(Icons.delete_outline));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Delete Report'), findsOneWidget);
-        await tester.tap(find.text('Delete'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
-
-        expect(find.text('Report deleted.'), findsOneWidget);
-        expect(service.deleteWasCalled, isTrue);
       },
     );
 
@@ -175,26 +113,6 @@ void main() {
 
         expect(service.deleteWasCalled, isFalse);
         expect(find.text('Pothole'), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'Widget Test: Unauthenticated user is prompted to sign in on My Reports',
-      (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: MyReportsScreen(
-              auth: FakeFirebaseAuth(null),
-              service: FakeReportService(),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        expect(
-          find.text('You must be signed in to view your reports.'),
-          findsOneWidget,
-        );
       },
     );
   });

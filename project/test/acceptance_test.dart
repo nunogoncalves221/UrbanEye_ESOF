@@ -21,8 +21,6 @@ import 'package:project/features/report/report_controller.dart';
 import 'package:project/services/auth_service.dart';
 import 'package:project/services/report_service.dart';
 
-// 👇 Import unificado do ecrã e do ReportCard que estão no mesmo ficheiro
-import 'package:project/features/report/all_reports_screen.dart';
 
 // ─── Mocks & fakes ───────────────────────────────────────────────────────────
 
@@ -447,24 +445,6 @@ void main() {
     );
 
     testWidgets(
-      'Acceptance Test: Signed-in user with no reports sees the empty state',
-      (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: MyReportsScreen(
-              auth: FakeFirebaseAuth(FakeUser()),
-              service: FakeReportService(reports: []),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        expect(find.text('No reports yet.'), findsOneWidget);
-        expect(find.text('Tap + to report a problem.'), findsOneWidget);
-      },
-    );
-
-    testWidgets(
       'Acceptance Test: User successfully deletes one of their reports',
       (tester) async {
         final service = FakeReportService(reports: [makeReport()]);
@@ -489,32 +469,6 @@ void main() {
 
         expect(find.text('Report deleted.'), findsOneWidget);
         expect(service.deleteWasCalled, isTrue);
-      },
-    );
-
-    testWidgets(
-      'Acceptance Test: User cancels report deletion and the report is kept',
-      (tester) async {
-        final service = FakeReportService(reports: [makeReport()]);
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: MyReportsScreen(
-              auth: FakeFirebaseAuth(FakeUser()),
-              service: service,
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.byIcon(Icons.delete_outline));
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.text('Cancel'));
-        await tester.pumpAndSettle();
-
-        expect(service.deleteWasCalled, isFalse);
-        expect(find.text('Pothole'), findsOneWidget);
       },
     );
 

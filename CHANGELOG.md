@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0]
+### Added
+- Detail popup when tapping a map marker or an issue in the All Reports list, showing the street name, upload date, and number of confirmations/denials.
+
 ## [1.8.1]
 
 ### Added

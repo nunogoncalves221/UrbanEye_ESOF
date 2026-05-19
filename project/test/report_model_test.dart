@@ -80,6 +80,8 @@ void main() {
         userId: 'user123',
         status: 'in_progress',
         createdAt: date,
+        existsConfirmations: 4,
+        notExistsConfirmations: 1,
       );
 
       final map = report.toMap();
@@ -93,6 +95,8 @@ void main() {
       expect(map['userId'], equals('user123'));
       expect(map['status'], equals('in_progress'));
       expect(map['createdAt'], isA<Timestamp>());
+      expect(map['exists_confirmations'], equals(4));
+      expect(map['not_exists_confirmations'], equals(1));
     });
 
     test('does not include id field', () {
@@ -121,6 +125,8 @@ void main() {
         userId: 'u1',
         status: 'pending',
         createdAt: date,
+        existsConfirmations: 6,
+        notExistsConfirmations: 2,
       );
 
       final map = original.toMap();
@@ -137,6 +143,8 @@ void main() {
       expect(restored.createdAt.year, equals(2024));
       expect(restored.createdAt.month, equals(3));
       expect(restored.createdAt.day, equals(20));
+      expect(restored.existsConfirmations, equals(6));
+      expect(restored.notExistsConfirmations, equals(2));
     });
   });
 
@@ -257,6 +265,40 @@ void main() {
       final report = ReportModel.fromMap('my-custom-id', map);
 
       expect(report.id, equals('my-custom-id'));
+    });
+
+    test('defaults existsConfirmations to 0 when field is absent', () {
+      final map = <String, dynamic>{
+        'category': 'Pothole',
+        'description': 'Hole',
+        'latitude': 41.0,
+        'longitude': -8.0,
+        'status': 'pending',
+        'createdAt': null,
+      };
+
+      final report = ReportModel.fromMap('id6', map);
+
+      expect(report.existsConfirmations, equals(0));
+      expect(report.notExistsConfirmations, equals(0));
+    });
+
+    test('parses existsConfirmations and notExistsConfirmations from map', () {
+      final map = <String, dynamic>{
+        'category': 'Pothole',
+        'description': 'Hole',
+        'latitude': 41.0,
+        'longitude': -8.0,
+        'status': 'pending',
+        'createdAt': null,
+        'exists_confirmations': 7,
+        'not_exists_confirmations': 3,
+      };
+
+      final report = ReportModel.fromMap('id7', map);
+
+      expect(report.existsConfirmations, equals(7));
+      expect(report.notExistsConfirmations, equals(3));
     });
   });
 }

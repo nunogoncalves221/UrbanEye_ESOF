@@ -411,6 +411,216 @@ void main() {
     );
   });
 
+  // ── Map Report Info Popup ─────────────────────────────────────────────────
+
+  group('Map Report Info Popup', () {
+    testWidgets(
+      'Acceptance Test: User clicks a map icon and sees the report street address',
+      (tester) async {
+        final report = makeReport(address: 'Rua de Santa Catarina, Porto');
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (_) => Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(report.category),
+                            Text(report.address ?? ''),
+                            Text(
+                              'Reported on '
+                              '${report.createdAt.day.toString().padLeft(2, '0')}/'
+                              '${report.createdAt.month.toString().padLeft(2, '0')}/'
+                              '${report.createdAt.year}',
+                            ),
+                            Text('${report.existsConfirmations} Confirmed'),
+                            Text('${report.notExistsConfirmations} Denied'),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Rua de Santa Catarina, Porto'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: User clicks a map icon and sees when the problem was reported',
+      (tester) async {
+        final report = makeReport();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (_) => Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(report.category),
+                            Text(
+                              'Reported on '
+                              '${report.createdAt.day.toString().padLeft(2, '0')}/'
+                              '${report.createdAt.month.toString().padLeft(2, '0')}/'
+                              '${report.createdAt.year}',
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('Reported on 10/05/2024'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: User clicks a map icon and sees how many people confirmed and denied the problem',
+      (tester) async {
+        final report = ReportModel(
+          id: 'r1',
+          category: 'Pothole',
+          description: 'Big pothole',
+          latitude: 41.15,
+          longitude: -8.61,
+          address: 'Rua Principal, Porto',
+          status: 'pending',
+          createdAt: DateTime(2024, 5, 10),
+          existsConfirmations: 5,
+          notExistsConfirmations: 2,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (_) => Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(report.category),
+                            Text('${report.existsConfirmations} Confirmed'),
+                            Text('${report.notExistsConfirmations} Denied'),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('5 Confirmed'), findsOneWidget);
+        expect(find.text('2 Denied'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: Authority clicks a map icon and sees the same report info as a regular user',
+      (tester) async {
+        final report = ReportModel(
+          id: 'r1',
+          category: 'Streetlight',
+          description: 'Light is broken',
+          latitude: 41.15,
+          longitude: -8.61,
+          address: 'Avenida dos Aliados, Porto',
+          status: 'in_progress',
+          createdAt: DateTime(2024, 3, 1),
+          existsConfirmations: 3,
+          notExistsConfirmations: 1,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (_) => Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(report.category),
+                            Text(report.address ?? ''),
+                            Text(
+                              'Reported on '
+                              '${report.createdAt.day.toString().padLeft(2, '0')}/'
+                              '${report.createdAt.month.toString().padLeft(2, '0')}/'
+                              '${report.createdAt.year}',
+                            ),
+                            Text('${report.existsConfirmations} Confirmed'),
+                            Text('${report.notExistsConfirmations} Denied'),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Streetlight'), findsOneWidget);
+        expect(find.text('Avenida dos Aliados, Porto'), findsOneWidget);
+        expect(find.textContaining('Reported on 01/03/2024'), findsOneWidget);
+        expect(find.text('3 Confirmed'), findsOneWidget);
+        expect(find.text('1 Denied'), findsOneWidget);
+      },
+    );
+  });
+
   // ── My Reports ────────────────────────────────────────────────────────────
 
   group('My Reports', () {
@@ -494,4 +704,3 @@ void main() {
   });
    
 }
-

@@ -71,6 +71,131 @@ ReportModel makeReport({
 // ─── Widget & Component Tests ────────────────────────────────────────────────
 
 void main() {
+  group('Map Report Info Bottom Sheet', () {
+    ReportModel makeDetailedReport({
+      int existsConfirmations = 0,
+      int notExistsConfirmations = 0,
+      String? address,
+    }) {
+      return ReportModel(
+        id: 'r1',
+        category: 'Pothole',
+        description: 'Big pothole on the road',
+        latitude: 41.15,
+        longitude: -8.61,
+        address: address ?? 'Rua de Santa Catarina, Porto',
+        status: 'pending',
+        createdAt: DateTime(2024, 5, 10, 14, 30),
+        existsConfirmations: existsConfirmations,
+        notExistsConfirmations: notExistsConfirmations,
+      );
+    }
+
+    Widget buildBottomSheet(ReportModel report) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (_) => Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(report.category),
+                        Text(report.address ?? ''),
+                        Text(
+                          'Reported on '
+                          '${report.createdAt.day.toString().padLeft(2, '0')}/'
+                          '${report.createdAt.month.toString().padLeft(2, '0')}/'
+                          '${report.createdAt.year}',
+                        ),
+                        Text('${report.existsConfirmations} Confirmed'),
+                        Text('${report.notExistsConfirmations} Denied'),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets(
+      'Widget Test: Bottom sheet shows report category',
+      (tester) async {
+        final report = makeDetailedReport();
+        await tester.pumpWidget(buildBottomSheet(report));
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Pothole'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: Bottom sheet shows street address',
+      (tester) async {
+        final report = makeDetailedReport(address: 'Rua das Flores, Porto');
+        await tester.pumpWidget(buildBottomSheet(report));
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Rua das Flores, Porto'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: Bottom sheet shows formatted upload date',
+      (tester) async {
+        final report = makeDetailedReport();
+        await tester.pumpWidget(buildBottomSheet(report));
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('Reported on 10/05/2024'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: Bottom sheet shows zero confirmations when none exist',
+      (tester) async {
+        final report = makeDetailedReport(
+          existsConfirmations: 0,
+          notExistsConfirmations: 0,
+        );
+        await tester.pumpWidget(buildBottomSheet(report));
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('0 Confirmed'), findsOneWidget);
+        expect(find.text('0 Denied'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: Bottom sheet shows correct confirmation counts',
+      (tester) async {
+        final report = makeDetailedReport(
+          existsConfirmations: 8,
+          notExistsConfirmations: 3,
+        );
+        await tester.pumpWidget(buildBottomSheet(report));
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('8 Confirmed'), findsOneWidget);
+        expect(find.text('3 Denied'), findsOneWidget);
+      },
+    );
+  });
+
   group('My Reports - Screen Widget Tests', () {
     testWidgets(
       'Widget Test: Signed-in user with no reports sees the empty state',

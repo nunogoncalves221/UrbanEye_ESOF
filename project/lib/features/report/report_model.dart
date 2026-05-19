@@ -7,6 +7,7 @@ class ReportModel {
   final double latitude;
   final double longitude;
   final String? address;
+  final String? priority;
   final String? photoUrl;
   final String? userId;
   final String status;
@@ -21,6 +22,7 @@ class ReportModel {
     this.address,
     this.photoUrl,
     this.userId,
+    this.priority,
     this.status = 'pending',
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
@@ -34,6 +36,7 @@ class ReportModel {
       'address': address,
       'photoUrl': photoUrl,
       'userId': userId,
+      'priority': priority,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
     };
@@ -59,6 +62,7 @@ class ReportModel {
       address: map['address'],
       photoUrl: map['photoUrl'],
       userId: map['userId'],
+      priority: map['priority'],
       status: map['status'] ?? 'pending',
       createdAt: parsedDate,
     );

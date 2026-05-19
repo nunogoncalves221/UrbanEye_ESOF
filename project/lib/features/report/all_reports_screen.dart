@@ -104,6 +104,38 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
       setState(() => _isAuthority = role == UserRole.authority);
     }
   }
+  Future<void> _updatePriority(ReportModel report, String newPriority) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection('reports')
+        .doc(report.id)
+        .update({'priority': newPriority});
+    setState(() {
+      final idx = _allReports.indexWhere((r) => r.id == report.id);
+      if (idx != -1) {
+        _allReports[idx] = ReportModel(
+          id: report.id,
+          category: report.category,
+          description: report.description,
+          latitude: report.latitude,
+          longitude: report.longitude,
+          photoUrl: report.photoUrl,
+          userId: report.userId,
+          status: report.status,
+          priority: newPriority,
+          createdAt: report.createdAt,
+          address: report.address,
+        );
+      }
+    });
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update priority: $e')),
+      );
+    }
+  }
+}
 
   Future<void> _loadReports() async {
     try {
@@ -443,6 +475,9 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
               onStatusChanged: _isAuthority
                   ? (newStatus) => _updateStatus(reports[i], newStatus)
                   : null,
+                  onPriorityChanged: _isAuthority        // ← adiciona isto
+      ? (newPriority) => _updatePriority(reports[i], newPriority)
+      : null,
             ),
           ),
         ),
@@ -473,6 +508,7 @@ class _ReportCard extends StatelessWidget {
   final String? Function(ReportModel) extractZone;
   final bool isAuthority;
   final void Function(String newStatus)? onStatusChanged;
+  final void Function(String newPriority)? onPriorityChanged;
 
   const _ReportCard({
     required this.report,
@@ -485,6 +521,7 @@ class _ReportCard extends StatelessWidget {
     required this.extractZone,
     this.isAuthority = false,
     this.onStatusChanged,
+     this.onPriorityChanged,
   });
 
   @override
@@ -585,22 +622,55 @@ class _ReportCard extends StatelessWidget {
                                 style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.w600),
                               ),
                             ),
+                   
                       if (isAuthority) ...[
                         const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: priorityColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            priorityLabel,
-                            style: TextStyle(color: priorityColor, fontSize: 11, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
-                    ],
+  PopupMenuButton<String>(
+    padding: EdgeInsets.zero,
+    tooltip: 'Change priority',
+    onSelected: (v) => onPriorityChanged?.call(v),
+    itemBuilder: (_) => priorityLabels.entries
+        .map((e) => PopupMenuItem(
+              value: e.key,
+              child: Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      color: priorityColors[e.key] ?? Colors.grey,
+                      shape: BoxShape.circle,
+                    ),
                   ),
+                  Text(e.value),
+                ],
+              ),
+            ))
+        .toList(),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: priorityColor.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            priorityLabel,
+            style: TextStyle(color: priorityColor, fontSize: 11, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(width: 3),
+          Icon(Icons.arrow_drop_down, size: 14, color: priorityColor),
+        ],
+      ),
+    ),
+  ),
+],
+],                      // ← fecha o children da Row de cima
+                  ),
+                  
                   const SizedBox(height: 4),
                   Text(
                     report.description,

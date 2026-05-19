@@ -118,6 +118,7 @@ class ReportController extends ChangeNotifier {
         longitude: longitude!,
         address: address,
         userId: userId,
+        priority: 'low',
       );
 
       await _service.submitReport(report, photo: photo);

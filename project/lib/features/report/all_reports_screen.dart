@@ -462,7 +462,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             itemCount: reports.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, i) => _ReportCard(
+            itemBuilder: (context, i) => ReportCard(
               report: reports[i],
               statusColors: _statusColors,
               statusLabels: _statusLabels,
@@ -497,7 +497,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
 }
 
 // report card
-class _ReportCard extends StatelessWidget {
+class ReportCard extends StatelessWidget {
   final ReportModel report;
   final Map<String, Color> statusColors;
   final Map<String, String> statusLabels;
@@ -510,7 +510,7 @@ class _ReportCard extends StatelessWidget {
   final void Function(String newStatus)? onStatusChanged;
   final void Function(String newPriority)? onPriorityChanged;
 
-  const _ReportCard({
+  const ReportCard({
     required this.report,
     required this.statusColors,
     required this.statusLabels,

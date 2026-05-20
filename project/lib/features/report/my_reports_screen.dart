@@ -379,25 +379,24 @@ class _ReportDetailSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
+
+              // check for photo
               if (report.photoUrl != null) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    report.photoUrl!,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
-                      height: 100,
-                      color: Colors.grey.shade200,
-                      child: const Center(
-                        child: Icon(Icons.broken_image, size: 40),
-                      ),
-                    ),
-                  ),
+                // photo taken
+                TextButton.icon(
+                  onPressed: () => _showPhoto(context, report.photoUrl!),
+                  icon: const Icon(Icons.photo_camera),
+                  label: const Text('photo'),
                 ),
-                const SizedBox(height: 16),
-              ],
+                const SizedBox(height: 8),
+              ] else
+                // no photo taken
+                const Text(
+                  '-no photo taken-',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+
+              const SizedBox(height: 8),
               _DetailRow(
                 icon: Icons.description_outlined,
                 label: 'Description',
@@ -428,6 +427,32 @@ class _ReportDetailSheet extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  // create popup
+  void _showPhoto(BuildContext context, String photoUrl) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (context) => Stack(
+        children: [
+          Center(
+            child: InteractiveViewer(
+              child: Image.network(photoUrl),
+            ),
+          ),
+          // X button to close
+          Positioned(
+            top: 40,
+            right: 20,
+            child: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white, size: 30),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

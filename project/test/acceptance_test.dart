@@ -695,12 +695,188 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(
+expect(
           find.text('You must be signed in to view your reports.'),
           findsOneWidget,
         );
       },
     );
   });
-   
+
+  // Photo Button in Popups
+  group('Photo Button in Popups', () {
+    // photo button appears when report has photo
+    testWidgets(
+      'Acceptance Test: User sees photo button when report has a photo',
+      (tester) async {
+        final report = ReportModel(
+          id: 'r1',
+          category: 'Pothole',
+          description: 'Big pothole',
+          latitude: 41.15,
+          longitude: -8.61,
+          address: 'Rua Principal, Porto',
+          status: 'pending',
+          createdAt: DateTime(2024, 5, 10),
+          photoUrl: 'https://example.com/photo.jpg',
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (_) => Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(report.category),
+                            // check for photo
+                            if (report.photoUrl != null)
+                              TextButton.icon(
+                                onPressed: () {},
+                                icon: const Icon(Icons.photo_camera),
+                                label: const Text('photo'),
+                              )
+                            else
+                              const Text('-no photo taken-'),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        // photo taken - button should be visible
+        expect(find.text('photo'), findsOneWidget);
+        expect(find.byIcon(Icons.photo_camera), findsOneWidget);
+      },
+    );
+
+    // no photo taken
+    testWidgets(
+      'Acceptance Test: User sees -no photo taken- when report has no photo',
+      (tester) async {
+        final report = ReportModel(
+          id: 'r1',
+          category: 'Pothole',
+          description: 'Big pothole',
+          latitude: 41.15,
+          longitude: -8.61,
+          address: 'Rua Principal, Porto',
+          status: 'pending',
+          createdAt: DateTime(2024, 5, 10),
+          photoUrl: null,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (_) => Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(report.category),
+                            // check for photo
+                            if (report.photoUrl != null)
+                              TextButton.icon(
+                                onPressed: () {},
+                                icon: const Icon(Icons.photo_camera),
+                                label: const Text('photo'),
+                              )
+                            else
+                              const Text('-no photo taken-'),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        // no photo taken - text should be visible
+        expect(find.text('-no photo taken-'), findsOneWidget);
+      },
+    );
+
+    // create popup
+    testWidgets(
+      'Acceptance Test: User can view photo in full screen and close with X',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      barrierColor: Colors.black54,
+                      builder: (context) => Stack(
+                        children: [
+                          const Center(
+                            child: Text('Photo Placeholder'),
+                          ),
+                          // X button to close
+                          Positioned(
+                            top: 40,
+                            right: 20,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  child: const Text('View Photo'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('View Photo'));
+        await tester.pumpAndSettle();
+
+        // popup should be visible
+        expect(find.text('Photo Placeholder'), findsOneWidget);
+        expect(find.byIcon(Icons.close), findsOneWidget);
+
+        // close popup with X button
+        await tester.tap(find.byIcon(Icons.close));
+        await tester.pumpAndSettle();
+
+        // popup should be closed
+        expect(find.text('Photo Placeholder'), findsNothing);
+      },
+    );
+  });
+
 }

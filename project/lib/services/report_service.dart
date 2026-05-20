@@ -20,40 +20,78 @@ class ReportService extends ReportServiceBase {
   FirebaseStorage get _storage => FirebaseStorage.instance;
 
   Future<String?> _uploadPhoto(File photo, String reportId) async {
-    final ref = _storage.ref().child('reports/$reportId/photo.jpg');
-    await ref
-        .putFile(photo)
-        .timeout(
-          const Duration(seconds: 30),
-          onTimeout: () => throw Exception(
-            'Upload timed out. Check your connection or Firebase Storage rules.',
-          ),
-        );
-    return await ref.getDownloadURL();
+    try {
+      // check file exists
+      if (!await photo.exists()) {
+        throw Exception('Photo file does not exist');
+      }
+
+      final ref = _storage.ref().child('reports/$reportId/photo.jpg');
+
+      // upload with detailed error logging
+      final uploadTask = ref.putFile(photo);
+      
+      uploadTask.snapshotEvents.listen((taskSnapshot) {
+        // log upload progress
+        final progress = taskSnapshot.bytesTransferred / taskSnapshot.totalBytes;
+        print('Photo upload progress: ${(progress * 100).toStringAsFixed(1)}%');
+      });
+
+      await uploadTask.timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => throw Exception(
+          'Upload timed out. Check your connection or Firebase Storage rules.',
+        ),
+      );
+
+      return await ref.getDownloadURL();
+    } catch (e) {
+      // log full error details
+      print('Photo upload error: $e');
+      print('Error type: ${e.runtimeType}');
+      if (e is FirebaseException) {
+        print('Firebase error code: ${e.code}');
+        print('Firebase error message: ${e.message}');
+      }
+      rethrow;
+    }
   }
 
   @override
   Future<void> submitReport(ReportModel report, {File? photo}) async {
-    final docRef = _firestore.collection('reports').doc();
+    try {
+      final docRef = _firestore.collection('reports').doc();
 
-    String? photoUrl;
-    if (photo != null) {
-      photoUrl = await _uploadPhoto(photo, docRef.id);
+      String? photoUrl;
+      // check for photo
+      if (photo != null) {
+        print('Photo detected, uploading...');
+        // photo taken
+        photoUrl = await _uploadPhoto(photo, docRef.id);
+        print('Photo uploaded successfully: $photoUrl');
+      } else {
+        // no photo taken
+        print('No photo attached to report');
+      }
+
+      final finalReport = ReportModel(
+        id: docRef.id,
+        category: report.category,
+        description: report.description,
+        latitude: report.latitude,
+        longitude: report.longitude,
+        photoUrl: photoUrl,
+        userId: report.userId,
+        status: report.status,
+        createdAt: report.createdAt,
+      );
+
+      await docRef.set(finalReport.toMap());
+      print('Report saved to Firestore: ${docRef.id}');
+    } catch (e) {
+      print('Submit report error: $e');
+      rethrow;
     }
-
-    final finalReport = ReportModel(
-      id: docRef.id,
-      category: report.category,
-      description: report.description,
-      latitude: report.latitude,
-      longitude: report.longitude,
-      photoUrl: photoUrl,
-      userId: report.userId,
-      status: report.status,
-      createdAt: report.createdAt,
-    );
-
-    await docRef.set(finalReport.toMap());
   }
 
   /// Stream em tempo real dos reports do utilizador

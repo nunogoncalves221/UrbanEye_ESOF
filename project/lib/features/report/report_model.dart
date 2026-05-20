@@ -12,6 +12,8 @@ class ReportModel {
   final String? userId;
   final String status;
   final DateTime createdAt;
+  final int existsConfirmations;
+  final int notExistsConfirmations;
 
   ReportModel({
     this.id,
@@ -25,6 +27,8 @@ class ReportModel {
     this.priority,
     this.status = 'pending',
     DateTime? createdAt,
+    this.existsConfirmations = 0,
+    this.notExistsConfirmations = 0,
   }) : createdAt = createdAt ?? DateTime.now();
 
   Map<String, dynamic> toMap() {
@@ -39,6 +43,8 @@ class ReportModel {
       'priority': priority,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
+      'exists_confirmations': existsConfirmations,
+      'not_exists_confirmations': notExistsConfirmations,
     };
   }
 
@@ -65,6 +71,8 @@ class ReportModel {
       priority: map['priority'],
       status: map['status'] ?? 'pending',
       createdAt: parsedDate,
+      existsConfirmations: (map['exists_confirmations'] as int?) ?? 0,
+      notExistsConfirmations: (map['not_exists_confirmations'] as int?) ?? 0,
     );
   }
 }

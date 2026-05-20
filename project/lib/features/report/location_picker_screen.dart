@@ -11,6 +11,21 @@ typedef ReverseGeocodeFn = Future<String?> Function(double lat, double lon);
 typedef SearchAddressFn = Future<LatLng?> Function(String query);
 
 // ───────────────────────────────────────────────────────────────
+// Result class returned when confirming a location
+// ───────────────────────────────────────────────────────────────
+class LocationPickerResult {
+  final double latitude;
+  final double longitude;
+  final String? address;
+
+  const LocationPickerResult({
+    required this.latitude,
+    required this.longitude,
+    this.address,
+  });
+}
+
+// ───────────────────────────────────────────────────────────────
 // GPS CURRENT LOCATION
 // ───────────────────────────────────────────────────────────────
 Future<LatLng?> getCurrentLatLng() async {
@@ -32,7 +47,7 @@ Future<LatLng?> getCurrentLatLng() async {
 }
 
 // ───────────────────────────────────────────────────────────────
-// DEFAULT FUNCTIONS (mantidas iguais)
+// DEFAULT FUNCTIONS
 // ───────────────────────────────────────────────────────────────
 Future<String?> defaultReverseGeocode(double lat, double lon) async {
   try {
@@ -97,16 +112,14 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   final MapController _mapController = MapController();
   final TextEditingController _addressController = TextEditingController();
  
-  static const LatLng _defaultCenter = LatLng(41.1496, -8.6109 ); // Porto
-   
+  static const LatLng _defaultCenter = LatLng(41.1496, -8.6109); // Porto
  
   LatLng? _selectedPoint;
-   LatLng? _currentLocation;
+  LatLng? _currentLocation;
   String? _addressLabel;
   bool _isSearching = false;
   String? _searchError;
   List<ReportModel> _existingReports = [];
-  late LatLng _currentCenter;
 
   static const Map<String, IconData> _categoryIcons = {
     'Pothole': Icons.report_problem,
@@ -126,34 +139,29 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     'in_progress': Colors.blue,
     'resolved': Colors.green,
   };
- 
 
- Future<void> _initLocation() async {
+  Future<void> _initLocation() async {
     final loc = await getCurrentLatLng();
     if (loc != null && mounted) {
       setState(() {
         _currentLocation = loc;
       });
-
       _mapController.move(loc, 15);
     }
   }
+
   @override
-void initState() {
-  super.initState();
-
-  _initLocation(); // chama sempre GPS
-
-  if (widget.initialLatitude != null &&
-      widget.initialLongitude != null) {
-    _selectedPoint = LatLng(
-      widget.initialLatitude!,
-      widget.initialLongitude!,
-    );
+  void initState() {
+    super.initState();
+    _initLocation();
+    if (widget.initialLatitude != null && widget.initialLongitude != null) {
+      _selectedPoint = LatLng(
+        widget.initialLatitude!,
+        widget.initialLongitude!,
+      );
+    }
+    _loadExistingReports();
   }
-
-  _loadExistingReports();
-}
  
   Future<void> _loadExistingReports() async {
     try {
@@ -163,8 +171,6 @@ void initState() {
           .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
           .toList();
       if (mounted) setState(() => _existingReports = reports);
-
-      
     } catch (_) {}
   }
  
@@ -172,10 +178,7 @@ void initState() {
     _selectedPoint ??
     _currentLocation ??
     _defaultCenter;
-  
 
- 
-  // ── Tap on map ────────────────────────────────────────────────
   void _onMapTap(TapPosition _, LatLng point) {
     setState(() {
       _selectedPoint = point;
@@ -185,14 +188,11 @@ void initState() {
     _reverseGeocode(point);
   }
  
-  // ── Reverse geocode (coordinates → address label) ─────────────
   Future<void> _reverseGeocode(LatLng point) async {
     final label = await widget.reverseGeocode(point.latitude, point.longitude);
     if (mounted) setState(() => _addressLabel = label);
-    
   }
  
-  // ── Search by address ─────────────────────────────────────────
   Future<void> _searchAddress() async {
     final query = _addressController.text.trim();
     if (query.isEmpty) return;
@@ -271,8 +271,7 @@ void initState() {
               ],
             ),
             const SizedBox(height: 10),
-            Text(report.description,
-                style: const TextStyle(fontSize: 14)),
+            Text(report.description, style: const TextStyle(fontSize: 14)),
             const SizedBox(height: 8),
             Text(
               'Lat: ${report.latitude.toStringAsFixed(5)}, Lng: ${report.longitude.toStringAsFixed(5)}',
@@ -284,9 +283,17 @@ void initState() {
     );
   }
  
+  // Returns a LocationPickerResult with both coordinates AND address
   void _confirm() {
     if (_selectedPoint != null) {
-      Navigator.pop(context, _selectedPoint);
+      Navigator.pop(
+        context,
+        LocationPickerResult(
+          latitude: _selectedPoint!.latitude,
+          longitude: _selectedPoint!.longitude,
+          address: _addressLabel,
+        ),
+      );
     }
   }
  
@@ -371,7 +378,6 @@ void initState() {
                           'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.project',
                     ),
-                    // ── Existing reports ────────────────────────
                     MarkerLayer(
                       markers: [
                         ..._existingReports.map((report) {
@@ -380,8 +386,7 @@ void initState() {
                           final icon =
                               _categoryIcons[report.category] ?? Icons.flag;
                           return Marker(
-                            point:
-                                LatLng(report.latitude, report.longitude),
+                            point: LatLng(report.latitude, report.longitude),
                             width: 36,
                             height: 36,
                             child: GestureDetector(
@@ -394,7 +399,7 @@ void initState() {
                                     color: Colors.white,
                                     width: 2,
                                   ),
-                                  boxShadow: [
+                                  boxShadow: const [
                                     BoxShadow(
                                       color: Colors.black26,
                                       blurRadius: 4,
@@ -402,13 +407,11 @@ void initState() {
                                     ),
                                   ],
                                 ),
-                                child: Icon(icon,
-                                    size: 18, color: Colors.white),
+                                child: Icon(icon, size: 18, color: Colors.white),
                               ),
                             ),
                           );
                         }),
-                        // ── Selected pin ────────────────────────
                         if (_selectedPoint != null)
                           Marker(
                             point: _selectedPoint!,
@@ -436,14 +439,11 @@ void initState() {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _LegendDot(
-                              color: Colors.orange, label: 'Pending'),
+                          _LegendDot(color: Colors.orange, label: 'Pending'),
                           const SizedBox(height: 4),
-                          _LegendDot(
-                              color: Colors.blue, label: 'In Progress'),
+                          _LegendDot(color: Colors.blue, label: 'In Progress'),
                           const SizedBox(height: 4),
-                          _LegendDot(
-                              color: Colors.green, label: 'Resolved'),
+                          _LegendDot(color: Colors.green, label: 'Resolved'),
                         ],
                       ),
                     ),
@@ -482,7 +482,6 @@ void initState() {
                   ),
                 ),
  
-                // Hint overlay when nothing is selected yet
                 if (_selectedPoint == null)
                   const Positioned(
                     bottom: 24,
@@ -564,4 +563,3 @@ class _LegendDot extends StatelessWidget {
     );
   }
 }
- 

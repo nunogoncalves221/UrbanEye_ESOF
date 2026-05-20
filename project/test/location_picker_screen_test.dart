@@ -146,7 +146,7 @@ void main() {
     expect(find.byIcon(Icons.remove), findsOneWidget);
   });
 
-  // On confirm, the Navigator should pop with the correct LatLng
+  // On confirm, the Navigator should pop with the correct LocationPickerResult
   testWidgets('pops with the correct LatLng on confirm', (tester) async {
     dynamic result;
 
@@ -178,7 +178,8 @@ void main() {
     await tester.tap(find.text('Confirm Location'));
     await tester.pumpAndSettle();
 
-    expect((result as LatLng).latitude, closeTo(38.7223, 0.0001));
-    expect((result as LatLng).longitude, closeTo(-9.1393, 0.0001));
+    expect(result, isA<LocationPickerResult>());
+    expect((result as LocationPickerResult).latitude, closeTo(38.7223, 0.0001));
+    expect((result as LocationPickerResult).longitude, closeTo(-9.1393, 0.0001));
   });
 }

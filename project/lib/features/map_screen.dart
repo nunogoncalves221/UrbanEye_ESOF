@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -72,6 +74,24 @@ class _MapScreenState extends State<MapScreen> {
     _mapController.move(_mapController.camera.center, _currentZoom);
   }
 
+  Future<String?> _reverseGeocode(double lat, double lon) async {
+    try {
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse'
+        '?lat=$lat&lon=$lon&format=json',
+      );
+      final response = await http.get(
+        uri,
+        headers: {'User-Agent': 'project-app/1.0'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['display_name'] as String?;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   void _showReportInfo(BuildContext context, ReportModel report) {
     final color = _statusColors[report.status] ?? Colors.grey;
     final icon = _categoryIcons[report.category] ?? Icons.flag;
@@ -79,32 +99,61 @@ class _MapScreenState extends State<MapScreen> {
     final user = FirebaseAuth.instance.currentUser;
     final reportService = const ReportService();
 
+    final uploadDate =
+        '${report.createdAt.day.toString().padLeft(2, '0')}/'
+        '${report.createdAt.month.toString().padLeft(2, '0')}/'
+        '${report.createdAt.year}  '
+        '${report.createdAt.hour.toString().padLeft(2, '0')}:'
+        '${report.createdAt.minute.toString().padLeft(2, '0')}';
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => StatefulBuilder(
         builder: (context, setModalState) {
           return Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // drag handle
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+
+                // category + status badge
                 Row(
                   children: [
-                    Icon(icon, color: color),
-                    const SizedBox(width: 8),
-                    Text(
-                      report.category,
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const Spacer(),
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, color: color, size: 22),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        report.category,
+                        style: const TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
@@ -120,24 +169,62 @@ class _MapScreenState extends State<MapScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                Text(report.description, style: const TextStyle(fontSize: 14)),
+
+                // description
+                Text(
+                  report.description,
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+                const SizedBox(height: 14),
+
+                Divider(color: Colors.grey.shade200, height: 1),
+                const SizedBox(height: 12),
+
+                // street name — fetch via reverse geocoding if not stored
+                FutureBuilder<String?>(
+                  future: report.address != null
+                      ? Future.value(report.address)
+                      : _reverseGeocode(report.latitude, report.longitude),
+                  builder: (context, snapshot) {
+                    final address = snapshot.data;
+                    return _InfoRow(
+                      icon: Icons.location_on_outlined,
+                      iconColor: Colors.redAccent,
+                      text: address ?? 'Loading address...',
+                    );
+                  },
+                ),
                 const SizedBox(height: 8),
+
+                // upload date
+                _InfoRow(
+                  icon: Icons.calendar_today_outlined,
+                  iconColor: Colors.blueAccent,
+                  text: 'Reported on $uploadDate',
+                ),
+                const SizedBox(height: 8),
+
+                // confirmations count
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        report.address ??
-                            'Lat: ${report.latitude.toStringAsFixed(5)}, Lng: ${report.longitude.toStringAsFixed(5)}',
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    _CountChip(
+                      icon: Icons.thumb_up_alt_outlined,
+                      count: report.existsConfirmations,
+                      color: Colors.green,
+                      label: 'Confirmed',
+                    ),
+                    const SizedBox(width: 10),
+                    _CountChip(
+                      icon: Icons.thumb_down_alt_outlined,
+                      count: report.notExistsConfirmations,
+                      color: Colors.red,
+                      label: 'Denied',
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
+
+                // confirm/deny buttons
                 _buildConfirmationSection(
                   context,
                   report,
@@ -368,6 +455,77 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── helper widgets ──────────────────────────────────────────────────────────
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String text;
+
+  const _InfoRow({
+    required this.icon,
+    required this.iconColor,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 15, color: iconColor),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CountChip extends StatelessWidget {
+  final IconData icon;
+  final int count;
+  final Color color;
+  final String label;
+
+  const _CountChip({
+    required this.icon,
+    required this.count,
+    required this.color,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 5),
+          Text(
+            '$count $label',
+            style: TextStyle(
+                fontSize: 12, color: color, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
     );
   }
 }

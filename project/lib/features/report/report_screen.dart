@@ -84,7 +84,7 @@ class _ReportScreenState extends State<ReportScreen> {
     if (result != null) {
       _controller.latitude = result.latitude;
       _controller.longitude = result.longitude;
-      _controller.address = result['address'];
+      _controller.address = result.address;
       _controller.notifyListeners();
     }
   }

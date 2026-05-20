@@ -34,7 +34,11 @@ class FakeReportService extends ReportServiceBase {
     this.reports = const [],
     Stream<List<ReportModel>>? stream,
   }) : _stream = stream;
-
+  @override
+  Future<void> confirmReportByAuthority(String reportId) async {
+    // Pode deixar vazio ou simular alguma lógica se seu teste precisar disso futuramente
+    return;
+  }
   @override
   Stream<List<ReportModel>> watchReportsByUser(String uid) =>
       _stream ?? Stream.value(reports);
@@ -57,6 +61,7 @@ class FakeReportService extends ReportServiceBase {
     String userId,
     bool confirmed,
   ) async {}
+
 
   @override
   Future<bool> hasUserConfirmed(String reportId, String userId) async => false;

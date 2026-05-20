@@ -26,6 +26,10 @@ class FakeReportService extends ReportServiceBase {
   bool deleteWasCalled = false;
 
   FakeReportService({this.reports = const []});
+  @override
+  Future<void> confirmReportByAuthority(String reportId) async {
+    return;
+  }
 
   @override
   Stream<List<ReportModel>> watchReportsByUser(String uid) =>

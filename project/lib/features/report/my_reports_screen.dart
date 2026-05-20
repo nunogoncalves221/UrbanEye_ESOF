@@ -8,11 +8,12 @@ class MyReportsScreen extends StatelessWidget {
   final FirebaseAuth? auth;
   final ReportServiceBase service;
 
-  const MyReportsScreen({
+   MyReportsScreen({
     super.key,
     this.auth,
-    this.service = const ReportService(),
-  });
+    ReportServiceBase? service, // Transforma em opcional nulo
+  }) : service = service ?? ReportService();
+  
 
   static const Map<String, Color> _statusColors = {
     'pending': Colors.orange,

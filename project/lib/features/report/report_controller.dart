@@ -11,7 +11,7 @@ class ReportController extends ChangeNotifier {
   final FirebaseAuth _auth;
 
   ReportController({ReportServiceBase? service, FirebaseAuth? auth})
-    : _service = service ?? const ReportService(),
+    : _service = service ??  ReportService(),
       _auth = auth ?? FirebaseAuth.instance;
 
   // Form state

@@ -13,12 +13,13 @@ class MainScreen extends StatelessWidget {
   final FirebaseFirestore? firestore;
   final ReportServiceBase reportService;
  
-  const MainScreen({
+   MainScreen({
     super.key,
     required this.auth,
     this.firestore,
-    this.reportService = const ReportService(),
-  });
+    ReportServiceBase? reportService, // Transforma em opcional nulo
+  }) : reportService = reportService ?? ReportService();
+  
  
   FirebaseFirestore get _firestore =>
       firestore ?? FirebaseFirestore.instance;

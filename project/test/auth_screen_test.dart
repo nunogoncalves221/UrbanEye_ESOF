@@ -24,6 +24,10 @@ class FakeFirebaseAuth extends Fake implements FirebaseAuth {
 // instantiate FakeReportService
 class FakeReportService extends ReportServiceBase {
   @override
+  Future<void> confirmReportByAuthority(String reportId) async {
+    return;
+  }
+  @override
   Stream<List<ReportModel>> watchReportsByUser(String uid) {
     return Stream.value([]);
   }

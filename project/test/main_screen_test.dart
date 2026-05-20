@@ -36,6 +36,10 @@ class FakeUser extends Fake implements User {
 
 class FakeReportService extends ReportServiceBase {
   @override
+  Future<void> confirmReportByAuthority(String reportId) async {
+    return;
+  }
+  @override
   Stream<List<ReportModel>> watchReportsByUser(String uid) {
     return Stream.value([]);
   }

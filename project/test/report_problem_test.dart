@@ -17,7 +17,10 @@ class TestReportService extends ReportServiceBase {
   final FakeFirebaseFirestore _firestore;
 
   TestReportService(this._firestore);
-
+  @override
+  Future<void> confirmReportByAuthority(String reportId) async {
+    return;
+  }
   @override
   Future<bool> checkReportExists(String reportId) async {
     final doc = await _firestore.collection('reports').doc(reportId).get();

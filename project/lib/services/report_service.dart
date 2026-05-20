@@ -4,43 +4,41 @@ import 'package:firebase_storage/firebase_storage.dart';
 import '../features/report/report_model.dart';
 
 abstract class ReportServiceBase {
-  const ReportServiceBase();
+  Future<void> submitReport(ReportModel report, {File? photo});
   Stream<List<ReportModel>> watchReportsByUser(String userId);
   Future<void> deleteReport(ReportModel report);
-  Future<void> submitReport(ReportModel report, {File? photo});
   Future<bool> checkReportExists(String reportId);
   Future<void> confirmProblem(String reportId, String userId, bool confirmed);
   Future<bool> hasUserConfirmed(String reportId, String userId);
+  Future<void> confirmReportByAuthority(String reportId);
 }
 
 class ReportService extends ReportServiceBase {
-  const ReportService();
+  final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
 
-  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
-  FirebaseStorage get _storage => FirebaseStorage.instance;
+  ReportService({
+    FirebaseFirestore? firestore,
+    FirebaseStorage? storage,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _storage = storage ?? FirebaseStorage.instance;
 
   Future<String?> _uploadPhoto(File photo, String reportId) async {
     final ref = _storage.ref().child('reports/$reportId/photo.jpg');
-    await ref
-        .putFile(photo)
-        .timeout(
-          const Duration(seconds: 30),
-          onTimeout: () => throw Exception(
-            'Upload timed out. Check your connection or Firebase Storage rules.',
-          ),
-        );
+    await ref.putFile(photo).timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => throw Exception(
+        'Upload timed out. Check your connection or Firebase Storage rules.',
+      ),
+    );
     return await ref.getDownloadURL();
   }
 
   @override
   Future<void> submitReport(ReportModel report, {File? photo}) async {
     final docRef = _firestore.collection('reports').doc();
-
     String? photoUrl;
-    if (photo != null) {
-      photoUrl = await _uploadPhoto(photo, docRef.id);
-    }
-
+    if (photo != null) photoUrl = await _uploadPhoto(photo, docRef.id);
     final finalReport = ReportModel(
       id: docRef.id,
       category: report.category,
@@ -52,11 +50,9 @@ class ReportService extends ReportServiceBase {
       status: report.status,
       createdAt: report.createdAt,
     );
-
     await docRef.set(finalReport.toMap());
   }
 
-  /// Stream em tempo real dos reports do utilizador
   @override
   Stream<List<ReportModel>> watchReportsByUser(String userId) {
     return _firestore
@@ -64,27 +60,22 @@ class ReportService extends ReportServiceBase {
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
-              .toList(),
-        );
+        .map((s) => s.docs
+            .map((d) => ReportModel.fromMap(d.id, d.data()))
+            .toList());
   }
 
-  /// Fetch one-time dos reports do utilizador
   Future<List<ReportModel>> getReportsByUser(String userId) async {
     final snapshot = await _firestore
         .collection('reports')
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
         .get();
-
     return snapshot.docs
-        .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
+        .map((d) => ReportModel.fromMap(d.id, d.data()))
         .toList();
   }
 
-  /// Apaga o report e a foto associada
   @override
   Future<void> deleteReport(ReportModel report) async {
     if (report.photoUrl != null) {
@@ -96,24 +87,18 @@ class ReportService extends ReportServiceBase {
     await _firestore.collection('reports').doc(report.id).delete();
   }
 
-  // verify if a report exists in the database
   @override
   Future<bool> checkReportExists(String reportId) async {
     final doc = await _firestore.collection('reports').doc(reportId).get();
     return doc.exists;
   }
-  //rejection 
-  Future<void> confirmReportByAuthority(String reportId) async {
-  await _firestore
-      .collection('reports')
-      .doc(reportId)
-      .update({'authority_confirmed': true});
-}
 
-  // confirm whether a problem exists or not
   @override
-  Future<void> confirmProblem(String reportId, String userId, bool confirmed) async {
-    final confirmationDoc = _firestore.collection('problem_confirmations').doc('${reportId}_$userId');
+  Future<void> confirmProblem(
+      String reportId, String userId, bool confirmed) async {
+    final confirmationDoc = _firestore
+        .collection('problem_confirmations')
+        .doc('${reportId}_$userId');
     final doc = await confirmationDoc.get();
     if (doc.exists) return;
 
@@ -126,21 +111,22 @@ class ReportService extends ReportServiceBase {
 
     final reportRef = _firestore.collection('reports').doc(reportId);
     if (confirmed) {
-      await reportRef.update({'exists_confirmations': FieldValue.increment(1)});
+      await reportRef
+          .update({'exists_confirmations': FieldValue.increment(1)});
     } else {
-      await reportRef.update({'not_exists_confirmations': FieldValue.increment(1)});
-
+      await reportRef
+          .update({'not_exists_confirmations': FieldValue.increment(1)});
       final reportDoc = await reportRef.get();
       final data = reportDoc.data();
       if (data != null) {
         final existsCount = (data['exists_confirmations'] as int?) ?? 0;
-        final notExistsCount = (data['not_exists_confirmations'] as int?) ?? 0;
+        final notExistsCount =
+            (data['not_exists_confirmations'] as int?) ?? 0;
         if (existsCount * 1.25 + 5 < notExistsCount) {
           final photoUrl = data['photoUrl'] as String?;
           if (photoUrl != null) {
             try {
-              final ref = _storage.refFromURL(photoUrl);
-              await ref.delete();
+              await _storage.refFromURL(photoUrl).delete();
             } catch (_) {}
           }
           await reportRef.delete();
@@ -149,7 +135,6 @@ class ReportService extends ReportServiceBase {
     }
   }
 
-  // check if user has already confirmed a report
   @override
   Future<bool> hasUserConfirmed(String reportId, String userId) async {
     final doc = await _firestore
@@ -157,5 +142,13 @@ class ReportService extends ReportServiceBase {
         .doc('${reportId}_$userId')
         .get();
     return doc.exists;
+  }
+
+  @override
+  Future<void> confirmReportByAuthority(String reportId) async {
+    await _firestore
+        .collection('reports')
+        .doc(reportId)
+        .update({'authority_confirmed': true});
   }
 }

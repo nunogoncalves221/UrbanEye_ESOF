@@ -97,7 +97,7 @@ class _MapScreenState extends State<MapScreen> {
     final icon = _categoryIcons[report.category] ?? Icons.flag;
     final statusLabel = _statusLabels[report.status] ?? report.status;
     final user = FirebaseAuth.instance.currentUser;
-    final reportService = const ReportService();
+    final reportService =  ReportService();
 
     final uploadDate =
         '${report.createdAt.day.toString().padLeft(2, '0')}/'

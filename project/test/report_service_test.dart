@@ -16,10 +16,10 @@ class _TestableReportService extends ReportService {
   final FakeFirebaseFirestore fakeFirestore;
   final MockFirebaseStorage fakeStorage;
 
-  const _TestableReportService({
+   _TestableReportService({
     required this.fakeFirestore,
     required this.fakeStorage,
-  });
+  }) : super(firestore: fakeFirestore, storage: fakeStorage);
 
   @override
   FirebaseFirestore get _firestore => fakeFirestore;

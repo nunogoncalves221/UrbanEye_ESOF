@@ -102,6 +102,13 @@ class ReportService extends ReportServiceBase {
     final doc = await _firestore.collection('reports').doc(reportId).get();
     return doc.exists;
   }
+  //rejection 
+  Future<void> confirmReportByAuthority(String reportId) async {
+  await _firestore
+      .collection('reports')
+      .doc(reportId)
+      .update({'authority_confirmed': true});
+}
 
   // confirm whether a problem exists or not
   @override

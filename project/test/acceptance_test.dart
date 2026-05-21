@@ -22,7 +22,6 @@ import 'package:project/features/report/report_controller.dart';
 import 'package:project/services/auth_service.dart';
 import 'package:project/services/report_service.dart';
 
-
 // ─── Mocks & fakes ───────────────────────────────────────────────────────────
 
 class MockAuthService extends Mock implements AuthService {}
@@ -282,9 +281,7 @@ void main() {
             username: any(named: 'username'),
             birthDate: any(named: 'birthDate'),
           ),
-        ).thenThrow(
-          FakeFirebaseAuthException(code: 'email-already-in-use'),
-        );
+        ).thenThrow(FakeFirebaseAuthException(code: 'email-already-in-use'));
 
         await tester.pumpWidget(
           MaterialApp(home: RegisterScreen(authService: mockAuth)),
@@ -312,49 +309,45 @@ void main() {
   // ── Report Submission ─────────────────────────────────────────────────────
 
   group('Report Submission', () {
-    testWidgets(
-      'Acceptance Test: User submits a report successfully',
-      (tester) async {
-        final mockService = MockReportService();
-        final mockAuth = MockFirebaseAuth();
-        final mockUser = MockUser();
+    testWidgets('Acceptance Test: User submits a report successfully', (
+      tester,
+    ) async {
+      final mockService = MockReportService();
+      final mockAuth = MockFirebaseAuth();
+      final mockUser = MockUser();
 
-        when(() => mockAuth.currentUser).thenReturn(mockUser);
-        when(() => mockUser.uid).thenReturn('user123');
-        when(
-          () => mockService.submitReport(any(), photo: any(named: 'photo')),
-        ).thenAnswer((_) async {});
+      when(() => mockAuth.currentUser).thenReturn(mockUser);
+      when(() => mockUser.uid).thenReturn('user123');
+      when(
+        () => mockService.submitReport(any(), photo: any(named: 'photo')),
+      ).thenAnswer((_) async {});
 
-        final controller = ReportController(
-          service: mockService,
-          auth: mockAuth,
-        );
-        controller.selectedCategory = 'Pothole';
-        controller.latitude = 41.15;
-        controller.longitude = -8.61;
+      final controller = ReportController(service: mockService, auth: mockAuth);
+      controller.selectedCategory = 'Pothole';
+      controller.latitude = 41.15;
+      controller.longitude = -8.61;
 
-        await tester.pumpWidget(
-          MaterialApp(home: ReportScreen(controller: controller)),
-        );
+      await tester.pumpWidget(
+        MaterialApp(home: ReportScreen(controller: controller)),
+      );
 
-        final descriptionField = find.byType(TextField).last;
-        await tester.enterText(
-          descriptionField,
-          'There is a deep pothole on the road.',
-        );
+      final descriptionField = find.byType(TextField).last;
+      await tester.enterText(
+        descriptionField,
+        'There is a deep pothole on the road.',
+      );
 
-        await tester.tap(find.text('SUBMIT REPORT'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(find.text('SUBMIT REPORT'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Report submitted successfully!'), findsOneWidget);
-        verify(
-          () => mockService.submitReport(any(), photo: any(named: 'photo')),
-        ).called(1);
+      expect(find.text('Report submitted successfully!'), findsOneWidget);
+      verify(
+        () => mockService.submitReport(any(), photo: any(named: 'photo')),
+      ).called(1);
 
-        await tester.pumpAndSettle();
-      },
-    );
+      await tester.pumpAndSettle();
+    });
 
     testWidgets(
       'Acceptance Test: User submits a report without selecting a location first',
@@ -756,14 +749,14 @@ void main() {
                 body: Column(
                   children: [
                     ElevatedButton(
-                      onPressed: () =>
-                          setState(() => filterFavourites = true),
+                      onPressed: () => setState(() => filterFavourites = true),
                       child: const Text('Show Favourites'),
                     ),
                     ...reports
-                        .where((r) =>
-                            !filterFavourites ||
-                            favouriteIds.contains(r.id))
+                        .where(
+                          (r) =>
+                              !filterFavourites || favouriteIds.contains(r.id),
+                        )
                         .map((r) => Text(r.category, key: ValueKey(r.id))),
                   ],
                 ),
@@ -865,5 +858,4 @@ void main() {
       },
     );
   });
-   
 }

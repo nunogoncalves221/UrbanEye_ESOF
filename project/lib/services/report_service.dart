@@ -17,20 +17,20 @@ class ReportService extends ReportServiceBase {
   final FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
 
-  ReportService({
-    FirebaseFirestore? firestore,
-    FirebaseStorage? storage,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _storage = storage ?? FirebaseStorage.instance;
+  ReportService({FirebaseFirestore? firestore, FirebaseStorage? storage})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _storage = storage ?? FirebaseStorage.instance;
 
   Future<String?> _uploadPhoto(File photo, String reportId) async {
     final ref = _storage.ref().child('reports/$reportId/photo.jpg');
-    await ref.putFile(photo).timeout(
-      const Duration(seconds: 30),
-      onTimeout: () => throw Exception(
-        'Upload timed out. Check your connection or Firebase Storage rules.',
-      ),
-    );
+    await ref
+        .putFile(photo)
+        .timeout(
+          const Duration(seconds: 30),
+          onTimeout: () => throw Exception(
+            'Upload timed out. Check your connection or Firebase Storage rules.',
+          ),
+        );
     return await ref.getDownloadURL();
   }
 
@@ -60,9 +60,10 @@ class ReportService extends ReportServiceBase {
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((s) => s.docs
-            .map((d) => ReportModel.fromMap(d.id, d.data()))
-            .toList());
+        .map(
+          (s) =>
+              s.docs.map((d) => ReportModel.fromMap(d.id, d.data())).toList(),
+        );
   }
 
   Future<List<ReportModel>> getReportsByUser(String userId) async {
@@ -95,7 +96,10 @@ class ReportService extends ReportServiceBase {
 
   @override
   Future<void> confirmProblem(
-      String reportId, String userId, bool confirmed) async {
+    String reportId,
+    String userId,
+    bool confirmed,
+  ) async {
     final confirmationDoc = _firestore
         .collection('problem_confirmations')
         .doc('${reportId}_$userId');
@@ -111,17 +115,16 @@ class ReportService extends ReportServiceBase {
 
     final reportRef = _firestore.collection('reports').doc(reportId);
     if (confirmed) {
-      await reportRef
-          .update({'exists_confirmations': FieldValue.increment(1)});
+      await reportRef.update({'exists_confirmations': FieldValue.increment(1)});
     } else {
-      await reportRef
-          .update({'not_exists_confirmations': FieldValue.increment(1)});
+      await reportRef.update({
+        'not_exists_confirmations': FieldValue.increment(1),
+      });
       final reportDoc = await reportRef.get();
       final data = reportDoc.data();
       if (data != null) {
         final existsCount = (data['exists_confirmations'] as int?) ?? 0;
-        final notExistsCount =
-            (data['not_exists_confirmations'] as int?) ?? 0;
+        final notExistsCount = (data['not_exists_confirmations'] as int?) ?? 0;
         if (existsCount * 1.25 + 5 < notExistsCount) {
           final photoUrl = data['photoUrl'] as String?;
           if (photoUrl != null) {
@@ -146,10 +149,9 @@ class ReportService extends ReportServiceBase {
 
   @override
   Future<void> confirmReportByAuthority(String reportId) async {
-    await _firestore
-        .collection('reports')
-        .doc(reportId)
-        .update({'authority_confirmed': true});
+    await _firestore.collection('reports').doc(reportId).update({
+      'authority_confirmed': true,
+    });
   }
 
   Future<Set<String>> getUserFavouriteIds(String userId) async {
@@ -157,9 +159,7 @@ class ReportService extends ReportServiceBase {
         .collection('user_favourites')
         .where('userId', isEqualTo: userId)
         .get();
-    return snapshot.docs
-        .map((d) => d.data()['reportId'] as String)
-        .toSet();
+    return snapshot.docs.map((d) => d.data()['reportId'] as String).toSet();
   }
 
   Future<void> toggleFavourite(String reportId, String userId) async {

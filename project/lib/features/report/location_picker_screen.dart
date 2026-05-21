@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'report_model.dart';
- 
+
 typedef ReverseGeocodeFn = Future<String?> Function(double lat, double lon);
 typedef SearchAddressFn = Future<LatLng?> Function(String query);
 
@@ -66,7 +66,7 @@ Future<String?> defaultReverseGeocode(double lat, double lon) async {
   } catch (_) {}
   return null;
 }
- 
+
 Future<LatLng?> defaultSearchAddress(String query) async {
   final uri = Uri.parse(
     'https://nominatim.openstreetmap.org/search'
@@ -87,14 +87,14 @@ Future<LatLng?> defaultSearchAddress(String query) async {
   }
   return null;
 }
- 
+
 class LocationPickerScreen extends StatefulWidget {
   final double? initialLatitude;
   final double? initialLongitude;
   final ReverseGeocodeFn reverseGeocode;
   final SearchAddressFn searchAddress;
   final LatLng? initialLocation;
- 
+
   const LocationPickerScreen({
     super.key,
     this.initialLatitude,
@@ -103,17 +103,17 @@ class LocationPickerScreen extends StatefulWidget {
     this.searchAddress = defaultSearchAddress,
     this.initialLocation,
   });
- 
+
   @override
   State<LocationPickerScreen> createState() => _LocationPickerScreenState();
 }
- 
+
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
   final MapController _mapController = MapController();
   final TextEditingController _addressController = TextEditingController();
- 
+
   static const LatLng _defaultCenter = LatLng(41.1496, -8.6109); // Porto
- 
+
   LatLng? _selectedPoint;
   LatLng? _currentLocation;
   String? _addressLabel;
@@ -133,7 +133,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     'Abandoned Vehicle': Icons.directions_car,
     'Trash': Icons.delete_outline,
   };
- 
+
   static const Map<String, Color> _statusColors = {
     'pending': Colors.orange,
     'in_progress': Colors.blue,
@@ -162,22 +162,20 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     }
     _loadExistingReports();
   }
- 
+
   Future<void> _loadExistingReports() async {
     try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection('reports').get();
+      final snapshot = await FirebaseFirestore.instance
+          .collection('reports')
+          .get();
       final reports = snapshot.docs
           .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
           .toList();
       if (mounted) setState(() => _existingReports = reports);
     } catch (_) {}
   }
- 
-  LatLng get _mapCenter =>
-    _selectedPoint ??
-    _currentLocation ??
-    _defaultCenter;
+
+  LatLng get _mapCenter => _selectedPoint ?? _currentLocation ?? _defaultCenter;
 
   void _onMapTap(TapPosition _, LatLng point) {
     setState(() {
@@ -187,21 +185,21 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     });
     _reverseGeocode(point);
   }
- 
+
   Future<void> _reverseGeocode(LatLng point) async {
     final label = await widget.reverseGeocode(point.latitude, point.longitude);
     if (mounted) setState(() => _addressLabel = label);
   }
- 
+
   Future<void> _searchAddress() async {
     final query = _addressController.text.trim();
     if (query.isEmpty) return;
- 
+
     setState(() {
       _isSearching = true;
       _searchError = null;
     });
- 
+
     try {
       final point = await widget.searchAddress(query);
       if (point != null) {
@@ -224,7 +222,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       });
     }
   }
- 
+
   void _showReportInfo(ReportModel report) {
     final color = _statusColors[report.status] ?? Colors.grey;
     showModalBottomSheet(
@@ -254,8 +252,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 ),
                 const Spacer(),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
@@ -263,9 +263,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   child: Text(
                     report.status,
                     style: TextStyle(
-                        color: color,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600),
+                      color: color,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -282,7 +283,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       ),
     );
   }
- 
+
   // Returns a LocationPickerResult with both coordinates AND address
   void _confirm() {
     if (_selectedPoint != null) {
@@ -296,13 +297,13 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       );
     }
   }
- 
+
   @override
   void dispose() {
     _addressController.dispose();
     super.dispose();
   }
- 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -358,7 +359,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               ],
             ),
           ),
- 
+
           // ── Map ───────────────────────────────────────────────
           Expanded(
             child: Stack(
@@ -407,7 +408,11 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                                     ),
                                   ],
                                 ),
-                                child: Icon(icon, size: 18, color: Colors.white),
+                                child: Icon(
+                                  icon,
+                                  size: 18,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           );
@@ -427,7 +432,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     ),
                   ],
                 ),
- 
+
                 // Legend
                 Positioned(
                   left: 12,
@@ -449,7 +454,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     ),
                   ),
                 ),
- 
+
                 Positioned(
                   right: 16,
                   bottom: 80,
@@ -481,7 +486,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     ],
                   ),
                 ),
- 
+
                 if (_selectedPoint == null)
                   const Positioned(
                     bottom: 24,
@@ -502,7 +507,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               ],
             ),
           ),
- 
+
           // ── Selected location info ─────────────────────────────
           if (_selectedPoint != null)
             Container(
@@ -541,12 +546,12 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     );
   }
 }
- 
+
 class _LegendDot extends StatelessWidget {
   final Color color;
   final String label;
   const _LegendDot({required this.color, required this.label});
- 
+
   @override
   Widget build(BuildContext context) {
     return Row(

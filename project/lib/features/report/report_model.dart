@@ -16,7 +16,6 @@ class ReportModel {
   final int notExistsConfirmations;
   final bool authorityConfirmed;
 
-
   ReportModel({
     this.id,
     required this.category,
@@ -27,7 +26,7 @@ class ReportModel {
     this.photoUrl,
     this.userId,
     this.priority,
-     this.authorityConfirmed = false, 
+    this.authorityConfirmed = false,
     this.status = 'pending',
     DateTime? createdAt,
     this.existsConfirmations = 0,
@@ -44,7 +43,7 @@ class ReportModel {
       'photoUrl': photoUrl,
       'userId': userId,
       'priority': priority,
-      'authority_confirmed': authorityConfirmed, 
+      'authority_confirmed': authorityConfirmed,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'exists_confirmations': existsConfirmations,

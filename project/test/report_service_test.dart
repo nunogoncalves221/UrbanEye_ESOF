@@ -16,7 +16,7 @@ class _TestableReportService extends ReportService {
   final FakeFirebaseFirestore fakeFirestore;
   final MockFirebaseStorage fakeStorage;
 
-   _TestableReportService({
+  _TestableReportService({
     required this.fakeFirestore,
     required this.fakeStorage,
   }) : super(firestore: fakeFirestore, storage: fakeStorage);
@@ -71,21 +71,18 @@ void main() {
   // GROUP 1 — confirmReportByAuthority
   // ───────────────────────────────────────────────────────────────────────────
   group('confirmReportByAuthority', () {
-    test(
-      'AC-01 | authority_confirmed fica true após confirmação',
-      () async {
-        final report = await _seedReport(fakeFirestore);
+    test('AC-01 | authority_confirmed fica true após confirmação', () async {
+      final report = await _seedReport(fakeFirestore);
 
-        await service.confirmReportByAuthority(report.id!);
+      await service.confirmReportByAuthority(report.id!);
 
-        final doc = await fakeFirestore
-            .collection('reports')
-            .doc(report.id)
-            .get();
+      final doc = await fakeFirestore
+          .collection('reports')
+          .doc(report.id)
+          .get();
 
-        expect(doc.data()?['authority_confirmed'], isTrue);
-      },
-    );
+      expect(doc.data()?['authority_confirmed'], isTrue);
+    });
 
     test(
       'AC-02 | outros campos do report não são alterados pela confirmação',
@@ -110,8 +107,10 @@ void main() {
     test(
       'AC-03 | confirmar um report já confirmado não lança excepção',
       () async {
-        final report =
-            await _seedReport(fakeFirestore, authorityConfirmed: true);
+        final report = await _seedReport(
+          fakeFirestore,
+          authorityConfirmed: true,
+        );
 
         // Não deve lançar — apenas re-escreve o mesmo valor
         await expectLater(
@@ -127,60 +126,48 @@ void main() {
       },
     );
 
-    test(
-      'AC-04 | confirmação de report inexistente lança excepção',
-      () async {
-        await expectLater(
-          service.confirmReportByAuthority('id-que-nao-existe'),
-          throwsA(anything),
-        );
-      },
-    );
+    test('AC-04 | confirmação de report inexistente lança excepção', () async {
+      await expectLater(
+        service.confirmReportByAuthority('id-que-nao-existe'),
+        throwsA(anything),
+      );
+    });
   });
 
   // ───────────────────────────────────────────────────────────────────────────
   // GROUP 2 — deleteReport (Reject)
   // ───────────────────────────────────────────────────────────────────────────
   group('deleteReport (Reject Report)', () {
-    test(
-      'AC-05 | report é removido do Firestore após rejeição',
-      () async {
-        final report = await _seedReport(fakeFirestore);
+    test('AC-05 | report é removido do Firestore após rejeição', () async {
+      final report = await _seedReport(fakeFirestore);
 
-        await service.deleteReport(report);
+      await service.deleteReport(report);
 
-        final doc = await fakeFirestore
-            .collection('reports')
-            .doc(report.id)
-            .get();
-        expect(doc.exists, isFalse);
-      },
-    );
+      final doc = await fakeFirestore
+          .collection('reports')
+          .doc(report.id)
+          .get();
+      expect(doc.exists, isFalse);
+    });
 
-    test(
-      'AC-06 | checkReportExists devolve false após deleteReport',
-      () async {
-        final report = await _seedReport(fakeFirestore);
+    test('AC-06 | checkReportExists devolve false após deleteReport', () async {
+      final report = await _seedReport(fakeFirestore);
 
-        await service.deleteReport(report);
+      await service.deleteReport(report);
 
-        final exists = await service.checkReportExists(report.id!);
-        expect(exists, isFalse);
-      },
-    );
+      final exists = await service.checkReportExists(report.id!);
+      expect(exists, isFalse);
+    });
 
-    test(
-      'AC-07 | apagar um report não afecta outros reports',
-      () async {
-        final reportA = await _seedReport(fakeFirestore, userId: 'user-a');
-        final reportB = await _seedReport(fakeFirestore, userId: 'user-b');
+    test('AC-07 | apagar um report não afecta outros reports', () async {
+      final reportA = await _seedReport(fakeFirestore, userId: 'user-a');
+      final reportB = await _seedReport(fakeFirestore, userId: 'user-b');
 
-        await service.deleteReport(reportA);
+      await service.deleteReport(reportA);
 
-        final existsB = await service.checkReportExists(reportB.id!);
-        expect(existsB, isTrue);
-      },
-    );
+      final existsB = await service.checkReportExists(reportB.id!);
+      expect(existsB, isTrue);
+    });
   });
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -209,8 +196,10 @@ void main() {
         // O serviço em si não verifica authority_confirmed;
         // a UI é responsável por esconder os botões.
         // Este teste garante que, se a UI falhar, o serviço ainda funciona.
-        final report =
-            await _seedReport(fakeFirestore, authorityConfirmed: true);
+        final report = await _seedReport(
+          fakeFirestore,
+          authorityConfirmed: true,
+        );
 
         await service.confirmProblem(report.id!, 'user-other', true);
 
@@ -227,42 +216,30 @@ void main() {
   // GROUP 4 — hasUserConfirmed
   // ───────────────────────────────────────────────────────────────────────────
   group('hasUserConfirmed', () {
-    test(
-      'AC-10 | devolve false antes de qualquer confirmação',
-      () async {
-        final report = await _seedReport(fakeFirestore);
+    test('AC-10 | devolve false antes de qualquer confirmação', () async {
+      final report = await _seedReport(fakeFirestore);
 
-        final result =
-            await service.hasUserConfirmed(report.id!, 'user-other');
-        expect(result, isFalse);
-      },
-    );
+      final result = await service.hasUserConfirmed(report.id!, 'user-other');
+      expect(result, isFalse);
+    });
 
-    test(
-      'AC-11 | devolve true após o user confirmar',
-      () async {
-        final report = await _seedReport(fakeFirestore);
+    test('AC-11 | devolve true após o user confirmar', () async {
+      final report = await _seedReport(fakeFirestore);
 
-        await service.confirmProblem(report.id!, 'user-other', true);
+      await service.confirmProblem(report.id!, 'user-other', true);
 
-        final result =
-            await service.hasUserConfirmed(report.id!, 'user-other');
-        expect(result, isTrue);
-      },
-    );
+      final result = await service.hasUserConfirmed(report.id!, 'user-other');
+      expect(result, isTrue);
+    });
 
-    test(
-      'AC-12 | user A confirmar não afecta o estado do user B',
-      () async {
-        final report = await _seedReport(fakeFirestore);
+    test('AC-12 | user A confirmar não afecta o estado do user B', () async {
+      final report = await _seedReport(fakeFirestore);
 
-        await service.confirmProblem(report.id!, 'user-a', true);
+      await service.confirmProblem(report.id!, 'user-a', true);
 
-        final resultB =
-            await service.hasUserConfirmed(report.id!, 'user-b');
-        expect(resultB, isFalse);
-      },
-    );
+      final resultB = await service.hasUserConfirmed(report.id!, 'user-b');
+      expect(resultB, isFalse);
+    });
 
     test(
       'AC-13 | confirmProblem é idempotente — chamar duas vezes não duplica contagem',
@@ -270,7 +247,11 @@ void main() {
         final report = await _seedReport(fakeFirestore);
 
         await service.confirmProblem(report.id!, 'user-other', true);
-        await service.confirmProblem(report.id!, 'user-other', true); // duplicado
+        await service.confirmProblem(
+          report.id!,
+          'user-other',
+          true,
+        ); // duplicado
 
         final doc = await fakeFirestore
             .collection('reports')
@@ -404,14 +385,16 @@ void main() {
 
         await service.toggleFavourite(report.id!, 'user-123');
         expect(
-          (await fakeFirestore.collection('user_favourites').doc(docPath).get()).exists,
+          (await fakeFirestore.collection('user_favourites').doc(docPath).get())
+              .exists,
           isTrue,
           reason: 'após primeiro toggle deve estar marcado como favorito',
         );
 
         await service.toggleFavourite(report.id!, 'user-123');
         expect(
-          (await fakeFirestore.collection('user_favourites').doc(docPath).get()).exists,
+          (await fakeFirestore.collection('user_favourites').doc(docPath).get())
+              .exists,
           isFalse,
           reason: 'após segundo toggle deve estar desmarcado',
         );

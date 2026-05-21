@@ -21,6 +21,7 @@ class TestReportService extends ReportServiceBase {
   Future<void> confirmReportByAuthority(String reportId) async {
     return;
   }
+
   @override
   Future<bool> checkReportExists(String reportId) async {
     final doc = await _firestore.collection('reports').doc(reportId).get();
@@ -28,7 +29,11 @@ class TestReportService extends ReportServiceBase {
   }
 
   @override
-  Future<void> confirmProblem(String reportId, String userId, bool confirmed) async {
+  Future<void> confirmProblem(
+    String reportId,
+    String userId,
+    bool confirmed,
+  ) async {
     final confirmationDoc = _firestore
         .collection('problem_confirmations')
         .doc('${reportId}_$userId');
@@ -45,7 +50,9 @@ class TestReportService extends ReportServiceBase {
     if (confirmed) {
       await reportRef.update({'exists_confirmations': FieldValue.increment(1)});
     } else {
-      await reportRef.update({'not_exists_confirmations': FieldValue.increment(1)});
+      await reportRef.update({
+        'not_exists_confirmations': FieldValue.increment(1),
+      });
 
       final reportDoc = await reportRef.get();
       final data = reportDoc.data();
@@ -83,7 +90,6 @@ class FakeReportModel extends Fake implements ReportModel {}
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
 
 class MockUser extends Mock implements User {}
-
 
 void main() {
   setUpAll(() {
@@ -244,11 +250,10 @@ void main() {
           'status': 'pending',
           'exists_confirmations': 1,
         });
-        await firestore.collection('problem_confirmations').doc('report1_user1').set({
-          'reportId': 'report1',
-          'userId': 'user1',
-          'confirmed': true,
-        });
+        await firestore
+            .collection('problem_confirmations')
+            .doc('report1_user1')
+            .set({'reportId': 'report1', 'userId': 'user1', 'confirmed': true});
 
         await reportService.confirmProblem('report1', 'user1', false);
 
@@ -298,20 +303,25 @@ void main() {
     group('hasUserConfirmed', () {
       // returns true when user already confirmed
       test('returns true when user already confirmed', () async {
-        await firestore.collection('problem_confirmations').doc('report1_user1').set({
-          'reportId': 'report1',
-          'userId': 'user1',
-          'confirmed': true,
-        });
+        await firestore
+            .collection('problem_confirmations')
+            .doc('report1_user1')
+            .set({'reportId': 'report1', 'userId': 'user1', 'confirmed': true});
 
-        final hasConfirmed = await reportService.hasUserConfirmed('report1', 'user1');
+        final hasConfirmed = await reportService.hasUserConfirmed(
+          'report1',
+          'user1',
+        );
 
         expect(hasConfirmed, isTrue);
       });
 
       // returns false when user has not confirmed
       test('returns false when user has not confirmed', () async {
-        final hasConfirmed = await reportService.hasUserConfirmed('report1', 'user1');
+        final hasConfirmed = await reportService.hasUserConfirmed(
+          'report1',
+          'user1',
+        );
 
         expect(hasConfirmed, isFalse);
       });

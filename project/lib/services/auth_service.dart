@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
-   AuthService();
+  AuthService();
 
   FirebaseAuth get firebaseAuth => FirebaseAuth.instance;
 
@@ -32,17 +32,14 @@ class AuthService {
 
     await user.updateDisplayName(name);
 
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .set({
-          'uid': user.uid,
-          'email': email,
-          'name': name,
-          'username': username,
-          'birthDate': Timestamp.fromDate(birthDate),
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'uid': user.uid,
+      'email': email,
+      'name': name,
+      'username': username,
+      'birthDate': Timestamp.fromDate(birthDate),
+      'createdAt': FieldValue.serverTimestamp(),
+    });
 
     return credential;
   }

@@ -27,6 +27,7 @@ class FakeReportService extends ReportServiceBase {
   Future<void> confirmReportByAuthority(String reportId) async {
     return;
   }
+
   @override
   Stream<List<ReportModel>> watchReportsByUser(String uid) {
     return Stream.value([]);
@@ -42,7 +43,11 @@ class FakeReportService extends ReportServiceBase {
   Future<bool> checkReportExists(String reportId) async => true;
 
   @override
-  Future<void> confirmProblem(String reportId, String userId, bool confirmed) async {}
+  Future<void> confirmProblem(
+    String reportId,
+    String userId,
+    bool confirmed,
+  ) async {}
 
   @override
   Future<bool> hasUserConfirmed(String reportId, String userId) async => false;

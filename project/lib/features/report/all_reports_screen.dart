@@ -9,6 +9,7 @@ import 'package:project/services/user_role_service.dart';
 import 'report_model.dart';
 
 enum _SortField { date, status, priority, category, location }
+
 enum _SortDirection { asc, desc }
 
 class AllReportsScreen extends StatefulWidget {
@@ -72,9 +73,16 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
   };
 
   static const Set<String> _knownCategories = {
-    'Pothole', 'Streetlight', 'Street sign', 'Traffic light', 'Vandalism',
-    'Blocked Sidewalk', 'Water leak/Flooding', 'Overgrown Vegetation',
-    'Abandoned Vehicle', 'Trash',
+    'Pothole',
+    'Streetlight',
+    'Street sign',
+    'Traffic light',
+    'Vandalism',
+    'Blocked Sidewalk',
+    'Water leak/Flooding',
+    'Overgrown Vegetation',
+    'Abandoned Vehicle',
+    'Trash',
   };
 
   @override
@@ -152,8 +160,9 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
 
   Future<void> _loadReports() async {
     try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection('reports').get();
+      final snapshot = await FirebaseFirestore.instance
+          .collection('reports')
+          .get();
       final reports = snapshot.docs
           .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
           .toList();
@@ -198,7 +207,10 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     var list = _allReports.where((r) {
       if (_filterFavourites && !_favouriteIds.contains(r.id)) return false;
       if (_filterStatus != null && r.status != _filterStatus) return false;
-      if (_isAuthority && _filterPriority != null && r.priority != _filterPriority) return false;
+      if (_isAuthority &&
+          _filterPriority != null &&
+          r.priority != _filterPriority)
+        return false;
       if (_filterCategory != null) {
         if (_filterCategory == '__other__') {
           if (_knownCategories.contains(r.category)) return false;
@@ -225,9 +237,12 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
         case _SortField.priority:
           int w(String? p) {
             switch (p?.toLowerCase()) {
-              case 'high': return 3;
-              case 'medium': return 2;
-              default: return 1;
+              case 'high':
+                return 3;
+              case 'medium':
+                return 2;
+              default:
+                return 1;
             }
           }
           cmp = w(a.priority).compareTo(w(b.priority));
@@ -248,16 +263,19 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
       '${d.year}';
 
   bool get _hasActiveFilters =>
-      _filterFavourites || _filterStatus != null || _filterPriority != null ||
-      _filterCategory != null || _filterZone != null;
+      _filterFavourites ||
+      _filterStatus != null ||
+      _filterPriority != null ||
+      _filterCategory != null ||
+      _filterZone != null;
 
   void _clearFilters() => setState(() {
-        _filterFavourites = false;
-        _filterStatus = null;
-        _filterPriority = null;
-        _filterCategory = null;
-        _filterZone = null;
-      });
+    _filterFavourites = false;
+    _filterStatus = null;
+    _filterPriority = null;
+    _filterCategory = null;
+    _filterZone = null;
+  });
 
   Future<void> _updateStatus(ReportModel report, String newStatus) async {
     try {
@@ -286,9 +304,9 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update status: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
       }
     }
   }
@@ -312,17 +330,18 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
         filterZone: _filterZone,
         sortField: _sortField,
         sortDir: _sortDir,
-        onApply: (status, priority, category, zone, field, dir, favouritesOnly) {
-          setState(() {
-            _filterFavourites = favouritesOnly;
-            _filterStatus = status;
-            _filterPriority = priority;
-            _filterCategory = category;
-            _filterZone = zone;
-            _sortField = field;
-            _sortDir = dir;
-          });
-        },
+        onApply:
+            (status, priority, category, zone, field, dir, favouritesOnly) {
+              setState(() {
+                _filterFavourites = favouritesOnly;
+                _filterStatus = status;
+                _filterPriority = priority;
+                _filterCategory = category;
+                _filterZone = zone;
+                _sortField = field;
+                _sortDir = dir;
+              });
+            },
       ),
     );
   }
@@ -332,7 +351,10 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
       final uri = Uri.parse(
         'https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lon&format=json',
       );
-      final response = await http.get(uri, headers: {'User-Agent': 'project-app/1.0'});
+      final response = await http.get(
+        uri,
+        headers: {'User-Agent': 'project-app/1.0'},
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data['display_name'] as String?;
@@ -346,7 +368,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     final icon = _categoryIcons[report.category] ?? Icons.flag;
     final statusLabel = _statusLabels[report.status] ?? report.status;
     final user = FirebaseAuth.instance.currentUser;
-    final reportService =  ReportService();
+    final reportService = ReportService();
 
     final uploadDate =
         '${report.createdAt.day.toString().padLeft(2, '0')}/'
@@ -365,7 +387,9 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
         builder: (context, setModalState) {
           return Padding(
             padding: EdgeInsets.fromLTRB(
-              20, 16, 20,
+              20,
+              16,
+              20,
               MediaQuery.of(context).viewInsets.bottom + 24,
             ),
             child: Column(
@@ -374,7 +398,8 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
               children: [
                 Center(
                   child: Container(
-                    width: 40, height: 4,
+                    width: 40,
+                    height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade300,
@@ -396,25 +421,37 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
                     Expanded(
                       child: Text(
                         report.category,
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         statusLabel,
-                        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                Text(report.description,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                Text(
+                  report.description,
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                ),
                 const SizedBox(height: 14),
                 Divider(color: Colors.grey.shade200, height: 1),
                 const SizedBox(height: 12),
@@ -455,7 +492,11 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
                 const SizedBox(height: 16),
                 // ── secção de acções (authority vs user normal) ──
                 _buildActionSection(
-                  context, report, user, reportService, setModalState,
+                  context,
+                  report,
+                  user,
+                  reportService,
+                  setModalState,
                 ),
               ],
             ),
@@ -494,7 +535,10 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
               SizedBox(width: 8),
               Text(
                 'Report confirmed by authority',
-                style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -507,7 +551,10 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () => _handleAuthorityConfirm(
-                context, report, reportService, setModalState,
+                context,
+                report,
+                reportService,
+                setModalState,
               ),
               icon: const Icon(Icons.verified_outlined, color: Colors.white),
               label: const Text('Confirm Report'),
@@ -520,9 +567,8 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: () => _handleAuthorityReject(
-                context, report, reportService,
-              ),
+              onPressed: () =>
+                  _handleAuthorityReject(context, report, reportService),
               icon: const Icon(Icons.delete_outline, color: Colors.white),
               label: const Text('Reject Report'),
               style: ElevatedButton.styleFrom(
@@ -558,7 +604,10 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
             ),
             child: const Text(
               'Thank you for your feedback!',
-              style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.w600,
+              ),
               textAlign: TextAlign.center,
             ),
           );
@@ -568,7 +617,12 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () => _handleUserConfirmation(
-                  context, report, user.uid, true, reportService, setModalState,
+                  context,
+                  report,
+                  user.uid,
+                  true,
+                  reportService,
+                  setModalState,
                 ),
                 icon: const Icon(Icons.check, color: Colors.white),
                 label: const Text('Exists'),
@@ -582,7 +636,12 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () => _handleUserConfirmation(
-                  context, report, user.uid, false, reportService, setModalState,
+                  context,
+                  report,
+                  user.uid,
+                  false,
+                  reportService,
+                  setModalState,
                 ),
                 icon: const Icon(Icons.close, color: Colors.white),
                 label: const Text("Doesn't exist"),
@@ -749,25 +808,31 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                      const SizedBox(height: 12),
-                      Text('Failed to load reports.\n$_error', textAlign: TextAlign.center),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() { _loading = true; _error = null; });
-                          _loadReports();
-                        },
-                        child: const Text('Retry'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Failed to load reports.\n$_error',
+                    textAlign: TextAlign.center,
                   ),
-                )
-              : _buildList(),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _loading = true;
+                        _error = null;
+                      });
+                      _loadReports();
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            )
+          : _buildList(),
     );
   }
 
@@ -790,7 +855,10 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
             ),
             if (_hasActiveFilters) ...[
               const SizedBox(height: 8),
-              TextButton(onPressed: _clearFilters, child: const Text('Clear filters')),
+              TextButton(
+                onPressed: _clearFilters,
+                child: const Text('Clear filters'),
+              ),
             ],
           ],
         ),
@@ -820,13 +888,16 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
                     ),
                   if (_isAuthority && _filterPriority != null)
                     _FilterChip(
-                      label: _priorityLabels[_filterPriority!] ?? _filterPriority!,
+                      label:
+                          _priorityLabels[_filterPriority!] ?? _filterPriority!,
                       color: _priorityColors[_filterPriority!] ?? Colors.grey,
                       onRemove: () => setState(() => _filterPriority = null),
                     ),
                   if (_filterCategory != null)
                     _FilterChip(
-                      label: _filterCategory == '__other__' ? 'Other' : _filterCategory!,
+                      label: _filterCategory == '__other__'
+                          ? 'Other'
+                          : _filterCategory!,
                       onRemove: () => setState(() => _filterCategory = null),
                     ),
                   if (_filterZone != null)
@@ -861,7 +932,10 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
                     const SizedBox(width: 4),
                     Text(
                       _sortFieldLabel(_sortField),
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -904,11 +978,16 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
 
   String _sortFieldLabel(_SortField f) {
     switch (f) {
-      case _SortField.date: return 'Date';
-      case _SortField.status: return 'Status';
-      case _SortField.priority: return 'Priority';
-      case _SortField.category: return 'Category';
-      case _SortField.location: return 'Location';
+      case _SortField.date:
+        return 'Date';
+      case _SortField.status:
+        return 'Status';
+      case _SortField.priority:
+        return 'Priority';
+      case _SortField.category:
+        return 'Category';
+      case _SortField.location:
+        return 'Location';
     }
   }
 }
@@ -919,7 +998,11 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String text;
-  const _InfoRow({required this.icon, required this.iconColor, required this.text});
+  const _InfoRow({
+    required this.icon,
+    required this.iconColor,
+    required this.text,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -929,10 +1012,12 @@ class _InfoRow extends StatelessWidget {
         Icon(icon, size: 15, color: iconColor),
         const SizedBox(width: 6),
         Expanded(
-          child: Text(text,
-              style: const TextStyle(fontSize: 13, color: Colors.black87),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis),
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );
@@ -944,7 +1029,12 @@ class _CountChip extends StatelessWidget {
   final int count;
   final Color color;
   final String label;
-  const _CountChip({required this.icon, required this.count, required this.color, required this.label});
+  const _CountChip({
+    required this.icon,
+    required this.count,
+    required this.color,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -960,8 +1050,14 @@ class _CountChip extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 5),
-          Text('$count $label',
-              style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600)),
+          Text(
+            '$count $label',
+            style: TextStyle(
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -1025,12 +1121,16 @@ class ReportCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 44, height: 44,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(categoryIcon, color: Theme.of(context).colorScheme.primary),
+                child: Icon(
+                  categoryIcon,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1040,10 +1140,15 @@ class ReportCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(report.category,
-                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis),
+                          child: Text(
+                            report.category,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         // Status badge / dropdown
@@ -1053,23 +1158,35 @@ class ReportCard extends StatelessWidget {
                                 tooltip: 'Change status',
                                 onSelected: onStatusChanged,
                                 itemBuilder: (_) => statusLabels.entries
-                                    .map((e) => PopupMenuItem(
-                                          value: e.key,
-                                          child: Row(children: [
+                                    .map(
+                                      (e) => PopupMenuItem(
+                                        value: e.key,
+                                        child: Row(
+                                          children: [
                                             Container(
-                                              width: 10, height: 10,
-                                              margin: const EdgeInsets.only(right: 8),
+                                              width: 10,
+                                              height: 10,
+                                              margin: const EdgeInsets.only(
+                                                right: 8,
+                                              ),
                                               decoration: BoxDecoration(
-                                                color: statusColors[e.key] ?? Colors.grey,
+                                                color:
+                                                    statusColors[e.key] ??
+                                                    Colors.grey,
                                                 shape: BoxShape.circle,
                                               ),
                                             ),
                                             Text(e.value),
-                                          ]),
-                                        ))
+                                          ],
+                                        ),
+                                      ),
+                                    )
                                     .toList(),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: statusColor.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(12),
@@ -1077,22 +1194,41 @@ class ReportCard extends StatelessWidget {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(statusLabel,
-                                          style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.w600)),
+                                      Text(
+                                        statusLabel,
+                                        style: TextStyle(
+                                          color: statusColor,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                                       const SizedBox(width: 3),
-                                      Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
+                                      Icon(
+                                        Icons.arrow_drop_down,
+                                        size: 14,
+                                        color: statusColor,
+                                      ),
                                     ],
                                   ),
                                 ),
                               )
                             : Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
                                 decoration: BoxDecoration(
                                   color: statusColor.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Text(statusLabel,
-                                    style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.w600)),
+                                child: Text(
+                                  statusLabel,
+                                  style: TextStyle(
+                                    color: statusColor,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
                         // Priority badge (authority only)
                         if (isAuthority) ...[
@@ -1102,23 +1238,35 @@ class ReportCard extends StatelessWidget {
                             tooltip: 'Change priority',
                             onSelected: (v) => onPriorityChanged?.call(v),
                             itemBuilder: (_) => priorityLabels.entries
-                                .map((e) => PopupMenuItem(
-                                      value: e.key,
-                                      child: Row(children: [
+                                .map(
+                                  (e) => PopupMenuItem(
+                                    value: e.key,
+                                    child: Row(
+                                      children: [
                                         Container(
-                                          width: 10, height: 10,
-                                          margin: const EdgeInsets.only(right: 8),
+                                          width: 10,
+                                          height: 10,
+                                          margin: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: priorityColors[e.key] ?? Colors.grey,
+                                            color:
+                                                priorityColors[e.key] ??
+                                                Colors.grey,
                                             shape: BoxShape.circle,
                                           ),
                                         ),
                                         Text(e.value),
-                                      ]),
-                                    ))
+                                      ],
+                                    ),
+                                  ),
+                                )
                                 .toList(),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: priorityColor.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
@@ -1126,10 +1274,20 @@ class ReportCard extends StatelessWidget {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(priorityLabel,
-                                      style: TextStyle(color: priorityColor, fontSize: 11, fontWeight: FontWeight.w600)),
+                                  Text(
+                                    priorityLabel,
+                                    style: TextStyle(
+                                      color: priorityColor,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                   const SizedBox(width: 3),
-                                  Icon(Icons.arrow_drop_down, size: 14, color: priorityColor),
+                                  Icon(
+                                    Icons.arrow_drop_down,
+                                    size: 14,
+                                    color: priorityColor,
+                                  ),
                                 ],
                               ),
                             ),
@@ -1140,7 +1298,11 @@ class ReportCard extends StatelessWidget {
                           const SizedBox(width: 6),
                           const Tooltip(
                             message: 'Confirmed by authority',
-                            child: Icon(Icons.verified, size: 16, color: Colors.green),
+                            child: Icon(
+                              Icons.verified,
+                              size: 16,
+                              color: Colors.green,
+                            ),
                           ),
                         ],
                         _FavouriteButton(
@@ -1150,34 +1312,63 @@ class ReportCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(report.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                    Text(
+                      report.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
                         if (report.address != null) ...[
-                          Icon(Icons.location_on_outlined, size: 13, color: Colors.grey.shade500),
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 13,
+                            color: Colors.grey.shade500,
+                          ),
                           const SizedBox(width: 3),
                           Expanded(
-                            child: Text(report.address!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                            child: Text(
+                              report.address!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
                           ),
                         ] else
                           const Spacer(),
-                        Icon(Icons.access_time, size: 12, color: Colors.grey.shade400),
+                        Icon(
+                          Icons.access_time,
+                          size: 12,
+                          color: Colors.grey.shade400,
+                        ),
                         const SizedBox(width: 3),
-                        Text(formatDate(report.createdAt),
-                            style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
+                        Text(
+                          formatDate(report.createdAt),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade400,
+                          ),
+                        ),
                       ],
                     ),
                     if (zone != null) ...[
                       const SizedBox(height: 2),
-                      Text(zone,
-                          style: TextStyle(fontSize: 11, color: Colors.grey.shade400, fontStyle: FontStyle.italic)),
+                      Text(
+                        zone,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade400,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
                     ],
                   ],
                 ),
@@ -1216,8 +1407,8 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
           showFilled ? Icons.star : Icons.star_border,
           color: showFilled
               ? (_hovering && !widget.isFavourite
-                  ? Colors.amber.withValues(alpha: 0.6)
-                  : Colors.amber)
+                    ? Colors.amber.withValues(alpha: 0.6)
+                    : Colors.amber)
               : Colors.grey.shade400,
         ),
         iconSize: 20,
@@ -1232,7 +1423,11 @@ class _FilterChip extends StatelessWidget {
   final String label;
   final Color color;
   final VoidCallback onRemove;
-  const _FilterChip({required this.label, this.color = Colors.blueGrey, required this.onRemove});
+  const _FilterChip({
+    required this.label,
+    this.color = Colors.blueGrey,
+    required this.onRemove,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1264,15 +1459,29 @@ class _FilterSortSheet extends StatefulWidget {
   final _SortField sortField;
   final _SortDirection sortDir;
   final void Function(
-    String? status, String? priority, String? category, String? zone,
-    _SortField field, _SortDirection dir, bool favouritesOnly,
-  ) onApply;
+    String? status,
+    String? priority,
+    String? category,
+    String? zone,
+    _SortField field,
+    _SortDirection dir,
+    bool favouritesOnly,
+  )
+  onApply;
 
   const _FilterSortSheet({
-    required this.zones, required this.categories, required this.filterFavourites,
-    required this.isLoggedIn, required this.filterStatus, required this.isAuthority,
-    required this.filterCategory, required this.filterZone, required this.filterPriority,
-    required this.sortField, required this.sortDir, required this.onApply,
+    required this.zones,
+    required this.categories,
+    required this.filterFavourites,
+    required this.isLoggedIn,
+    required this.filterStatus,
+    required this.isAuthority,
+    required this.filterCategory,
+    required this.filterZone,
+    required this.filterPriority,
+    required this.sortField,
+    required this.sortDir,
+    required this.onApply,
   });
 
   @override
@@ -1289,10 +1498,14 @@ class _FilterSortSheetState extends State<_FilterSortSheet> {
   late _SortDirection _dir;
 
   static const _statusOptions = <String, String>{
-    'pending': 'Pending', 'in_progress': 'In Progress', 'resolved': 'Resolved',
+    'pending': 'Pending',
+    'in_progress': 'In Progress',
+    'resolved': 'Resolved',
   };
   static const _priorityOptions = <String, String>{
-    'low': 'Low', 'medium': 'Medium', 'high': 'High',
+    'low': 'Low',
+    'medium': 'Medium',
+    'high': 'High',
   };
 
   @override
@@ -1311,7 +1524,9 @@ class _FilterSortSheetState extends State<_FilterSortSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 20, right: 20, top: 20,
+        left: 20,
+        right: 20,
+        top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       child: SingleChildScrollView(
@@ -1321,7 +1536,8 @@ class _FilterSortSheetState extends State<_FilterSortSheet> {
           children: [
             Center(
               child: Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(2),
@@ -1329,14 +1545,24 @@ class _FilterSortSheetState extends State<_FilterSortSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Filter', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Filter',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             if (widget.isLoggedIn) ...[
               Row(
                 children: [
                   const Icon(Icons.star, size: 18, color: Colors.amber),
                   const SizedBox(width: 8),
-                  const Expanded(child: Text('Favourites only', style: TextStyle(fontSize: 14))),
+                  const Expanded(
+                    child: Text(
+                      'Favourites only',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ),
                   Switch(
                     value: _favouritesOnly,
                     onChanged: (v) => setState(() => _favouritesOnly = v),
@@ -1346,71 +1572,152 @@ class _FilterSortSheetState extends State<_FilterSortSheet> {
               const SizedBox(height: 4),
             ],
             _SectionLabel(label: 'Status'),
-            Wrap(spacing: 8, runSpacing: 4, children: [
-              _ChoiceChip(label: 'All', selected: _status == null, onSelected: (_) => setState(() => _status = null)),
-              ..._statusOptions.entries.map((e) => _ChoiceChip(
-                    label: e.value, selected: _status == e.key,
-                    onSelected: (_) => setState(() => _status = e.key))),
-            ]),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                _ChoiceChip(
+                  label: 'All',
+                  selected: _status == null,
+                  onSelected: (_) => setState(() => _status = null),
+                ),
+                ..._statusOptions.entries.map(
+                  (e) => _ChoiceChip(
+                    label: e.value,
+                    selected: _status == e.key,
+                    onSelected: (_) => setState(() => _status = e.key),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             if (widget.isAuthority) ...[
               _SectionLabel(label: 'Priority'),
-              Wrap(spacing: 8, runSpacing: 4, children: [
-                _ChoiceChip(label: 'All', selected: _priority == null, onSelected: (_) => setState(() => _priority = null)),
-                ..._priorityOptions.entries.map((e) => _ChoiceChip(
-                      label: e.value, selected: _priority == e.key,
-                      onSelected: (_) => setState(() => _priority = e.key))),
-              ]),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  _ChoiceChip(
+                    label: 'All',
+                    selected: _priority == null,
+                    onSelected: (_) => setState(() => _priority = null),
+                  ),
+                  ..._priorityOptions.entries.map(
+                    (e) => _ChoiceChip(
+                      label: e.value,
+                      selected: _priority == e.key,
+                      onSelected: (_) => setState(() => _priority = e.key),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
             ],
             _SectionLabel(label: 'Category'),
-            Wrap(spacing: 8, runSpacing: 4, children: [
-              _ChoiceChip(label: 'All', selected: _category == null, onSelected: (_) => setState(() => _category = null)),
-              ...widget.categories.map((c) => _ChoiceChip(
-                    label: c, selected: _category == c,
-                    onSelected: (_) => setState(() => _category = c))),
-              _ChoiceChip(label: 'Other', selected: _category == '__other__',
-                  onSelected: (_) => setState(() => _category = '__other__')),
-            ]),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                _ChoiceChip(
+                  label: 'All',
+                  selected: _category == null,
+                  onSelected: (_) => setState(() => _category = null),
+                ),
+                ...widget.categories.map(
+                  (c) => _ChoiceChip(
+                    label: c,
+                    selected: _category == c,
+                    onSelected: (_) => setState(() => _category = c),
+                  ),
+                ),
+                _ChoiceChip(
+                  label: 'Other',
+                  selected: _category == '__other__',
+                  onSelected: (_) => setState(() => _category = '__other__'),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             if (widget.zones.isNotEmpty) ...[
               _SectionLabel(label: 'Location zone'),
-              Wrap(spacing: 8, runSpacing: 4, children: [
-                _ChoiceChip(label: 'All', selected: _zone == null, onSelected: (_) => setState(() => _zone = null)),
-                ...widget.zones.map((z) => _ChoiceChip(
-                      label: z, selected: _zone == z,
-                      onSelected: (_) => setState(() => _zone = z))),
-              ]),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  _ChoiceChip(
+                    label: 'All',
+                    selected: _zone == null,
+                    onSelected: (_) => setState(() => _zone = null),
+                  ),
+                  ...widget.zones.map(
+                    (z) => _ChoiceChip(
+                      label: z,
+                      selected: _zone == z,
+                      onSelected: (_) => setState(() => _zone = z),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
             ],
             const Divider(),
-            Text('Sort by', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Sort by',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             Wrap(
-              spacing: 8, runSpacing: 4,
+              spacing: 8,
+              runSpacing: 4,
               children: _SortField.values
                   .where((f) => f != _SortField.priority || widget.isAuthority)
-                  .map((f) => _ChoiceChip(
-                        label: _fieldLabel(f), selected: _field == f,
-                        onSelected: (_) => setState(() => _field = f)))
+                  .map(
+                    (f) => _ChoiceChip(
+                      label: _fieldLabel(f),
+                      selected: _field == f,
+                      onSelected: (_) => setState(() => _field = f),
+                    ),
+                  )
                   .toList(),
             ),
             const SizedBox(height: 12),
-            Row(children: [
-              Expanded(child: _ChoiceChip(
-                  label: '↑ Ascending', selected: _dir == _SortDirection.asc,
-                  onSelected: (_) => setState(() => _dir = _SortDirection.asc))),
-              const SizedBox(width: 8),
-              Expanded(child: _ChoiceChip(
-                  label: '↓ Descending', selected: _dir == _SortDirection.desc,
-                  onSelected: (_) => setState(() => _dir = _SortDirection.desc))),
-            ]),
+            Row(
+              children: [
+                Expanded(
+                  child: _ChoiceChip(
+                    label: '↑ Ascending',
+                    selected: _dir == _SortDirection.asc,
+                    onSelected: (_) =>
+                        setState(() => _dir = _SortDirection.asc),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _ChoiceChip(
+                    label: '↓ Descending',
+                    selected: _dir == _SortDirection.desc,
+                    onSelected: (_) =>
+                        setState(() => _dir = _SortDirection.desc),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: () {
-                  widget.onApply(_status, _priority, _category, _zone, _field, _dir, _favouritesOnly);
+                  widget.onApply(
+                    _status,
+                    _priority,
+                    _category,
+                    _zone,
+                    _field,
+                    _dir,
+                    _favouritesOnly,
+                  );
                   Navigator.pop(context);
                 },
                 child: const Text('Apply'),
@@ -1424,11 +1731,16 @@ class _FilterSortSheetState extends State<_FilterSortSheet> {
 
   String _fieldLabel(_SortField f) {
     switch (f) {
-      case _SortField.date: return 'Date';
-      case _SortField.status: return 'Status';
-      case _SortField.priority: return 'Priority';
-      case _SortField.category: return 'Category';
-      case _SortField.location: return 'Location';
+      case _SortField.date:
+        return 'Date';
+      case _SortField.status:
+        return 'Status';
+      case _SortField.priority:
+        return 'Priority';
+      case _SortField.category:
+        return 'Category';
+      case _SortField.location:
+        return 'Location';
     }
   }
 }
@@ -1441,8 +1753,14 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Text(label,
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 13,
+          color: Colors.grey.shade600,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 }
@@ -1451,7 +1769,11 @@ class _ChoiceChip extends StatelessWidget {
   final String label;
   final bool selected;
   final ValueChanged<bool> onSelected;
-  const _ChoiceChip({required this.label, required this.selected, required this.onSelected});
+  const _ChoiceChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {

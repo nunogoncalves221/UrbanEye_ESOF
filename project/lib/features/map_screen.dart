@@ -55,8 +55,9 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _loadReports() async {
     try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection('reports').get();
+      final snapshot = await FirebaseFirestore.instance
+          .collection('reports')
+          .get();
       final reports = snapshot.docs
           .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
           .toList();
@@ -97,7 +98,7 @@ class _MapScreenState extends State<MapScreen> {
     final icon = _categoryIcons[report.category] ?? Icons.flag;
     final statusLabel = _statusLabels[report.status] ?? report.status;
     final user = FirebaseAuth.instance.currentUser;
-    final reportService =  ReportService();
+    final reportService = ReportService();
 
     final uploadDate =
         '${report.createdAt.day.toString().padLeft(2, '0')}/'
@@ -148,12 +149,16 @@ class _MapScreenState extends State<MapScreen> {
                       child: Text(
                         report.category,
                         style: const TextStyle(
-                            fontSize: 17, fontWeight: FontWeight.bold),
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
@@ -161,9 +166,10 @@ class _MapScreenState extends State<MapScreen> {
                       child: Text(
                         statusLabel,
                         style: TextStyle(
-                            color: color,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600),
+                          color: color,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -522,7 +528,10 @@ class _CountChip extends StatelessWidget {
           Text(
             '$count $label',
             style: TextStyle(
-                fontSize: 12, color: color, fontWeight: FontWeight.w600),
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

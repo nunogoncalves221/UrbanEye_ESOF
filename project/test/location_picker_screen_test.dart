@@ -180,6 +180,9 @@ void main() {
 
     expect(result, isA<LocationPickerResult>());
     expect((result as LocationPickerResult).latitude, closeTo(38.7223, 0.0001));
-    expect((result as LocationPickerResult).longitude, closeTo(-9.1393, 0.0001));
+    expect(
+      (result as LocationPickerResult).longitude,
+      closeTo(-9.1393, 0.0001),
+    );
   });
 }

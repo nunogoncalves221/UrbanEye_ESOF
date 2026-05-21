@@ -316,4 +316,127 @@ void main() {
       },
     );
   });
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // GROUP 6 — getUserFavouriteIds & toggleFavourite
+  // ───────────────────────────────────────────────────────────────────────────
+  group('getUserFavouriteIds & toggleFavourite', () {
+    test(
+      'FAV-01 | getUserFavouriteIds devolve set vazio quando user não tem favoritos',
+      () async {
+        final ids = await service.getUserFavouriteIds('user-123');
+        expect(ids, isEmpty);
+      },
+    );
+
+    test(
+      'FAV-02 | getUserFavouriteIds devolve os IDs dos reports favoritos do user',
+      () async {
+        final report = await _seedReport(fakeFirestore);
+        await fakeFirestore
+            .collection('user_favourites')
+            .doc('user-123_${report.id}')
+            .set({'reportId': report.id, 'userId': 'user-123'});
+
+        final ids = await service.getUserFavouriteIds('user-123');
+
+        expect(ids, contains(report.id));
+        expect(ids.length, equals(1));
+      },
+    );
+
+    test(
+      'FAV-03 | getUserFavouriteIds não devolve favoritos de outros utilizadores',
+      () async {
+        final report = await _seedReport(fakeFirestore);
+        await fakeFirestore
+            .collection('user_favourites')
+            .doc('other-user_${report.id}')
+            .set({'reportId': report.id, 'userId': 'other-user'});
+
+        final ids = await service.getUserFavouriteIds('user-123');
+
+        expect(ids, isEmpty);
+      },
+    );
+
+    test(
+      'FAV-04 | toggleFavourite cria documento quando report ainda não é favorito',
+      () async {
+        final report = await _seedReport(fakeFirestore);
+
+        await service.toggleFavourite(report.id!, 'user-123');
+
+        final doc = await fakeFirestore
+            .collection('user_favourites')
+            .doc('user-123_${report.id}')
+            .get();
+        expect(doc.exists, isTrue);
+        expect(doc.data()?['reportId'], equals(report.id));
+        expect(doc.data()?['userId'], equals('user-123'));
+      },
+    );
+
+    test(
+      'FAV-05 | toggleFavourite remove documento quando report já é favorito',
+      () async {
+        final report = await _seedReport(fakeFirestore);
+        await fakeFirestore
+            .collection('user_favourites')
+            .doc('user-123_${report.id}')
+            .set({'reportId': report.id, 'userId': 'user-123'});
+
+        await service.toggleFavourite(report.id!, 'user-123');
+
+        final doc = await fakeFirestore
+            .collection('user_favourites')
+            .doc('user-123_${report.id}')
+            .get();
+        expect(doc.exists, isFalse);
+      },
+    );
+
+    test(
+      'FAV-06 | toggleFavourite pode alternar entre favorito e não favorito',
+      () async {
+        final report = await _seedReport(fakeFirestore);
+        final docPath = 'user-123_${report.id}';
+
+        await service.toggleFavourite(report.id!, 'user-123');
+        expect(
+          (await fakeFirestore.collection('user_favourites').doc(docPath).get()).exists,
+          isTrue,
+          reason: 'após primeiro toggle deve estar marcado como favorito',
+        );
+
+        await service.toggleFavourite(report.id!, 'user-123');
+        expect(
+          (await fakeFirestore.collection('user_favourites').doc(docPath).get()).exists,
+          isFalse,
+          reason: 'após segundo toggle deve estar desmarcado',
+        );
+      },
+    );
+
+    test(
+      'FAV-07 | toggleFavourite de um user não afecta favoritos de outro user',
+      () async {
+        final report = await _seedReport(fakeFirestore);
+
+        await service.toggleFavourite(report.id!, 'user-a');
+        await service.toggleFavourite(report.id!, 'user-b');
+
+        final docA = await fakeFirestore
+            .collection('user_favourites')
+            .doc('user-a_${report.id}')
+            .get();
+        final docB = await fakeFirestore
+            .collection('user_favourites')
+            .doc('user-b_${report.id}')
+            .get();
+        expect(docA.exists, isTrue);
+        expect(docB.exists, isTrue);
+      },
+    );
+  });
 }

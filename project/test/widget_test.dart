@@ -384,6 +384,131 @@ void main() {
       },
     );
   });
+
+  group('ReportCard - Favourite Star Button', () {
+    const statusColors = <String, Color>{
+      'pending': Colors.orange,
+      'in_progress': Colors.blue,
+      'resolved': Colors.green,
+    };
+    const statusLabels = <String, String>{
+      'pending': 'Pending',
+      'in_progress': 'In Progress',
+      'resolved': 'Resolved',
+    };
+    const priorityColors = <String, Color>{
+      'low': Colors.grey,
+      'medium': Colors.amber,
+      'high': Colors.red,
+    };
+    const priorityLabels = <String, String>{
+      'low': 'Low Priority',
+      'medium': 'Medium Priority',
+      'high': 'High Priority',
+    };
+    const categoryIcons = <String, IconData>{'Pothole': Icons.report_problem};
+
+    Widget buildCard({bool isFavourite = false, VoidCallback? onFavouriteToggle}) {
+      return MaterialApp(
+        home: Scaffold(
+          body: ReportCard(
+            report: makeReport(),
+            isAuthority: false,
+            isFavourite: isFavourite,
+            onFavouriteToggle: onFavouriteToggle,
+            statusColors: statusColors,
+            statusLabels: statusLabels,
+            priorityColors: priorityColors,
+            priorityLabels: priorityLabels,
+            categoryIcons: categoryIcons,
+            formatDate: (d) => '${d.day}/${d.month}/${d.year}',
+            extractZone: (_) => null,
+          ),
+        ),
+      );
+    }
+
+    testWidgets(
+      'Widget Test: star_border shown for authenticated user when report is not favourite',
+      (tester) async {
+        await tester.pumpWidget(buildCard(onFavouriteToggle: () {}));
+
+        expect(find.byIcon(Icons.star_border), findsOneWidget);
+        expect(find.byIcon(Icons.star), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: filled star shown when report is marked as favourite',
+      (tester) async {
+        await tester.pumpWidget(
+          buildCard(isFavourite: true, onFavouriteToggle: () {}),
+        );
+
+        expect(find.byIcon(Icons.star), findsOneWidget);
+        expect(find.byIcon(Icons.star_border), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: star button is hidden when onFavouriteToggle is null (unauthenticated user)',
+      (tester) async {
+        await tester.pumpWidget(buildCard());
+
+        expect(find.byIcon(Icons.star_border), findsNothing);
+        expect(find.byIcon(Icons.star), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: tapping the star button calls onFavouriteToggle callback',
+      (tester) async {
+        bool toggled = false;
+        await tester.pumpWidget(
+          buildCard(onFavouriteToggle: () => toggled = true),
+        );
+
+        await tester.tap(find.byIcon(Icons.star_border));
+        await tester.pump();
+
+        expect(toggled, isTrue);
+      },
+    );
+  });
+
+  group('All Reports - Favourites Filter Visibility', () {
+    testWidgets(
+      'Widget Test: logged-in user sees Favourites only toggle in filter sheet',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: _MockFilterSortSheet(isAuthority: false, isLoggedIn: true),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Favourites only'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: non-logged-in user does not see Favourites only toggle in filter sheet',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: _MockFilterSortSheet(isAuthority: false, isLoggedIn: false),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Favourites only'), findsNothing);
+      },
+    );
+  });
 }
 
 // ─── Classes Auxiliares de Teste ─────────────────────────────────────────────
@@ -443,13 +568,15 @@ class _ReportCardTestWrapper extends StatelessWidget {
 
 class _MockFilterSortSheet extends StatelessWidget {
   final bool isAuthority;
-  const _MockFilterSortSheet({required this.isAuthority});
+  final bool isLoggedIn;
+  const _MockFilterSortSheet({required this.isAuthority, this.isLoggedIn = true});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         const Text('Filter'),
+        if (isLoggedIn) const Text('Favourites only'),
         if (isAuthority) ...[
           const Text('Priority'),
           const Text('Low'),

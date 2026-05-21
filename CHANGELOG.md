@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0]
+
+### Added
+
+- Favourite reports: authenticated users can star reports in the All Reports screen
+- Favourites persisted per-user in Firestore (`user_favourites` collection)
+- "Favourites only" filter toggle in the filter sheet (authenticated users only)
+- Unit, widget and acceptance tests for the favourite reports feature
+
+### Fixed
+
+- Star button uses `IconButton` to avoid gesture conflicts with the report card tap
+
 ## [1.9.0]
 ### Added
 - Detail popup when tapping a map marker or an issue in the All Reports list, showing the street name, upload date, and number of confirmations/denials.

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [2.1.1]
+
+### Tests
+- report_service_test.dart (created)
+
+## [2.1.0]
+
+### Added
+
+- added code to all_reports_screen.dart: if the user is an authority then it can reject reports or confirm them. Either way, regular users stop having the possibility of confirming/negating those reports. If authority confirms a report then a check will appear in the reports page, if it rejects them, they dissapear from the database   
+
 ## [2.0.0]
 
 ### Added

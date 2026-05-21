@@ -151,4 +151,30 @@ class ReportService extends ReportServiceBase {
         .doc(reportId)
         .update({'authority_confirmed': true});
   }
+
+  Future<Set<String>> getUserFavouriteIds(String userId) async {
+    final snapshot = await _firestore
+        .collection('user_favourites')
+        .where('userId', isEqualTo: userId)
+        .get();
+    return snapshot.docs
+        .map((d) => d.data()['reportId'] as String)
+        .toSet();
+  }
+
+  Future<void> toggleFavourite(String reportId, String userId) async {
+    final docRef = _firestore
+        .collection('user_favourites')
+        .doc('${userId}_$reportId');
+    final doc = await docRef.get();
+    if (doc.exists) {
+      await docRef.delete();
+    } else {
+      await docRef.set({
+        'reportId': reportId,
+        'userId': userId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
 }

@@ -24,6 +24,8 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
   String? _error;
   bool _isAuthority = false;
 
+  Set<String> _favouriteIds = {};
+  bool _filterFavourites = false;
   String? _filterStatus;
   String? _filterPriority;
   String? _filterCategory;
@@ -80,6 +82,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     super.initState();
     _loadReports();
     _loadRole();
+    _loadFavourites();
   }
 
   Future<void> _loadRole() async {
@@ -89,6 +92,28 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     if (mounted) {
       setState(() => _isAuthority = role == UserRole.authority);
     }
+  }
+
+  Future<void> _loadFavourites() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final ids = await ReportService().getUserFavouriteIds(user.uid);
+    if (mounted) setState(() => _favouriteIds = ids);
+  }
+
+  Future<void> _toggleFavourite(ReportModel report) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || report.id == null) return;
+    try {
+      await ReportService().toggleFavourite(report.id!, user.uid);
+      setState(() {
+        if (_favouriteIds.contains(report.id)) {
+          _favouriteIds.remove(report.id);
+        } else {
+          _favouriteIds.add(report.id!);
+        }
+      });
+    } catch (_) {}
   }
 
   Future<void> _updatePriority(ReportModel report, String newPriority) async {
@@ -171,6 +196,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
 
   List<ReportModel> get _filtered {
     var list = _allReports.where((r) {
+      if (_filterFavourites && !_favouriteIds.contains(r.id)) return false;
       if (_filterStatus != null && r.status != _filterStatus) return false;
       if (_isAuthority && _filterPriority != null && r.priority != _filterPriority) return false;
       if (_filterCategory != null) {
@@ -222,10 +248,11 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
       '${d.year}';
 
   bool get _hasActiveFilters =>
-      _filterStatus != null || _filterPriority != null ||
+      _filterFavourites || _filterStatus != null || _filterPriority != null ||
       _filterCategory != null || _filterZone != null;
 
   void _clearFilters() => setState(() {
+        _filterFavourites = false;
         _filterStatus = null;
         _filterPriority = null;
         _filterCategory = null;
@@ -275,16 +302,19 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
       ),
       builder: (_) => _FilterSortSheet(
         isAuthority: _isAuthority,
+        isLoggedIn: FirebaseAuth.instance.currentUser != null,
         zones: _zones,
         categories: _categories,
+        filterFavourites: _filterFavourites,
         filterStatus: _filterStatus,
         filterPriority: _filterPriority,
         filterCategory: _filterCategory,
         filterZone: _filterZone,
         sortField: _sortField,
         sortDir: _sortDir,
-        onApply: (status, priority, category, zone, field, dir) {
+        onApply: (status, priority, category, zone, field, dir, favouritesOnly) {
           setState(() {
+            _filterFavourites = favouritesOnly;
             _filterStatus = status;
             _filterPriority = priority;
             _filterCategory = category;
@@ -776,6 +806,12 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
+                  if (_filterFavourites)
+                    _FilterChip(
+                      label: 'Favourites',
+                      color: Colors.amber,
+                      onRemove: () => setState(() => _filterFavourites = false),
+                    ),
                   if (_filterStatus != null)
                     _FilterChip(
                       label: _statusLabels[_filterStatus!] ?? _filterStatus!,
@@ -848,11 +884,15 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
               formatDate: _formatDate,
               extractZone: _extractZone,
               isAuthority: _isAuthority,
+              isFavourite: _favouriteIds.contains(reports[i].id),
               onStatusChanged: _isAuthority
                   ? (newStatus) => _updateStatus(reports[i], newStatus)
                   : null,
               onPriorityChanged: _isAuthority
                   ? (newPriority) => _updatePriority(reports[i], newPriority)
+                  : null,
+              onFavouriteToggle: FirebaseAuth.instance.currentUser != null
+                  ? () => _toggleFavourite(reports[i])
                   : null,
               onTap: () => _showReportDetail(context, reports[i]),
             ),
@@ -938,8 +978,10 @@ class ReportCard extends StatelessWidget {
   final String Function(DateTime) formatDate;
   final String? Function(ReportModel) extractZone;
   final bool isAuthority;
+  final bool isFavourite;
   final void Function(String newStatus)? onStatusChanged;
   final void Function(String newPriority)? onPriorityChanged;
+  final VoidCallback? onFavouriteToggle;
   final VoidCallback? onTap;
 
   const ReportCard({
@@ -952,8 +994,10 @@ class ReportCard extends StatelessWidget {
     required this.formatDate,
     required this.extractZone,
     this.isAuthority = false,
+    this.isFavourite = false,
     this.onStatusChanged,
     this.onPriorityChanged,
+    this.onFavouriteToggle,
     this.onTap,
     super.key,
   });
@@ -1099,6 +1143,10 @@ class ReportCard extends StatelessWidget {
                             child: Icon(Icons.verified, size: 16, color: Colors.green),
                           ),
                         ],
+                        _FavouriteButton(
+                          isFavourite: isFavourite,
+                          onToggle: onFavouriteToggle,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -1142,6 +1190,44 @@ class ReportCard extends StatelessWidget {
   }
 }
 
+class _FavouriteButton extends StatefulWidget {
+  final bool isFavourite;
+  final VoidCallback? onToggle;
+  const _FavouriteButton({required this.isFavourite, this.onToggle});
+
+  @override
+  State<_FavouriteButton> createState() => _FavouriteButtonState();
+}
+
+class _FavouriteButtonState extends State<_FavouriteButton> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.onToggle == null) return const SizedBox.shrink();
+    final showFilled = widget.isFavourite || _hovering;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: IconButton(
+        onPressed: widget.onToggle,
+        icon: Icon(
+          showFilled ? Icons.star : Icons.star_border,
+          color: showFilled
+              ? (_hovering && !widget.isFavourite
+                  ? Colors.amber.withValues(alpha: 0.6)
+                  : Colors.amber)
+              : Colors.grey.shade400,
+        ),
+        iconSize: 20,
+        padding: const EdgeInsets.all(6),
+        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+      ),
+    );
+  }
+}
+
 class _FilterChip extends StatelessWidget {
   final String label;
   final Color color;
@@ -1168,6 +1254,8 @@ class _FilterChip extends StatelessWidget {
 class _FilterSortSheet extends StatefulWidget {
   final List<String> zones;
   final List<String> categories;
+  final bool filterFavourites;
+  final bool isLoggedIn;
   final String? filterStatus;
   final bool isAuthority;
   final String? filterCategory;
@@ -1177,14 +1265,14 @@ class _FilterSortSheet extends StatefulWidget {
   final _SortDirection sortDir;
   final void Function(
     String? status, String? priority, String? category, String? zone,
-    _SortField field, _SortDirection dir,
+    _SortField field, _SortDirection dir, bool favouritesOnly,
   ) onApply;
 
   const _FilterSortSheet({
-    required this.zones, required this.categories, required this.filterStatus,
-    required this.isAuthority, required this.filterCategory, required this.filterZone,
-    required this.filterPriority, required this.sortField, required this.sortDir,
-    required this.onApply,
+    required this.zones, required this.categories, required this.filterFavourites,
+    required this.isLoggedIn, required this.filterStatus, required this.isAuthority,
+    required this.filterCategory, required this.filterZone, required this.filterPriority,
+    required this.sortField, required this.sortDir, required this.onApply,
   });
 
   @override
@@ -1192,6 +1280,7 @@ class _FilterSortSheet extends StatefulWidget {
 }
 
 class _FilterSortSheetState extends State<_FilterSortSheet> {
+  late bool _favouritesOnly;
   late String? _status;
   late String? _priority;
   late String? _category;
@@ -1209,6 +1298,7 @@ class _FilterSortSheetState extends State<_FilterSortSheet> {
   @override
   void initState() {
     super.initState();
+    _favouritesOnly = widget.filterFavourites;
     _status = widget.filterStatus;
     _priority = widget.filterPriority;
     _category = widget.filterCategory;
@@ -1241,6 +1331,20 @@ class _FilterSortSheetState extends State<_FilterSortSheet> {
             const SizedBox(height: 16),
             Text('Filter', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
+            if (widget.isLoggedIn) ...[
+              Row(
+                children: [
+                  const Icon(Icons.star, size: 18, color: Colors.amber),
+                  const SizedBox(width: 8),
+                  const Expanded(child: Text('Favourites only', style: TextStyle(fontSize: 14))),
+                  Switch(
+                    value: _favouritesOnly,
+                    onChanged: (v) => setState(() => _favouritesOnly = v),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+            ],
             _SectionLabel(label: 'Status'),
             Wrap(spacing: 8, runSpacing: 4, children: [
               _ChoiceChip(label: 'All', selected: _status == null, onSelected: (_) => setState(() => _status = null)),
@@ -1306,7 +1410,7 @@ class _FilterSortSheetState extends State<_FilterSortSheet> {
               width: double.infinity,
               child: FilledButton(
                 onPressed: () {
-                  widget.onApply(_status, _priority, _category, _zone, _field, _dir);
+                  widget.onApply(_status, _priority, _category, _zone, _field, _dir, _favouritesOnly);
                   Navigator.pop(context);
                 },
                 child: const Text('Apply'),

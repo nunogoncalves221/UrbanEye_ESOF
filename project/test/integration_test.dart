@@ -4,15 +4,19 @@
 // (ReportController + ReportService + Fake Firestore)
 // Uses FakeFirebaseFirestore to simulate the real database
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
+import 'package:project/config/cloudinary_config.dart';
 import 'package:project/features/report/report_controller.dart';
 import 'package:project/features/report/report_model.dart';
+import 'package:project/services/cloudinary_service.dart';
 import 'package:project/services/report_service.dart';
 
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
@@ -226,6 +230,103 @@ void main() {
 
       final doc = await firestore.collection('reports').doc('r1').get();
       expect(doc.exists, isFalse);
+    });
+  });
+
+  group('CloudinaryService Integration', () {
+    late CloudinaryService cloudinary;
+
+    setUp(() {
+      cloudinary = const CloudinaryService();
+    });
+
+    test('uploadPhoto returns valid secure_url with cloud domain', () async {
+      final testImageBytes = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
+      );
+      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo.png');
+      await tempFile.writeAsBytes(testImageBytes);
+
+      try {
+        final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
+        final url = await cloudinary.uploadPhoto(tempFile, reportId);
+        final publicId = CloudinaryService.extractPublicIdFromUrl(url!);
+
+        expect(url, isNotNull);
+        expect(url, contains('res.cloudinary.com/${CloudinaryConfig.cloudName}'));
+
+        await cloudinary.deletePhoto(publicId);
+      } finally {
+        await tempFile.delete();
+      }
+    });
+
+    test('uploadPhoto extracts correct public ID format', () async {
+      final testImageBytes = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
+      );
+      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo2.png');
+      await tempFile.writeAsBytes(testImageBytes);
+
+      try {
+        final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
+        final url = await cloudinary.uploadPhoto(tempFile, reportId);
+        final publicId = CloudinaryService.extractPublicIdFromUrl(url!);
+
+        expect(publicId, startsWith('reports/$reportId'));
+        expect(publicId, isNotEmpty);
+
+        await cloudinary.deletePhoto(publicId);
+      } finally {
+        await tempFile.delete();
+      }
+    });
+
+    test('deletePhoto removes photo from cloud', () async {
+      final testImageBytes = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
+      );
+      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo3.png');
+      await tempFile.writeAsBytes(testImageBytes);
+
+      try {
+        final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
+        final url = await cloudinary.uploadPhoto(tempFile, reportId);
+        final publicId = CloudinaryService.extractPublicIdFromUrl(url!);
+
+        await cloudinary.deletePhoto(publicId);
+
+        await cloudinary.deletePhoto(publicId);
+      } finally {
+        await tempFile.delete();
+      }
+    });
+
+    test('deletePhoto handles non-existent public ID gracefully', () async {
+      await expectLater(
+        () => cloudinary.deletePhoto('reports/nonexistent-test-id-xyz'),
+        returnsNormally,
+      );
+    });
+
+    test('upload then delete cleans up properly', () async {
+      final testImageBytes = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
+      );
+      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo4.png');
+      await tempFile.writeAsBytes(testImageBytes);
+
+      try {
+        final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
+        final url = await cloudinary.uploadPhoto(tempFile, reportId);
+        final publicId = CloudinaryService.extractPublicIdFromUrl(url!);
+
+        await cloudinary.deletePhoto(publicId);
+
+        await cloudinary.deletePhoto(publicId);
+      } finally {
+        await tempFile.delete();
+      }
     });
   });
 }

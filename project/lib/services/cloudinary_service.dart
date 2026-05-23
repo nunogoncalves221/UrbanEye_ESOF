@@ -21,14 +21,14 @@ class CloudinaryService extends CloudinaryServiceBase {
 
   // ─── Signature Generation ───────────────────────────────────
 
-  String _generateSignature(Map<String, String> params) {
+  String generateSignature(Map<String, String> params) {
     final sortedParams = params.keys.toList()..sort();
     final toSign = sortedParams.map((k) => '$k=${params[k]}').join('&');
     final signature = sha1.convert(utf8.encode(toSign + CloudinaryConfig.apiSecret));
     return signature.toString();
   }
 
-  String _getTimestamp() {
+  String getTimestamp() {
     return DateTime.now().toUtc().millisecondsSinceEpoch.toString();
   }
 
@@ -41,13 +41,13 @@ class CloudinaryService extends CloudinaryServiceBase {
         throw Exception('Photo file does not exist');
       }
 
-      final timestamp = _getTimestamp();
+      final timestamp = getTimestamp();
       final params = {
         'folder': 'reports/$reportId',
         'timestamp': timestamp,
       };
 
-      final signature = _generateSignature(params);
+      final signature = generateSignature(params);
 
       final request = http.MultipartRequest('POST', Uri.parse(CloudinaryConfig.uploadUrl));
       request.fields['timestamp'] = timestamp;
@@ -85,13 +85,13 @@ class CloudinaryService extends CloudinaryServiceBase {
   @override
   Future<void> deletePhoto(String publicId) async {
     try {
-      final timestamp = _getTimestamp();
+      final timestamp = getTimestamp();
       final params = {
         'public_id': publicId,
         'timestamp': timestamp,
       };
 
-      final signature = _generateSignature(params);
+      final signature = generateSignature(params);
 
       final url = Uri.parse(
         'https://api.cloudinary.com/v1_1/${CloudinaryConfig.cloudName}/image/destroy',
@@ -124,8 +124,9 @@ class CloudinaryService extends CloudinaryServiceBase {
   // ─── Helpers ────────────────────────────────────────────────
 
   static String extractPublicIdFromUrl(String url) {
-    final regex = RegExp(r'/upload/(?:v\d+/)?(.+?)(?:\.jpg|\.png|\.jpeg)?$');
-    final match = regex.firstMatch(url);
+    final withoutQuery = url.split('?').first;
+    final regex = RegExp(r'/upload/(?:v\d+/)?(.+)$');
+    final match = regex.firstMatch(withoutQuery);
     return match?.group(1) ?? '';
   }
 }

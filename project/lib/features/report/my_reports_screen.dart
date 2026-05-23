@@ -8,11 +8,11 @@ class MyReportsScreen extends StatelessWidget {
   final FirebaseAuth? auth;
   final ReportServiceBase service;
 
-  const MyReportsScreen({
+  MyReportsScreen({
     super.key,
     this.auth,
-    this.service = const ReportService(),
-  });
+    ReportServiceBase? service, // Transforma em opcional nulo
+  }) : service = service ?? ReportService();
 
   static const Map<String, Color> _statusColors = {
     'pending': Colors.orange,
@@ -275,7 +275,8 @@ class MyReportsScreen extends StatelessWidget {
                                         const SizedBox(width: 3),
                                         Expanded(
                                           child: Text(
-                                            report.address ?? '${report.latitude.toStringAsFixed(4)}, ${report.longitude.toStringAsFixed(4)}',
+                                            report.address ??
+                                                '${report.latitude.toStringAsFixed(4)}, ${report.longitude.toStringAsFixed(4)}',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
@@ -406,7 +407,9 @@ class _ReportDetailSheet extends StatelessWidget {
               _DetailRow(
                 icon: Icons.location_on_outlined,
                 label: 'Location',
-                value: report.address ?? '${report.latitude.toStringAsFixed(5)}, ${report.longitude.toStringAsFixed(5)}',
+                value:
+                    report.address ??
+                    '${report.latitude.toStringAsFixed(5)}, ${report.longitude.toStringAsFixed(5)}',
               ),
               const SizedBox(height: 12),
               _DetailRow(

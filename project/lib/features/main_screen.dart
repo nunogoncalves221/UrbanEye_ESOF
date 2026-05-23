@@ -7,57 +7,51 @@ import 'package:project/features/auth/profile_screen.dart';
 import 'package:project/features/map_screen.dart';
 import 'package:project/features/report/all_reports_screen.dart';
 import 'package:project/services/report_service.dart';
- 
+
 class MainScreen extends StatelessWidget {
   final FirebaseAuth auth;
   final FirebaseFirestore? firestore;
   final ReportServiceBase reportService;
- 
-  const MainScreen({
+
+  MainScreen({
     super.key,
     required this.auth,
     this.firestore,
-    this.reportService = const ReportService(),
-  });
- 
-  FirebaseFirestore get _firestore =>
-      firestore ?? FirebaseFirestore.instance;
- 
+    ReportServiceBase? reportService, // Transforma em opcional nulo
+  }) : reportService = reportService ?? ReportService();
+
+  FirebaseFirestore get _firestore => firestore ?? FirebaseFirestore.instance;
+
   void _goToAllReports(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AllReportsScreen()),
     );
   }
- 
+
   void _openReport(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => ReportScreen(auth: auth)),
     );
   }
- 
+
   void _goToAuth(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (_) => AuthScreen(service: reportService),
-      ),
+      MaterialPageRoute(builder: (_) => AuthScreen(service: reportService)),
     );
   }
- 
+
   void _goToProfile(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ProfileScreen(
-          auth: auth,
-          firestore: _firestore,
-        ),
+        builder: (_) => ProfileScreen(auth: auth, firestore: _firestore),
       ),
     );
   }
- 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,14 +63,14 @@ class MainScreen extends StatelessWidget {
             stream: auth.authStateChanges(),
             builder: (context, snapshot) {
               final user = snapshot.data;
- 
+
               if (user == null) {
                 return TextButton(
                   onPressed: () => _goToAuth(context),
                   child: const Text('Login / Register'),
                 );
               }
- 
+
               return TextButton(
                 onPressed: () => _goToProfile(context),
                 child: const Text('Profile'),

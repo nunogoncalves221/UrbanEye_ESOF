@@ -10,15 +10,10 @@ class ProfileScreen extends StatelessWidget {
   final FirebaseAuth? auth;
   final FirebaseFirestore? firestore;
 
-  const ProfileScreen({
-    super.key,
-    this.auth,
-    this.firestore,
-  });
+  const ProfileScreen({super.key, this.auth, this.firestore});
 
   FirebaseAuth get _auth => auth ?? FirebaseAuth.instance;
-  FirebaseFirestore get _firestore =>
-      firestore ?? FirebaseFirestore.instance;
+  FirebaseFirestore get _firestore => firestore ?? FirebaseFirestore.instance;
 
   String _formatDate(Timestamp ts) {
     final d = ts.toDate();
@@ -30,15 +25,11 @@ class ProfileScreen extends StatelessWidget {
     final user = _auth.currentUser;
 
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text('Not logged in')),
-      );
+      return const Scaffold(body: Center(child: Text('Not logged in')));
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
+      appBar: AppBar(title: const Text('Profile')),
       body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         future: _firestore.collection('users').doc(user.uid).get(),
         builder: (context, snapshot) {

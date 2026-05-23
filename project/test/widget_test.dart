@@ -26,6 +26,10 @@ class FakeReportService extends ReportServiceBase {
   bool deleteWasCalled = false;
 
   FakeReportService({this.reports = const []});
+  @override
+  Future<void> confirmReportByAuthority(String reportId) async {
+    return;
+  }
 
   @override
   Stream<List<ReportModel>> watchReportsByUser(String uid) =>
@@ -43,7 +47,11 @@ class FakeReportService extends ReportServiceBase {
   Future<bool> checkReportExists(String reportId) async => true;
 
   @override
-  Future<void> confirmProblem(String reportId, String userId, bool confirmed) async {}
+  Future<void> confirmProblem(
+    String reportId,
+    String userId,
+    bool confirmed,
+  ) async {}
 
   @override
   Future<bool> hasUserConfirmed(String reportId, String userId) async => false;
@@ -127,41 +135,38 @@ void main() {
       );
     }
 
-    testWidgets(
-      'Widget Test: Bottom sheet shows report category',
-      (tester) async {
-        final report = makeDetailedReport();
-        await tester.pumpWidget(buildBottomSheet(report));
-        await tester.tap(find.text('Open'));
-        await tester.pumpAndSettle();
+    testWidgets('Widget Test: Bottom sheet shows report category', (
+      tester,
+    ) async {
+      final report = makeDetailedReport();
+      await tester.pumpWidget(buildBottomSheet(report));
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
 
-        expect(find.text('Pothole'), findsOneWidget);
-      },
-    );
+      expect(find.text('Pothole'), findsOneWidget);
+    });
 
-    testWidgets(
-      'Widget Test: Bottom sheet shows street address',
-      (tester) async {
-        final report = makeDetailedReport(address: 'Rua das Flores, Porto');
-        await tester.pumpWidget(buildBottomSheet(report));
-        await tester.tap(find.text('Open'));
-        await tester.pumpAndSettle();
+    testWidgets('Widget Test: Bottom sheet shows street address', (
+      tester,
+    ) async {
+      final report = makeDetailedReport(address: 'Rua das Flores, Porto');
+      await tester.pumpWidget(buildBottomSheet(report));
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
 
-        expect(find.text('Rua das Flores, Porto'), findsOneWidget);
-      },
-    );
+      expect(find.text('Rua das Flores, Porto'), findsOneWidget);
+    });
 
-    testWidgets(
-      'Widget Test: Bottom sheet shows formatted upload date',
-      (tester) async {
-        final report = makeDetailedReport();
-        await tester.pumpWidget(buildBottomSheet(report));
-        await tester.tap(find.text('Open'));
-        await tester.pumpAndSettle();
+    testWidgets('Widget Test: Bottom sheet shows formatted upload date', (
+      tester,
+    ) async {
+      final report = makeDetailedReport();
+      await tester.pumpWidget(buildBottomSheet(report));
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
 
-        expect(find.textContaining('Reported on 10/05/2024'), findsOneWidget);
-      },
-    );
+      expect(find.textContaining('Reported on 10/05/2024'), findsOneWidget);
+    });
 
     testWidgets(
       'Widget Test: Bottom sheet shows zero confirmations when none exist',
@@ -179,21 +184,20 @@ void main() {
       },
     );
 
-    testWidgets(
-      'Widget Test: Bottom sheet shows correct confirmation counts',
-      (tester) async {
-        final report = makeDetailedReport(
-          existsConfirmations: 8,
-          notExistsConfirmations: 3,
-        );
-        await tester.pumpWidget(buildBottomSheet(report));
-        await tester.tap(find.text('Open'));
-        await tester.pumpAndSettle();
+    testWidgets('Widget Test: Bottom sheet shows correct confirmation counts', (
+      tester,
+    ) async {
+      final report = makeDetailedReport(
+        existsConfirmations: 8,
+        notExistsConfirmations: 3,
+      );
+      await tester.pumpWidget(buildBottomSheet(report));
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
 
-        expect(find.text('8 Confirmed'), findsOneWidget);
-        expect(find.text('3 Denied'), findsOneWidget);
-      },
-    );
+      expect(find.text('8 Confirmed'), findsOneWidget);
+      expect(find.text('3 Denied'), findsOneWidget);
+    });
   });
 
   group('My Reports - Screen Widget Tests', () {
@@ -246,15 +250,16 @@ void main() {
     testWidgets(
       'Widget Test: Authority user sees priority badge on report cards',
       (tester) async {
-        final report = makeReport(id: 'r1', category: 'Pothole', status: 'pending');
-        
+        final report = makeReport(
+          id: 'r1',
+          category: 'Pothole',
+          status: 'pending',
+        );
+
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: _ReportCardTestWrapper(
-                report: report,
-                isAuthority: true,
-              ),
+              body: _ReportCardTestWrapper(report: report, isAuthority: true),
             ),
           ),
         );
@@ -264,33 +269,33 @@ void main() {
       },
     );
 
-    testWidgets(
-      'Widget Test: Non-authority user does not see priority badge',
-      (tester) async {
-        final report = makeReport(id: 'r1', category: 'Pothole', status: 'pending');
-        
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: _ReportCardTestWrapper(
-                report: report,
-                isAuthority: false,
-              ),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
+    testWidgets('Widget Test: Non-authority user does not see priority badge', (
+      tester,
+    ) async {
+      final report = makeReport(
+        id: 'r1',
+        category: 'Pothole',
+        status: 'pending',
+      );
 
-        expect(find.byIcon(Icons.arrow_drop_down), findsNothing);
-      },
-    );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: _ReportCardTestWrapper(report: report, isAuthority: false),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.arrow_drop_down), findsNothing);
+    });
 
     testWidgets(
       'Widget Test: Authority user can change priority from low to high',
       (tester) async {
         String? updatedPriority;
         final report = makeReport(id: 'r1', category: 'Pothole');
-        
+
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -324,7 +329,7 @@ void main() {
       (tester) async {
         String? updatedPriority;
         final report = makeReport(id: 'r1', category: 'Pothole');
-        
+
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -352,9 +357,7 @@ void main() {
       (tester) async {
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: _MockFilterSortSheet(isAuthority: true),
-            ),
+            home: Scaffold(body: _MockFilterSortSheet(isAuthority: true)),
           ),
         );
         await tester.pumpAndSettle();
@@ -369,14 +372,140 @@ void main() {
       (tester) async {
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: _MockFilterSortSheet(isAuthority: false),
-            ),
+            home: Scaffold(body: _MockFilterSortSheet(isAuthority: false)),
           ),
         );
         await tester.pumpAndSettle();
 
         expect(find.text('Priority'), findsNothing);
+      },
+    );
+  });
+
+  group('ReportCard - Favourite Star Button', () {
+    const statusColors = <String, Color>{
+      'pending': Colors.orange,
+      'in_progress': Colors.blue,
+      'resolved': Colors.green,
+    };
+    const statusLabels = <String, String>{
+      'pending': 'Pending',
+      'in_progress': 'In Progress',
+      'resolved': 'Resolved',
+    };
+    const priorityColors = <String, Color>{
+      'low': Colors.grey,
+      'medium': Colors.amber,
+      'high': Colors.red,
+    };
+    const priorityLabels = <String, String>{
+      'low': 'Low Priority',
+      'medium': 'Medium Priority',
+      'high': 'High Priority',
+    };
+    const categoryIcons = <String, IconData>{'Pothole': Icons.report_problem};
+
+    Widget buildCard({
+      bool isFavourite = false,
+      VoidCallback? onFavouriteToggle,
+    }) {
+      return MaterialApp(
+        home: Scaffold(
+          body: ReportCard(
+            report: makeReport(),
+            isAuthority: false,
+            isFavourite: isFavourite,
+            onFavouriteToggle: onFavouriteToggle,
+            statusColors: statusColors,
+            statusLabels: statusLabels,
+            priorityColors: priorityColors,
+            priorityLabels: priorityLabels,
+            categoryIcons: categoryIcons,
+            formatDate: (d) => '${d.day}/${d.month}/${d.year}',
+            extractZone: (_) => null,
+          ),
+        ),
+      );
+    }
+
+    testWidgets(
+      'Widget Test: star_border shown for authenticated user when report is not favourite',
+      (tester) async {
+        await tester.pumpWidget(buildCard(onFavouriteToggle: () {}));
+
+        expect(find.byIcon(Icons.star_border), findsOneWidget);
+        expect(find.byIcon(Icons.star), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: filled star shown when report is marked as favourite',
+      (tester) async {
+        await tester.pumpWidget(
+          buildCard(isFavourite: true, onFavouriteToggle: () {}),
+        );
+
+        expect(find.byIcon(Icons.star), findsOneWidget);
+        expect(find.byIcon(Icons.star_border), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: star button is hidden when onFavouriteToggle is null (unauthenticated user)',
+      (tester) async {
+        await tester.pumpWidget(buildCard());
+
+        expect(find.byIcon(Icons.star_border), findsNothing);
+        expect(find.byIcon(Icons.star), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: tapping the star button calls onFavouriteToggle callback',
+      (tester) async {
+        bool toggled = false;
+        await tester.pumpWidget(
+          buildCard(onFavouriteToggle: () => toggled = true),
+        );
+
+        await tester.tap(find.byIcon(Icons.star_border));
+        await tester.pump();
+
+        expect(toggled, isTrue);
+      },
+    );
+  });
+
+  group('All Reports - Favourites Filter Visibility', () {
+    testWidgets(
+      'Widget Test: logged-in user sees Favourites only toggle in filter sheet',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: _MockFilterSortSheet(isAuthority: false, isLoggedIn: true),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Favourites only'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Widget Test: non-logged-in user does not see Favourites only toggle in filter sheet',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: _MockFilterSortSheet(isAuthority: false, isLoggedIn: false),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Favourites only'), findsNothing);
       },
     );
   });
@@ -439,13 +568,18 @@ class _ReportCardTestWrapper extends StatelessWidget {
 
 class _MockFilterSortSheet extends StatelessWidget {
   final bool isAuthority;
-  const _MockFilterSortSheet({required this.isAuthority});
+  final bool isLoggedIn;
+  const _MockFilterSortSheet({
+    required this.isAuthority,
+    this.isLoggedIn = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         const Text('Filter'),
+        if (isLoggedIn) const Text('Favourites only'),
         if (isAuthority) ...[
           const Text('Priority'),
           const Text('Low'),

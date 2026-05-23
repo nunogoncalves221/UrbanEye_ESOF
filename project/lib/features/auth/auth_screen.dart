@@ -9,11 +9,11 @@ class AuthScreen extends StatelessWidget {
   final FirebaseAuth? auth;
   final ReportServiceBase service;
 
-  const AuthScreen({
+  AuthScreen({
     super.key,
     this.auth,
-    this.service = const ReportService(),
-  });
+    ReportServiceBase? service, // Transforma em opcional nulo
+  }) : service = service ?? ReportService();
 
   FirebaseAuth get _auth => auth ?? FirebaseAuth.instance;
 
@@ -44,7 +44,12 @@ class AuthScreen extends StatelessWidget {
   void _openMain(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => MainScreen(auth: _auth)),
+      MaterialPageRoute(
+        builder: (_) => MainScreen(
+          auth: _auth,
+          reportService: service, // Envia o fake service recebido no teste!
+        ),
+      ),
     );
   }
 

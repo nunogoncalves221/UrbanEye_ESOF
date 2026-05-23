@@ -6,11 +6,7 @@ class EditProfileScreen extends StatefulWidget {
   final FirebaseAuth? auth;
   final FirebaseFirestore? firestore;
 
-  const EditProfileScreen({
-    super.key,
-    this.auth,
-    this.firestore,
-  });
+  const EditProfileScreen({super.key, this.auth, this.firestore});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -42,11 +38,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   DateTime _parse(String s) {
     final p = s.split('-');
 
-    return DateTime(
-      int.parse(p[2]),
-      int.parse(p[1]),
-      int.parse(p[0]),
-    );
+    return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
   }
 
   Future<void> _load() async {
@@ -95,9 +87,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -124,10 +114,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             if (_saving)
               const CircularProgressIndicator()
             else
-              ElevatedButton(
-                onPressed: _save,
-                child: const Text('Save'),
-              ),
+              ElevatedButton(onPressed: _save, child: const Text('Save')),
           ],
         ),
       ),

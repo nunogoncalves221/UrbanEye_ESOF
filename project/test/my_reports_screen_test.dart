@@ -34,6 +34,11 @@ class FakeReportService extends ReportServiceBase {
     this.reports = const [],
     Stream<List<ReportModel>>? stream,
   }) : _stream = stream;
+  @override
+  Future<void> confirmReportByAuthority(String reportId) async {
+    // Pode deixar vazio ou simular alguma lógica se seu teste precisar disso futuramente
+    return;
+  }
 
   @override
   Stream<List<ReportModel>> watchReportsByUser(String uid) =>
@@ -102,8 +107,9 @@ void main() {
       );
     });
 
-    testWidgets('shows loading indicator while stream is pending',
-        (tester) async {
+    testWidgets('shows loading indicator while stream is pending', (
+      tester,
+    ) async {
       final streamController = StreamController<List<ReportModel>>();
       final service = FakeReportService(stream: streamController.stream);
 
@@ -117,7 +123,10 @@ void main() {
 
     testWidgets('shows empty state when reports list is empty', (tester) async {
       await tester.pumpWidget(
-        buildScreen(user: FakeUser(), service: FakeReportService(reports: [])),
+        buildScreen(
+          user: FakeUser(),
+          service: FakeReportService(reports: []),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -141,8 +150,9 @@ void main() {
       streamController.close();
     });
 
-    testWidgets('shows report cards for each report in the list',
-        (tester) async {
+    testWidgets('shows report cards for each report in the list', (
+      tester,
+    ) async {
       final reports = [
         makeReport(id: 'r1', category: 'Pothole', description: 'Big hole'),
         makeReport(id: 'r2', category: 'Trash', description: 'Garbage pile'),
@@ -217,8 +227,9 @@ void main() {
       expect(find.byIcon(Icons.add), findsOneWidget);
     });
 
-    testWidgets('shows delete confirmation dialog when delete is tapped',
-        (tester) async {
+    testWidgets('shows delete confirmation dialog when delete is tapped', (
+      tester,
+    ) async {
       final report = makeReport();
 
       await tester.pumpWidget(
@@ -267,7 +278,9 @@ void main() {
       expect(service.deleteWasCalled, isTrue);
     });
 
-    testWidgets('shows success snackbar after confirmed delete', (tester) async {
+    testWidgets('shows success snackbar after confirmed delete', (
+      tester,
+    ) async {
       final service = FakeReportService(reports: [makeReport()]);
 
       await tester.pumpWidget(buildScreen(user: FakeUser(), service: service));
@@ -300,8 +313,9 @@ void main() {
       expect(find.text('Failed to delete report.'), findsOneWidget);
     });
 
-    testWidgets('shows bottom sheet with report details when card is tapped',
-        (tester) async {
+    testWidgets('shows bottom sheet with report details when card is tapped', (
+      tester,
+    ) async {
       final report = makeReport(
         category: 'Streetlight',
         description: 'Light is off',

@@ -48,10 +48,7 @@ Widget buildEditProfilePage({
   required FirebaseFirestore firestore,
 }) {
   return MaterialApp(
-    home: EditProfileScreen(
-      auth: auth,
-      firestore: firestore,
-    ),
+    home: EditProfileScreen(auth: auth, firestore: firestore),
   );
 }
 

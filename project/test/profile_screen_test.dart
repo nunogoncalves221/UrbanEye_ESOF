@@ -45,10 +45,7 @@ Widget buildProfilePage({
   required FirebaseFirestore firestore,
 }) {
   return MaterialApp(
-    home: ProfileScreen(
-      auth: auth,
-      firestore: firestore,
-    ),
+    home: ProfileScreen(auth: auth, firestore: firestore),
   );
 }
 
@@ -111,10 +108,7 @@ void main() {
     final firestore = FakeFirebaseFirestore();
 
     await tester.pumpWidget(
-      buildProfilePage(
-        auth: FakeFirebaseAuth(null),
-        firestore: firestore,
-      ),
+      buildProfilePage(auth: FakeFirebaseAuth(null), firestore: firestore),
     );
 
     await tester.pumpAndSettle();

@@ -36,6 +36,11 @@ class FakeUser extends Fake implements User {
 
 class FakeReportService extends ReportServiceBase {
   @override
+  Future<void> confirmReportByAuthority(String reportId) async {
+    return;
+  }
+
+  @override
   Stream<List<ReportModel>> watchReportsByUser(String uid) {
     return Stream.value([]);
   }
@@ -50,7 +55,11 @@ class FakeReportService extends ReportServiceBase {
   Future<bool> checkReportExists(String reportId) async => true;
 
   @override
-  Future<void> confirmProblem(String reportId, String userId, bool confirmed) async {}
+  Future<void> confirmProblem(
+    String reportId,
+    String userId,
+    bool confirmed,
+  ) async {}
 
   @override
   Future<bool> hasUserConfirmed(String reportId, String userId) async => false;
@@ -90,10 +99,7 @@ void main() {
     final firestore = await createFirestore();
 
     await tester.pumpWidget(
-      buildMainScreen(
-        auth: FakeFirebaseAuth(null),
-        firestore: firestore,
-      ),
+      buildMainScreen(auth: FakeFirebaseAuth(null), firestore: firestore),
     );
 
     await tester.pumpAndSettle();
@@ -105,10 +111,7 @@ void main() {
     final firestore = await createFirestore();
 
     await tester.pumpWidget(
-      buildMainScreen(
-        auth: FakeFirebaseAuth(FakeUser()),
-        firestore: firestore,
-      ),
+      buildMainScreen(auth: FakeFirebaseAuth(FakeUser()), firestore: firestore),
     );
 
     await tester.pumpAndSettle();
@@ -122,10 +125,7 @@ void main() {
     final firestore = await createFirestore();
 
     await tester.pumpWidget(
-      buildMainScreen(
-        auth: FakeFirebaseAuth(FakeUser()),
-        firestore: firestore,
-      ),
+      buildMainScreen(auth: FakeFirebaseAuth(FakeUser()), firestore: firestore),
     );
 
     await tester.pumpAndSettle();
@@ -142,10 +142,7 @@ void main() {
     final firestore = await createFirestore();
 
     await tester.pumpWidget(
-      buildMainScreen(
-        auth: FakeFirebaseAuth(null),
-        firestore: firestore,
-      ),
+      buildMainScreen(auth: FakeFirebaseAuth(null), firestore: firestore),
     );
 
     await tester.pumpAndSettle();
@@ -160,10 +157,7 @@ void main() {
     final firestore = await createFirestore();
 
     await tester.pumpWidget(
-      buildMainScreen(
-        auth: FakeFirebaseAuth(FakeUser()),
-        firestore: firestore,
-      ),
+      buildMainScreen(auth: FakeFirebaseAuth(FakeUser()), firestore: firestore),
     );
 
     await tester.pumpAndSettle();
@@ -174,7 +168,9 @@ void main() {
   // confirmation feature tests
   group('MapScreen confirmation buttons', () {
     // buttons are hidden when user is not logged in
-    testWidgets('buttons are hidden when user is not logged in', (tester) async {
+    testWidgets('buttons are hidden when user is not logged in', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -192,7 +188,9 @@ void main() {
     });
 
     // buttons are hidden when user is the report owner (same uid)
-    testWidgets('buttons are hidden when user is the report owner', (tester) async {
+    testWidgets('buttons are hidden when user is the report owner', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -210,7 +208,9 @@ void main() {
     });
 
     // buttons are hidden when user already confirmed
-    testWidgets('buttons are hidden when user already confirmed', (tester) async {
+    testWidgets('buttons are hidden when user already confirmed', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -229,7 +229,9 @@ void main() {
     });
 
     // shows buttons for logged in user who has not confirmed
-    testWidgets('shows buttons for logged in user who has not confirmed', (tester) async {
+    testWidgets('shows buttons for logged in user who has not confirmed', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -276,10 +278,7 @@ class _TestConfirmationWidget extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: ElevatedButton(
-            onPressed: () {},
-            child: const Text('Exists'),
-          ),
+          child: ElevatedButton(onPressed: () {}, child: const Text('Exists')),
         ),
         const SizedBox(width: 12),
         Expanded(

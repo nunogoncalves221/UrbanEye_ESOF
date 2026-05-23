@@ -14,6 +14,7 @@ class ReportModel {
   final DateTime createdAt;
   final int existsConfirmations;
   final int notExistsConfirmations;
+  final bool authorityConfirmed;
 
   ReportModel({
     this.id,
@@ -25,6 +26,7 @@ class ReportModel {
     this.photoUrl,
     this.userId,
     this.priority,
+    this.authorityConfirmed = false,
     this.status = 'pending',
     DateTime? createdAt,
     this.existsConfirmations = 0,
@@ -41,6 +43,7 @@ class ReportModel {
       'photoUrl': photoUrl,
       'userId': userId,
       'priority': priority,
+      'authority_confirmed': authorityConfirmed,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'exists_confirmations': existsConfirmations,
@@ -70,6 +73,7 @@ class ReportModel {
       userId: map['userId'],
       priority: map['priority'],
       status: map['status'] ?? 'pending',
+      authorityConfirmed: (map['authority_confirmed'] as bool?) ?? false,
       createdAt: parsedDate,
       existsConfirmations: (map['exists_confirmations'] as int?) ?? 0,
       notExistsConfirmations: (map['not_exists_confirmations'] as int?) ?? 0,

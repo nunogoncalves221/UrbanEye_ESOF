@@ -75,8 +75,8 @@ class _ReportScreenState extends State<ReportScreen> {
       MaterialPageRoute(
         builder: (_) => LocationPickerScreen(
           initialLocation: _controller.latitude != null
-            ? LatLng(_controller.latitude!, _controller.longitude!)
-            : null,
+              ? LatLng(_controller.latitude!, _controller.longitude!)
+              : null,
         ),
       ),
     );

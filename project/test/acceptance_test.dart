@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:project/features/auth/login_screen.dart';
+import 'package:project/features/report/all_reports_screen.dart';
 import 'package:project/features/auth/register_screen.dart';
 import 'package:project/features/report/my_reports_screen.dart';
 import 'package:project/features/report/report_model.dart';
@@ -20,7 +21,6 @@ import 'package:project/features/report/report_screen.dart';
 import 'package:project/features/report/report_controller.dart';
 import 'package:project/services/auth_service.dart';
 import 'package:project/services/report_service.dart';
-
 
 // ─── Mocks & fakes ───────────────────────────────────────────────────────────
 
@@ -58,6 +58,10 @@ class FakeReportService extends ReportServiceBase {
   bool deleteWasCalled = false;
 
   FakeReportService({this.reports = const []});
+  @override
+  Future<void> confirmReportByAuthority(String reportId) async {
+    return;
+  }
 
   @override
   Stream<List<ReportModel>> watchReportsByUser(String uid) =>
@@ -277,9 +281,7 @@ void main() {
             username: any(named: 'username'),
             birthDate: any(named: 'birthDate'),
           ),
-        ).thenThrow(
-          FakeFirebaseAuthException(code: 'email-already-in-use'),
-        );
+        ).thenThrow(FakeFirebaseAuthException(code: 'email-already-in-use'));
 
         await tester.pumpWidget(
           MaterialApp(home: RegisterScreen(authService: mockAuth)),
@@ -307,49 +309,45 @@ void main() {
   // ── Report Submission ─────────────────────────────────────────────────────
 
   group('Report Submission', () {
-    testWidgets(
-      'Acceptance Test: User submits a report successfully',
-      (tester) async {
-        final mockService = MockReportService();
-        final mockAuth = MockFirebaseAuth();
-        final mockUser = MockUser();
+    testWidgets('Acceptance Test: User submits a report successfully', (
+      tester,
+    ) async {
+      final mockService = MockReportService();
+      final mockAuth = MockFirebaseAuth();
+      final mockUser = MockUser();
 
-        when(() => mockAuth.currentUser).thenReturn(mockUser);
-        when(() => mockUser.uid).thenReturn('user123');
-        when(
-          () => mockService.submitReport(any(), photo: any(named: 'photo')),
-        ).thenAnswer((_) async {});
+      when(() => mockAuth.currentUser).thenReturn(mockUser);
+      when(() => mockUser.uid).thenReturn('user123');
+      when(
+        () => mockService.submitReport(any(), photo: any(named: 'photo')),
+      ).thenAnswer((_) async {});
 
-        final controller = ReportController(
-          service: mockService,
-          auth: mockAuth,
-        );
-        controller.selectedCategory = 'Pothole';
-        controller.latitude = 41.15;
-        controller.longitude = -8.61;
+      final controller = ReportController(service: mockService, auth: mockAuth);
+      controller.selectedCategory = 'Pothole';
+      controller.latitude = 41.15;
+      controller.longitude = -8.61;
 
-        await tester.pumpWidget(
-          MaterialApp(home: ReportScreen(controller: controller)),
-        );
+      await tester.pumpWidget(
+        MaterialApp(home: ReportScreen(controller: controller)),
+      );
 
-        final descriptionField = find.byType(TextField).last;
-        await tester.enterText(
-          descriptionField,
-          'There is a deep pothole on the road.',
-        );
+      final descriptionField = find.byType(TextField).last;
+      await tester.enterText(
+        descriptionField,
+        'There is a deep pothole on the road.',
+      );
 
-        await tester.tap(find.text('SUBMIT REPORT'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(find.text('SUBMIT REPORT'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Report submitted successfully!'), findsOneWidget);
-        verify(
-          () => mockService.submitReport(any(), photo: any(named: 'photo')),
-        ).called(1);
+      expect(find.text('Report submitted successfully!'), findsOneWidget);
+      verify(
+        () => mockService.submitReport(any(), photo: any(named: 'photo')),
+      ).called(1);
 
-        await tester.pumpAndSettle();
-      },
-    );
+      await tester.pumpAndSettle();
+    });
 
     testWidgets(
       'Acceptance Test: User submits a report without selecting a location first',
@@ -617,6 +615,164 @@ void main() {
         expect(find.textContaining('Reported on 01/03/2024'), findsOneWidget);
         expect(find.text('3 Confirmed'), findsOneWidget);
         expect(find.text('1 Denied'), findsOneWidget);
+      },
+    );
+  });
+
+  // ── Favourite Reports ─────────────────────────────────────────────────────
+
+  group('Favourite Reports', () {
+    const statusColors = <String, Color>{'pending': Colors.orange};
+    const statusLabels = <String, String>{'pending': 'Pending'};
+    const priorityColors = <String, Color>{'low': Colors.grey};
+    const priorityLabels = <String, String>{'low': 'Low Priority'};
+    const categoryIcons = <String, IconData>{'Pothole': Icons.report_problem};
+
+    Widget buildCard({
+      bool isFavourite = false,
+      VoidCallback? onFavouriteToggle,
+    }) {
+      return MaterialApp(
+        home: Scaffold(
+          body: ReportCard(
+            report: makeReport(),
+            isFavourite: isFavourite,
+            onFavouriteToggle: onFavouriteToggle,
+            statusColors: statusColors,
+            statusLabels: statusLabels,
+            priorityColors: priorityColors,
+            priorityLabels: priorityLabels,
+            categoryIcons: categoryIcons,
+            formatDate: (d) => '${d.day}/${d.month}/${d.year}',
+            extractZone: (_) => null,
+          ),
+        ),
+      );
+    }
+
+    testWidgets(
+      'Acceptance Test: User marks a report as favourite and star becomes filled',
+      (tester) async {
+        bool isFavourite = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: StatefulBuilder(
+              builder: (context, setState) => Scaffold(
+                body: ReportCard(
+                  report: makeReport(),
+                  isFavourite: isFavourite,
+                  onFavouriteToggle: () => setState(() => isFavourite = true),
+                  statusColors: statusColors,
+                  statusLabels: statusLabels,
+                  priorityColors: priorityColors,
+                  priorityLabels: priorityLabels,
+                  categoryIcons: categoryIcons,
+                  formatDate: (d) => '${d.day}/${d.month}/${d.year}',
+                  extractZone: (_) => null,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.byIcon(Icons.star_border), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.star_border));
+        await tester.pump();
+
+        expect(find.byIcon(Icons.star), findsOneWidget);
+        expect(find.byIcon(Icons.star_border), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: User removes a favourite report and star becomes outline',
+      (tester) async {
+        bool isFavourite = true;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: StatefulBuilder(
+              builder: (context, setState) => Scaffold(
+                body: ReportCard(
+                  report: makeReport(),
+                  isFavourite: isFavourite,
+                  onFavouriteToggle: () => setState(() => isFavourite = false),
+                  statusColors: statusColors,
+                  statusLabels: statusLabels,
+                  priorityColors: priorityColors,
+                  priorityLabels: priorityLabels,
+                  categoryIcons: categoryIcons,
+                  formatDate: (d) => '${d.day}/${d.month}/${d.year}',
+                  extractZone: (_) => null,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.byIcon(Icons.star), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.star));
+        await tester.pump();
+
+        expect(find.byIcon(Icons.star_border), findsOneWidget);
+        expect(find.byIcon(Icons.star), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: Unauthenticated user cannot see the star button on report cards',
+      (tester) async {
+        await tester.pumpWidget(buildCard());
+
+        expect(find.byIcon(Icons.star_border), findsNothing);
+        expect(find.byIcon(Icons.star), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: Filter by favourites shows only favourited reports',
+      (tester) async {
+        final reports = [
+          makeReport(id: 'r1', category: 'Pothole'),
+          makeReport(id: 'r2', category: 'Streetlight'),
+        ];
+        const favouriteIds = {'r1'};
+        bool filterFavourites = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: StatefulBuilder(
+              builder: (context, setState) => Scaffold(
+                body: Column(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => setState(() => filterFavourites = true),
+                      child: const Text('Show Favourites'),
+                    ),
+                    ...reports
+                        .where(
+                          (r) =>
+                              !filterFavourites || favouriteIds.contains(r.id),
+                        )
+                        .map((r) => Text(r.category, key: ValueKey(r.id))),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('Pothole'), findsOneWidget);
+        expect(find.text('Streetlight'), findsOneWidget);
+
+        await tester.tap(find.text('Show Favourites'));
+        await tester.pump();
+
+        expect(find.text('Pothole'), findsOneWidget);
+        expect(find.text('Streetlight'), findsNothing);
       },
     );
   });

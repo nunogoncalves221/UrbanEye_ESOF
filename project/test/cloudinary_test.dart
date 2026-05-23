@@ -5,7 +5,6 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project/services/cloudinary_service.dart';
-import 'package:project/config/cloudinary_config.dart';
 
 class TestableCloudinaryService extends CloudinaryService {
   String testGenerateSignature(Map<String, String> params) {

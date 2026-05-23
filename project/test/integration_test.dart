@@ -11,7 +11,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
 import 'package:project/config/cloudinary_config.dart';
 import 'package:project/features/report/report_controller.dart';
@@ -58,7 +57,6 @@ class TestReportService extends ReportServiceBase {
             .toList());
   }
 
-  @override
   Future<List<ReportModel>> getReportsByUser(String userId) async {
     final snapshot = await _firestore
         .collection('reports')

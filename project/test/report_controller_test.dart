@@ -326,9 +326,7 @@ void main() {
 
       expect(result, isTrue);
       // verify photo is null
-      verify(
-        () => mockService.submitReport(any(), photo: null),
-      ).called(1);
+      verify(() => mockService.submitReport(any(), photo: null)).called(1);
     });
 
     // reset clears photo

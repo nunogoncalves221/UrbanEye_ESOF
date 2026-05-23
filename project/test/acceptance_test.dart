@@ -851,7 +851,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-expect(
+        expect(
           find.text('You must be signed in to view your reports.'),
           findsOneWidget,
         );
@@ -995,15 +995,17 @@ expect(
                       barrierColor: Colors.black54,
                       builder: (context) => Stack(
                         children: [
-                          const Center(
-                            child: Text('Photo Placeholder'),
-                          ),
+                          const Center(child: Text('Photo Placeholder')),
                           // X button to close
                           Positioned(
                             top: 40,
                             right: 20,
                             child: IconButton(
-                              icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 30,
+                              ),
                               onPressed: () => Navigator.pop(context),
                             ),
                           ),
@@ -1034,5 +1036,4 @@ expect(
       },
     );
   });
-
 }

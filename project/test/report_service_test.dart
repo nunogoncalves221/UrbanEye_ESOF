@@ -1,9 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_storage_mocks/firebase_storage_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 import 'package:project/features/report/report_model.dart';
 import 'package:project/services/report_service.dart';
@@ -13,19 +9,8 @@ import 'package:project/services/report_service.dart';
 // para que os testes não precisem de Firebase real.
 // ─────────────────────────────────────────────────────────────────────────────
 class _TestableReportService extends ReportService {
-  final FakeFirebaseFirestore fakeFirestore;
-  final MockFirebaseStorage fakeStorage;
-
-  _TestableReportService({
-    required this.fakeFirestore,
-    required this.fakeStorage,
-  }) : super(firestore: fakeFirestore, storage: fakeStorage);
-
-  @override
-  FirebaseFirestore get _firestore => fakeFirestore;
-
-  @override
-  FirebaseStorage get _storage => fakeStorage;
+  _TestableReportService({required FakeFirebaseFirestore firestore})
+    : super(firestore: firestore);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -55,16 +40,11 @@ Future<ReportModel> _seedReport(
 
 void main() {
   late FakeFirebaseFirestore fakeFirestore;
-  late MockFirebaseStorage fakeStorage;
   late _TestableReportService service;
 
   setUp(() {
     fakeFirestore = FakeFirebaseFirestore();
-    fakeStorage = MockFirebaseStorage();
-    service = _TestableReportService(
-      fakeFirestore: fakeFirestore,
-      fakeStorage: fakeStorage,
-    );
+    service = _TestableReportService(firestore: fakeFirestore);
   });
 
   // ───────────────────────────────────────────────────────────────────────────

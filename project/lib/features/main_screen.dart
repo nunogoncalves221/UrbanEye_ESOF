@@ -30,6 +30,14 @@ class MainScreen extends StatelessWidget {
   }
 
   void _openReport(BuildContext context) {
+    if (auth.currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You must be logged in to report a problem.'),
+        ),
+      );
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => ReportScreen(auth: auth)),

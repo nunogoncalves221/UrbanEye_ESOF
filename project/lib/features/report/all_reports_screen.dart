@@ -506,8 +506,6 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
 
                 const SizedBox(height: 12),
 
-                // confirm/deny buttons
-                _buildConfirmationSection(
                 const SizedBox(height: 16),
                 // ── secção de acções (authority vs user normal) ──
                 _buildActionSection(
@@ -532,11 +530,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
       barrierColor: Colors.black54,
       builder: (context) => Stack(
         children: [
-          Center(
-            child: InteractiveViewer(
-              child: Image.network(photoUrl),
-            ),
-          ),
+          Center(child: InteractiveViewer(child: Image.network(photoUrl))),
           // X button to close
           Positioned(
             top: 40,
@@ -551,8 +545,6 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     );
   }
 
-  Widget _buildConfirmationSection(
-  // ── Action section: authority vê Confirm/Reject, user normal vê Exists/Doesn't exist ──
   Widget _buildActionSection(
     BuildContext context,
     ReportModel report,

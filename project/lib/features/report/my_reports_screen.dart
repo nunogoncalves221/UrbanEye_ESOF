@@ -440,11 +440,7 @@ class _ReportDetailSheet extends StatelessWidget {
       barrierColor: Colors.black54,
       builder: (context) => Stack(
         children: [
-          Center(
-            child: InteractiveViewer(
-              child: Image.network(photoUrl),
-            ),
-          ),
+          Center(child: InteractiveViewer(child: Image.network(photoUrl))),
           // X button to close
           Positioned(
             top: 40,

@@ -52,9 +52,11 @@ class TestReportService extends ReportServiceBase {
         .collection('reports')
         .where('userId', isEqualTo: uid)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ReportModel.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   Future<List<ReportModel>> getReportsByUser(String userId) async {
@@ -80,9 +82,13 @@ class TestReportService extends ReportServiceBase {
 
   @override
   Future<void> confirmProblem(
-      String reportId, String userId, bool confirmed) async {
-    final confirmationDoc =
-        _firestore.collection('problem_confirmations').doc('${reportId}_$userId');
+    String reportId,
+    String userId,
+    bool confirmed,
+  ) async {
+    final confirmationDoc = _firestore
+        .collection('problem_confirmations')
+        .doc('${reportId}_$userId');
     await confirmationDoc.set({
       'reportId': reportId,
       'userId': userId,
@@ -98,6 +104,13 @@ class TestReportService extends ReportServiceBase {
         .doc('${reportId}_$userId')
         .get();
     return doc.exists;
+  }
+
+  @override
+  Future<void> confirmReportByAuthority(String reportId) async {
+    await _firestore.collection('reports').doc(reportId).update({
+      'authority_confirmed': true,
+    });
   }
 }
 
@@ -242,7 +255,9 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo.png');
+      final tempFile = File(
+        '${Directory.systemTemp.path}/cloudinary_test_photo.png',
+      );
       await tempFile.writeAsBytes(testImageBytes);
 
       try {
@@ -251,7 +266,10 @@ void main() {
         final publicId = CloudinaryService.extractPublicIdFromUrl(url!);
 
         expect(url, isNotNull);
-        expect(url, contains('res.cloudinary.com/${CloudinaryConfig.cloudName}'));
+        expect(
+          url,
+          contains('res.cloudinary.com/${CloudinaryConfig.cloudName}'),
+        );
 
         await cloudinary.deletePhoto(publicId);
       } finally {
@@ -263,7 +281,9 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo2.png');
+      final tempFile = File(
+        '${Directory.systemTemp.path}/cloudinary_test_photo2.png',
+      );
       await tempFile.writeAsBytes(testImageBytes);
 
       try {
@@ -284,7 +304,9 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo3.png');
+      final tempFile = File(
+        '${Directory.systemTemp.path}/cloudinary_test_photo3.png',
+      );
       await tempFile.writeAsBytes(testImageBytes);
 
       try {
@@ -311,7 +333,9 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo4.png');
+      final tempFile = File(
+        '${Directory.systemTemp.path}/cloudinary_test_photo4.png',
+      );
       await tempFile.writeAsBytes(testImageBytes);
 
       try {

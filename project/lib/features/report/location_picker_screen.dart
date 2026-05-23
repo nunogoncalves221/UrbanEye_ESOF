@@ -273,7 +273,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             ),
             const SizedBox(height: 10),
             Text(report.description, style: const TextStyle(fontSize: 14)),
-const SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'Lat: ${report.latitude.toStringAsFixed(5)}, Lng: ${report.longitude.toStringAsFixed(5)}',
               style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -305,11 +305,7 @@ const SizedBox(height: 8),
       barrierColor: Colors.black54,
       builder: (context) => Stack(
         children: [
-          Center(
-            child: InteractiveViewer(
-              child: Image.network(photoUrl),
-            ),
-          ),
+          Center(child: InteractiveViewer(child: Image.network(photoUrl))),
           // X button to close
           Positioned(
             top: 40,

@@ -23,7 +23,9 @@ class CloudinaryService extends CloudinaryServiceBase {
   String generateSignature(Map<String, String> params) {
     final sortedParams = params.keys.toList()..sort();
     final toSign = sortedParams.map((k) => '$k=${params[k]}').join('&');
-    final signature = sha1.convert(utf8.encode(toSign + CloudinaryConfig.apiSecret));
+    final signature = sha1.convert(
+      utf8.encode(toSign + CloudinaryConfig.apiSecret),
+    );
     return signature.toString();
   }
 
@@ -41,14 +43,14 @@ class CloudinaryService extends CloudinaryServiceBase {
       }
 
       final timestamp = getTimestamp();
-      final params = {
-        'folder': 'reports/$reportId',
-        'timestamp': timestamp,
-      };
+      final params = {'folder': 'reports/$reportId', 'timestamp': timestamp};
 
       final signature = generateSignature(params);
 
-      final request = http.MultipartRequest('POST', Uri.parse(CloudinaryConfig.uploadUrl));
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse(CloudinaryConfig.uploadUrl),
+      );
       request.fields['timestamp'] = timestamp;
       request.fields['api_key'] = CloudinaryConfig.apiKey;
       request.fields['signature'] = signature;
@@ -58,7 +60,8 @@ class CloudinaryService extends CloudinaryServiceBase {
       print('Uploading photo to Cloudinary for report: $reportId');
       final streamedResponse = await request.send().timeout(
         const Duration(seconds: 30),
-        onTimeout: () => throw Exception('Upload timed out. Check your connection.'),
+        onTimeout: () =>
+            throw Exception('Upload timed out. Check your connection.'),
       );
 
       final response = await http.Response.fromStream(streamedResponse);
@@ -85,10 +88,7 @@ class CloudinaryService extends CloudinaryServiceBase {
   Future<void> deletePhoto(String publicId) async {
     try {
       final timestamp = getTimestamp();
-      final params = {
-        'public_id': publicId,
-        'timestamp': timestamp,
-      };
+      final params = {'public_id': publicId, 'timestamp': timestamp};
 
       final signature = generateSignature(params);
 
@@ -96,19 +96,21 @@ class CloudinaryService extends CloudinaryServiceBase {
         'https://api.cloudinary.com/v1_1/${CloudinaryConfig.cloudName}/image/destroy',
       );
 
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'timestamp': timestamp,
-          'api_key': CloudinaryConfig.apiKey,
-          'signature': signature,
-          'public_id': publicId,
-        }),
-      ).timeout(
-        const Duration(seconds: 15),
-        onTimeout: () => throw Exception('Delete timed out.'),
-      );
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'timestamp': timestamp,
+              'api_key': CloudinaryConfig.apiKey,
+              'signature': signature,
+              'public_id': publicId,
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () => throw Exception('Delete timed out.'),
+          );
 
       if (response.statusCode == 200) {
         print('Photo deleted from Cloudinary: $publicId');

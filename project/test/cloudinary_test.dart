@@ -26,10 +26,7 @@ void main() {
 
     group('_generateSignature', () {
       test('same params produce same signature (deterministic)', () {
-        final params = {
-          'folder': 'reports/abc',
-          'timestamp': '1234567890',
-        };
+        final params = {'folder': 'reports/abc', 'timestamp': '1234567890'};
 
         final sig1 = service.testGenerateSignature(params);
         final sig2 = service.testGenerateSignature(params);
@@ -76,27 +73,48 @@ void main() {
 
     group('extractPublicIdFromUrl', () {
       test('extracts public ID with version number', () {
-        final url = 'https://res.cloudinary.com/dzvoc9wu3/image/upload/v1/reports/abc/photo.jpg';
-        expect(CloudinaryService.extractPublicIdFromUrl(url), equals('reports/abc/photo.jpg'));
+        final url =
+            'https://res.cloudinary.com/dzvoc9wu3/image/upload/v1/reports/abc/photo.jpg';
+        expect(
+          CloudinaryService.extractPublicIdFromUrl(url),
+          equals('reports/abc/photo.jpg'),
+        );
       });
 
       test('extracts public ID without version number', () {
-        final url = 'https://res.cloudinary.com/dzvoc9wu3/image/upload/reports/xyz.png';
-        expect(CloudinaryService.extractPublicIdFromUrl(url), equals('reports/xyz.png'));
+        final url =
+            'https://res.cloudinary.com/dzvoc9wu3/image/upload/reports/xyz.png';
+        expect(
+          CloudinaryService.extractPublicIdFromUrl(url),
+          equals('reports/xyz.png'),
+        );
       });
 
       test('extracts nested folder paths', () {
-        final url = 'https://res.cloudinary.com/dzvoc9wu3/image/upload/v2/reports/test/abc/def.jpg';
-        expect(CloudinaryService.extractPublicIdFromUrl(url), equals('reports/test/abc/def.jpg'));
+        final url =
+            'https://res.cloudinary.com/dzvoc9wu3/image/upload/v2/reports/test/abc/def.jpg';
+        expect(
+          CloudinaryService.extractPublicIdFromUrl(url),
+          equals('reports/test/abc/def.jpg'),
+        );
       });
 
       test('returns empty string for non-cloudinary URL', () {
-        expect(CloudinaryService.extractPublicIdFromUrl('https://example.com/image.jpg'), isEmpty);
+        expect(
+          CloudinaryService.extractPublicIdFromUrl(
+            'https://example.com/image.jpg',
+          ),
+          isEmpty,
+        );
       });
 
       test('strips query parameters', () {
-        final url = 'https://res.cloudinary.com/dzvoc9wu3/image/upload/v1/reports/abc/photo.jpg?abc=123';
-        expect(CloudinaryService.extractPublicIdFromUrl(url), equals('reports/abc/photo.jpg'));
+        final url =
+            'https://res.cloudinary.com/dzvoc9wu3/image/upload/v1/reports/abc/photo.jpg?abc=123';
+        expect(
+          CloudinaryService.extractPublicIdFromUrl(url),
+          equals('reports/abc/photo.jpg'),
+        );
       });
     });
   });

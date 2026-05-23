@@ -22,10 +22,10 @@ abstract class ReportServiceBase {
 
 class ReportService extends ReportServiceBase {
   final FirebaseFirestore _firestore;
-  final FirebaseStorage _storage;
-
-  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
   final CloudinaryService _cloudinary = const CloudinaryService();
+
+  ReportService({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   @override
   Future<void> submitReport(ReportModel report, {File? photo}) async {
@@ -91,7 +91,9 @@ class ReportService extends ReportServiceBase {
   @override
   Future<void> deleteReport(ReportModel report) async {
     if (report.photoUrl != null) {
-      final publicId = CloudinaryService.extractPublicIdFromUrl(report.photoUrl!);
+      final publicId = CloudinaryService.extractPublicIdFromUrl(
+        report.photoUrl!,
+      );
       if (publicId.isNotEmpty) {
         try {
           await _cloudinary.deletePhoto(publicId);

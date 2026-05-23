@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [2.2.1]
+
+### Tests
+- Added some integration_test.dart
+- Added testing for photo upload
+
+# [2.2.0]
+
+### Added
+- Functional photo upload for reports
+- All reports now present a button that allows to visaulise the image
+
+# [2.1.1]
+
+### Tests
+- report_service_test.dart (created)
+
+## [2.1.0]
+
+### Added
+
+- added code to all_reports_screen.dart: if the user is an authority then it can reject reports or confirm them. Either way, regular users stop having the possibility of confirming/negating those reports. If authority confirms a report then a check will appear in the reports page, if it rejects them, they dissapear from the database   
+
+## [2.0.0]
+
+### Added
+
+- Favourite reports: authenticated users can star reports in the All Reports screen
+- Favourites persisted per-user in Firestore (`user_favourites` collection)
+- "Favourites only" filter toggle in the filter sheet (authenticated users only)
+- Unit, widget and acceptance tests for the favourite reports feature
+
+### Fixed
+
+- Star button uses `IconButton` to avoid gesture conflicts with the report card tap
+
 ## [1.9.0]
 ### Added
 - Detail popup when tapping a map marker or an issue in the All Reports list, showing the street name, upload date, and number of confirmations/denials.

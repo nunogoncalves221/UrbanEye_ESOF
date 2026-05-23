@@ -1,7 +1,14 @@
+// Report Service
+//
+// Handles all report-related database operations:
+// - Submit/delete reports to/from Firestore
+// - Upload/delete photos to/from Cloudinary
+// - Track problem confirmations from users
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import '../features/report/report_model.dart';
+import 'cloudinary_service.dart';
 
 abstract class ReportServiceBase {
   const ReportServiceBase();
@@ -17,45 +24,7 @@ class ReportService extends ReportServiceBase {
   const ReportService();
 
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
-  FirebaseStorage get _storage => FirebaseStorage.instance;
-
-  Future<String?> _uploadPhoto(File photo, String reportId) async {
-    try {
-      // check file exists
-      if (!await photo.exists()) {
-        throw Exception('Photo file does not exist');
-      }
-
-      final ref = _storage.ref().child('reports/$reportId/photo.jpg');
-
-      // upload with detailed error logging
-      final uploadTask = ref.putFile(photo);
-      
-      uploadTask.snapshotEvents.listen((taskSnapshot) {
-        // log upload progress
-        final progress = taskSnapshot.bytesTransferred / taskSnapshot.totalBytes;
-        print('Photo upload progress: ${(progress * 100).toStringAsFixed(1)}%');
-      });
-
-      await uploadTask.timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => throw Exception(
-          'Upload timed out. Check your connection or Firebase Storage rules.',
-        ),
-      );
-
-      return await ref.getDownloadURL();
-    } catch (e) {
-      // log full error details
-      print('Photo upload error: $e');
-      print('Error type: ${e.runtimeType}');
-      if (e is FirebaseException) {
-        print('Firebase error code: ${e.code}');
-        print('Firebase error message: ${e.message}');
-      }
-      rethrow;
-    }
-  }
+  final CloudinaryService _cloudinary = const CloudinaryService();
 
   @override
   Future<void> submitReport(ReportModel report, {File? photo}) async {
@@ -67,7 +36,7 @@ class ReportService extends ReportServiceBase {
       if (photo != null) {
         print('Photo detected, uploading...');
         // photo taken
-        photoUrl = await _uploadPhoto(photo, docRef.id);
+        photoUrl = await _cloudinary.uploadPhoto(photo, docRef.id);
         print('Photo uploaded successfully: $photoUrl');
       } else {
         // no photo taken
@@ -126,10 +95,12 @@ class ReportService extends ReportServiceBase {
   @override
   Future<void> deleteReport(ReportModel report) async {
     if (report.photoUrl != null) {
-      try {
-        final ref = _storage.refFromURL(report.photoUrl!);
-        await ref.delete();
-      } catch (_) {}
+      final publicId = CloudinaryService.extractPublicIdFromUrl(report.photoUrl!);
+      if (publicId.isNotEmpty) {
+        try {
+          await _cloudinary.deletePhoto(publicId);
+        } catch (_) {}
+      }
     }
     await _firestore.collection('reports').doc(report.id).delete();
   }
@@ -169,10 +140,12 @@ class ReportService extends ReportServiceBase {
         if (existsCount * 1.25 + 5 < notExistsCount) {
           final photoUrl = data['photoUrl'] as String?;
           if (photoUrl != null) {
-            try {
-              final ref = _storage.refFromURL(photoUrl);
-              await ref.delete();
-            } catch (_) {}
+            final publicId = CloudinaryService.extractPublicIdFromUrl(photoUrl);
+            if (publicId.isNotEmpty) {
+              try {
+                await _cloudinary.deletePhoto(publicId);
+              } catch (_) {}
+            }
           }
           await reportRef.delete();
         }

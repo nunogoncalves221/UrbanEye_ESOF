@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [2.2.2]
+
+### Fixed
+- Guest users can now submit reports without being logged in
+- Removed login requirement guard from report navigation
+- Updated Firestore rules to allow unauthenticated report creation
+
 # [2.2.1]
 
 ### Tests

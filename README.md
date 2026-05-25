@@ -25,7 +25,7 @@ It is organised by the following activities:
   * [Sprint 2](#Sprint-2)
   * [Sprint 3](#Sprint-3)
   * [Final Release](#Final-Release)
-  * [Usage of AI] (#Usage-of-ai-in-the-project)
+  * [Usage of AI](#Usage-of-Ai)
 
 Contributions are expected to be made exclusively by the initial team, but we may open them to the community, after the course, in all areas and topics: requirements, technologies, development, experimentation, testing, etc.
 
@@ -298,7 +298,7 @@ Initial GitHub Project screenshot:
 
 ### Final Release
 
-### Usage of AI in the Project
+### Usage of AI
 The development of this project was conducted with the frequent integration of artificial intelligence tools, which played a central role throughout the software engineering process. Tools such as Claude (Anthropic), Gemini (Google) and ChatGPT (OpenAI) were consistently employed across multiple stages of development, from initial design decisions to the implementation of specific features.
 The majority of the codebase was produced with direct AI assistance, encompassing the development of core application features, backend services, and automated tests. This included the implementation of report submission and confirmation workflows, user authentication logic, geolocation-based filtering, and the notification mechanisms through which relevant authorities are alerted to validated occurrences. AI tools proved particularly valuable in accelerating the development of repetitive but critical components, such as data validation layers, database interaction patterns, and API endpoint structuring.
 Beyond code generation, these tools were also used as a means of conceptual clarification and architectural guidance. When facing design decisions — such as how to model the confirmation system, how to rank or prioritise reported issues based on community validation, or how to structure the authority-facing interface for efficient problem identification — AI assistants provided a responsive sounding board that helped the team evaluate trade-offs before committing to an implementation.

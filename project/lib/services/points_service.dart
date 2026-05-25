@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class PointsService {
   static const int resolvedPoints = 10;
   static const int invalidPenalty = 5;
+  static const int confirmReporterBonus = 2;
+  static const int confirmConfirmerBonus = 1;
 
   final FirebaseFirestore _firestore;
 
@@ -29,6 +31,33 @@ class PointsService {
 
       transaction.update(reportRef, {'points_awarded': true});
       transaction.update(userRef, {'points': currentPoints + resolvedPoints});
+    });
+  }
+
+  // Awards +2 to the reporter and +1 to the confirmer when a citizen confirms a report
+  Future<void> onReportConfirmed({
+    required String confirmerId,
+    required String? reporterId,
+  }) async {
+    if (reporterId == null || reporterId.isEmpty) return;
+
+    final confirmerRef = _firestore.collection('users').doc(confirmerId);
+    final reporterRef = _firestore.collection('users').doc(reporterId);
+
+    await _firestore.runTransaction((transaction) async {
+      final confirmerSnap = await transaction.get(confirmerRef);
+      final confirmerPoints = (confirmerSnap.data()?['points'] as int?) ?? 0;
+      transaction.update(confirmerRef, {
+        'points': confirmerPoints + confirmConfirmerBonus,
+      });
+
+      if (confirmerId != reporterId) {
+        final reporterSnap = await transaction.get(reporterRef);
+        final reporterPoints = (reporterSnap.data()?['points'] as int?) ?? 0;
+        transaction.update(reporterRef, {
+          'points': reporterPoints + confirmReporterBonus,
+        });
+      }
     });
   }
 

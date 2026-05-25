@@ -99,6 +99,12 @@ class ProfileScreen extends StatelessWidget {
                     subtitle: Text(data['email']),
                   ),
 
+                  ListTile(
+                    leading: const Icon(Icons.star, color: Colors.amber),
+                    title: const Text('Points'),
+                    subtitle: Text('${(data['points'] as int?) ?? 0} pts'),
+                  ),
+
                   const SizedBox(height: 12),
 
                   ListTile(

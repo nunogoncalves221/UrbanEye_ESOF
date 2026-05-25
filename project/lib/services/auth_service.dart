@@ -39,6 +39,7 @@ class AuthService {
       'username': username,
       'birthDate': Timestamp.fromDate(birthDate),
       'createdAt': FieldValue.serverTimestamp(),
+      'points': 0,
     });
 
     return credential;

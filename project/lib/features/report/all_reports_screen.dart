@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/services/points_service.dart';
 import 'package:project/services/report_service.dart';
 import 'package:project/services/user_role.dart';
 import 'package:project/services/user_role_service.dart';
@@ -278,11 +279,18 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
   });
 
   Future<void> _updateStatus(ReportModel report, String newStatus) async {
+    if (report.status == newStatus) return;
+
     try {
       await FirebaseFirestore.instance
           .collection('reports')
           .doc(report.id)
           .update({'status': newStatus});
+
+      if (newStatus == 'resolved') {
+        await PointsService().onReportResolved(report.id!, report.userId);
+      }
+
       setState(() {
         final idx = _allReports.indexWhere((r) => r.id == report.id);
         if (idx != -1) {
@@ -768,6 +776,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
 
     if (confirmed != true) return;
 
+    await PointsService().onReportRejected(report.userId);
     await reportService.deleteReport(report);
 
     // Remover da lista local

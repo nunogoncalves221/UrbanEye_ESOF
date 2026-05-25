@@ -1,7 +1,14 @@
+// Report Service
+//
+// Handles all report-related database operations:
+// - Submit/delete reports to/from Firestore
+// - Upload/delete photos to/from Cloudinary
+// - Track problem confirmations from users
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import '../features/report/report_model.dart';
+import 'cloudinary_service.dart';
 
 abstract class ReportServiceBase {
   Future<void> submitReport(ReportModel report, {File? photo});
@@ -15,42 +22,46 @@ abstract class ReportServiceBase {
 
 class ReportService extends ReportServiceBase {
   final FirebaseFirestore _firestore;
-  final FirebaseStorage _storage;
+  final CloudinaryService _cloudinary = const CloudinaryService();
 
-  ReportService({FirebaseFirestore? firestore, FirebaseStorage? storage})
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _storage = storage ?? FirebaseStorage.instance;
-
-  Future<String?> _uploadPhoto(File photo, String reportId) async {
-    final ref = _storage.ref().child('reports/$reportId/photo.jpg');
-    await ref
-        .putFile(photo)
-        .timeout(
-          const Duration(seconds: 30),
-          onTimeout: () => throw Exception(
-            'Upload timed out. Check your connection or Firebase Storage rules.',
-          ),
-        );
-    return await ref.getDownloadURL();
-  }
+  ReportService({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   @override
   Future<void> submitReport(ReportModel report, {File? photo}) async {
-    final docRef = _firestore.collection('reports').doc();
-    String? photoUrl;
-    if (photo != null) photoUrl = await _uploadPhoto(photo, docRef.id);
-    final finalReport = ReportModel(
-      id: docRef.id,
-      category: report.category,
-      description: report.description,
-      latitude: report.latitude,
-      longitude: report.longitude,
-      photoUrl: photoUrl,
-      userId: report.userId,
-      status: report.status,
-      createdAt: report.createdAt,
-    );
-    await docRef.set(finalReport.toMap());
+    try {
+      final docRef = _firestore.collection('reports').doc();
+
+      String? photoUrl;
+      // check for photo
+      if (photo != null) {
+        print('Photo detected, uploading...');
+        // photo taken
+        photoUrl = await _cloudinary.uploadPhoto(photo, docRef.id);
+        print('Photo uploaded successfully: $photoUrl');
+      } else {
+        // no photo taken
+        print('No photo attached to report');
+      }
+
+      final finalReport = ReportModel(
+        id: docRef.id,
+        category: report.category,
+        description: report.description,
+        latitude: report.latitude,
+        longitude: report.longitude,
+        photoUrl: photoUrl,
+        userId: report.userId,
+        status: report.status,
+        createdAt: report.createdAt,
+      );
+
+      await docRef.set(finalReport.toMap());
+      print('Report saved to Firestore: ${docRef.id}');
+    } catch (e) {
+      print('Submit report error: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -80,10 +91,14 @@ class ReportService extends ReportServiceBase {
   @override
   Future<void> deleteReport(ReportModel report) async {
     if (report.photoUrl != null) {
-      try {
-        final ref = _storage.refFromURL(report.photoUrl!);
-        await ref.delete();
-      } catch (_) {}
+      final publicId = CloudinaryService.extractPublicIdFromUrl(
+        report.photoUrl!,
+      );
+      if (publicId.isNotEmpty) {
+        try {
+          await _cloudinary.deletePhoto(publicId);
+        } catch (_) {}
+      }
     }
     await _firestore.collection('reports').doc(report.id).delete();
   }
@@ -128,9 +143,12 @@ class ReportService extends ReportServiceBase {
         if (existsCount * 1.25 + 5 < notExistsCount) {
           final photoUrl = data['photoUrl'] as String?;
           if (photoUrl != null) {
-            try {
-              await _storage.refFromURL(photoUrl).delete();
-            } catch (_) {}
+            final publicId = CloudinaryService.extractPublicIdFromUrl(photoUrl);
+            if (publicId.isNotEmpty) {
+              try {
+                await _cloudinary.deletePhoto(publicId);
+              } catch (_) {}
+            }
           }
           await reportRef.delete();
         }

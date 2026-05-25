@@ -489,6 +489,23 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
+
+                // check for photo
+                if (report.photoUrl != null)
+                  TextButton.icon(
+                    onPressed: () => _showPhoto(context, report.photoUrl!),
+                    icon: const Icon(Icons.photo_camera),
+                    label: const Text('photo'),
+                  )
+                else
+                  const Text(
+                    '-no photo taken-',
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+
+                const SizedBox(height: 12),
+
                 const SizedBox(height: 16),
                 // ── secção de acções (authority vs user normal) ──
                 _buildActionSection(
@@ -506,7 +523,28 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     );
   }
 
-  // ── Action section: authority vê Confirm/Reject, user normal vê Exists/Doesn't exist ──
+  // create popup
+  void _showPhoto(BuildContext context, String photoUrl) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (context) => Stack(
+        children: [
+          Center(child: InteractiveViewer(child: Image.network(photoUrl))),
+          // X button to close
+          Positioned(
+            top: 40,
+            right: 20,
+            child: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white, size: 30),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildActionSection(
     BuildContext context,
     ReportModel report,

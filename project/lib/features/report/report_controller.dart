@@ -149,4 +149,6 @@ class ReportController extends ChangeNotifier {
     submitted = false;
     notifyListeners();
   }
+
+  void refresh() => notifyListeners();
 }

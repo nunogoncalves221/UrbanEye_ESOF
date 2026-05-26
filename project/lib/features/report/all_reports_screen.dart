@@ -287,10 +287,6 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
           .doc(report.id)
           .update({'status': newStatus});
 
-      if (newStatus == 'resolved') {
-        await PointsService().onReportResolved(report.id!, report.userId);
-      }
-
       setState(() {
         final idx = _allReports.indexWhere((r) => r.id == report.id);
         if (idx != -1) {
@@ -315,6 +311,19 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
+      }
+      return;
+    }
+
+    if (newStatus == 'resolved') {
+      try {
+        await PointsService().onReportResolved(report.id!, report.userId);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Points error: $e')),
+          );
+        }
       }
     }
   }

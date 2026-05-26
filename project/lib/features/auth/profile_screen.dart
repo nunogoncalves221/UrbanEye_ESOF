@@ -30,8 +30,8 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        future: _firestore.collection('users').doc(user.uid).get(),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: _firestore.collection('users').doc(user.uid).snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());

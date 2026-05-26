@@ -134,12 +134,14 @@ class ReportService extends ReportServiceBase {
       await reportRef.update({'exists_confirmations': FieldValue.increment(1)});
 
       // +1 to the citizen who confirmed, +2 to the original reporter
-      final reportDoc = await reportRef.get();
-      final reporterId = reportDoc.data()?['userId'] as String?;
-      await PointsService().onReportConfirmed(
-        confirmerId: userId,
-        reporterId: reporterId,
-      );
+      try {
+        final reportDoc = await reportRef.get();
+        final reporterId = reportDoc.data()?['userId'] as String?;
+        await PointsService().onReportConfirmed(
+          confirmerId: userId,
+          reporterId: reporterId,
+        );
+      } catch (_) {}
     } else {
       await reportRef.update({
         'not_exists_confirmations': FieldValue.increment(1),

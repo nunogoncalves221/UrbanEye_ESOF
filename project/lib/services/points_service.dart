@@ -17,6 +17,7 @@ class PointsService {
 
     final reportRef = _firestore.collection('reports').doc(reportId);
     final userRef = _firestore.collection('users').doc(reporterId);
+    final historyRef = _firestore.collection('points_history').doc();
 
     await _firestore.runTransaction((transaction) async {
       final reportSnap = await transaction.get(reportRef);
@@ -31,6 +32,12 @@ class PointsService {
 
       transaction.update(reportRef, {'points_awarded': true});
       transaction.update(userRef, {'points': currentPoints + resolvedPoints});
+      transaction.set(historyRef, {
+        'userId': reporterId,
+        'amount': resolvedPoints,
+        'reason': 'Report resolved',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 
@@ -43,6 +50,8 @@ class PointsService {
 
     final confirmerRef = _firestore.collection('users').doc(confirmerId);
     final reporterRef = _firestore.collection('users').doc(reporterId);
+    final confirmerHistoryRef = _firestore.collection('points_history').doc();
+    final reporterHistoryRef = _firestore.collection('points_history').doc();
 
     await _firestore.runTransaction((transaction) async {
       final confirmerSnap = await transaction.get(confirmerRef);
@@ -50,12 +59,24 @@ class PointsService {
       transaction.update(confirmerRef, {
         'points': confirmerPoints + confirmConfirmerBonus,
       });
+      transaction.set(confirmerHistoryRef, {
+        'userId': confirmerId,
+        'amount': confirmConfirmerBonus,
+        'reason': 'Confirmed a report',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       if (confirmerId != reporterId) {
         final reporterSnap = await transaction.get(reporterRef);
         final reporterPoints = (reporterSnap.data()?['points'] as int?) ?? 0;
         transaction.update(reporterRef, {
           'points': reporterPoints + confirmReporterBonus,
+        });
+        transaction.set(reporterHistoryRef, {
+          'userId': reporterId,
+          'amount': confirmReporterBonus,
+          'reason': 'Report confirmed by citizen',
+          'createdAt': FieldValue.serverTimestamp(),
         });
       }
     });
@@ -66,6 +87,7 @@ class PointsService {
     if (reporterId == null || reporterId.isEmpty) return;
 
     final userRef = _firestore.collection('users').doc(reporterId);
+    final historyRef = _firestore.collection('points_history').doc();
 
     await _firestore.runTransaction((transaction) async {
       final userSnap = await transaction.get(userRef);
@@ -75,6 +97,12 @@ class PointsService {
       final newPoints = (currentPoints - invalidPenalty).clamp(0, 999999);
 
       transaction.update(userRef, {'points': newPoints});
+      transaction.set(historyRef, {
+        'userId': reporterId,
+        'amount': -invalidPenalty,
+        'reason': 'Report rejected',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 }

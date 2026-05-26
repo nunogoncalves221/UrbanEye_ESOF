@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project/features/auth/edit_profile_screen.dart';
+import 'package:project/features/auth/points_history_screen.dart';
 import 'package:project/services/user_role.dart';
 import 'package:project/services/user_role_service.dart';
 import 'package:project/features/report/my_reports_screen.dart';
@@ -103,6 +104,15 @@ class ProfileScreen extends StatelessWidget {
                     leading: const Icon(Icons.emoji_events, color: Colors.amber),
                     title: const Text('Points'),
                     subtitle: Text('${(data['points'] as int?) ?? 0} pts'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PointsHistoryScreen(userId: user.uid),
+                        ),
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 12),

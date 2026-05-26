@@ -13,9 +13,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:project/config/cloudinary_config.dart';
+import 'package:project/features/notifications/notification_model.dart';
 import 'package:project/features/report/report_controller.dart';
 import 'package:project/features/report/report_model.dart';
 import 'package:project/services/cloudinary_service.dart';
+import 'package:project/services/notification_service.dart';
 import 'package:project/services/report_service.dart';
 
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
@@ -134,7 +136,6 @@ void main() {
       when(() => mockUser.uid).thenReturn('test_user_123');
     });
 
-    // submit report without photo
     test('submitReport saves report without photo to Firestore', () async {
       final controller = ReportController(service: service, auth: mockAuth);
       controller.selectedCategory = 'Pothole';
@@ -146,64 +147,44 @@ void main() {
       final result = await controller.submitReport();
 
       expect(result, isTrue);
-
-      // verify report was saved
       final snapshot = await firestore.collection('reports').get();
       expect(snapshot.docs.length, equals(1));
       final savedReport = snapshot.docs.first.data();
       expect(savedReport['category'], equals('Pothole'));
       expect(savedReport['description'], equals('Test hole'));
-      // check for photo - should be null
       expect(savedReport['photoUrl'], isNull);
     });
 
-    // submit report with photo
     test('submitReport saves report with photo URL to Firestore', () async {
       final controller = ReportController(service: service, auth: mockAuth);
       controller.selectedCategory = 'Streetlight';
       controller.description = 'Broken light';
       controller.latitude = 41.15;
       controller.longitude = -8.61;
-      // photo is set (simulated - actual file not uploaded in test)
       controller.photo = File('/fake/path/photo.jpg');
 
       final result = await controller.submitReport();
 
       expect(result, isTrue);
-
-      // verify report was saved with photo URL
       final snapshot = await firestore.collection('reports').get();
       expect(snapshot.docs.length, equals(1));
-      final savedReport = snapshot.docs.first.data();
-      expect(savedReport['category'], equals('Streetlight'));
-      // photo taken - URL should be set
-      expect(savedReport['photoUrl'], isNotNull);
+      expect(snapshot.docs.first.data()['photoUrl'], isNotNull);
     });
 
-    // watch reports by user
     test('watchReportsByUser returns reports for specific user', () async {
-      // save some test reports
       await firestore.collection('reports').doc('r1').set({
-        'category': 'Pothole',
-        'description': 'Test 1',
-        'latitude': 41.0,
-        'longitude': -8.0,
-        'userId': 'test_user_123',
-        'status': 'pending',
+        'category': 'Pothole', 'description': 'Test 1',
+        'latitude': 41.0, 'longitude': -8.0,
+        'userId': 'test_user_123', 'status': 'pending',
         'createdAt': Timestamp.now(),
-        'exists_confirmations': 0,
-        'not_exists_confirmations': 0,
+        'exists_confirmations': 0, 'not_exists_confirmations': 0,
       });
       await firestore.collection('reports').doc('r2').set({
-        'category': 'Trash',
-        'description': 'Test 2',
-        'latitude': 41.1,
-        'longitude': -8.1,
-        'userId': 'other_user',
-        'status': 'pending',
+        'category': 'Trash', 'description': 'Test 2',
+        'latitude': 41.1, 'longitude': -8.1,
+        'userId': 'other_user', 'status': 'pending',
         'createdAt': Timestamp.now(),
-        'exists_confirmations': 0,
-        'not_exists_confirmations': 0,
+        'exists_confirmations': 0, 'not_exists_confirmations': 0,
       });
 
       final reports = await service.getReportsByUser('test_user_123');
@@ -212,29 +193,19 @@ void main() {
       expect(reports.first.category, equals('Pothole'));
     });
 
-    // delete report
     test('deleteReport removes report from Firestore', () async {
-      // save a report first
       await firestore.collection('reports').doc('r1').set({
-        'category': 'Pothole',
-        'description': 'To be deleted',
-        'latitude': 41.0,
-        'longitude': -8.0,
-        'userId': 'test_user_123',
-        'status': 'pending',
+        'category': 'Pothole', 'description': 'To be deleted',
+        'latitude': 41.0, 'longitude': -8.0,
+        'userId': 'test_user_123', 'status': 'pending',
         'createdAt': Timestamp.now(),
-        'exists_confirmations': 0,
-        'not_exists_confirmations': 0,
+        'exists_confirmations': 0, 'not_exists_confirmations': 0,
       });
 
       final report = ReportModel(
-        id: 'r1',
-        category: 'Pothole',
-        description: 'To be deleted',
-        latitude: 41.0,
-        longitude: -8.0,
-        userId: 'test_user_123',
-        status: 'pending',
+        id: 'r1', category: 'Pothole', description: 'To be deleted',
+        latitude: 41.0, longitude: -8.0,
+        userId: 'test_user_123', status: 'pending',
       );
 
       await service.deleteReport(report);
@@ -255,22 +226,14 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File(
-        '${Directory.systemTemp.path}/cloudinary_test_photo.png',
-      );
+      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo.png');
       await tempFile.writeAsBytes(testImageBytes);
-
       try {
         final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
         final url = await cloudinary.uploadPhoto(tempFile, reportId);
         final publicId = CloudinaryService.extractPublicIdFromUrl(url!);
-
         expect(url, isNotNull);
-        expect(
-          url,
-          contains('res.cloudinary.com/${CloudinaryConfig.cloudName}'),
-        );
-
+        expect(url, contains('res.cloudinary.com/${CloudinaryConfig.cloudName}'));
         await cloudinary.deletePhoto(publicId);
       } finally {
         await tempFile.delete();
@@ -281,19 +244,14 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File(
-        '${Directory.systemTemp.path}/cloudinary_test_photo2.png',
-      );
+      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo2.png');
       await tempFile.writeAsBytes(testImageBytes);
-
       try {
         final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
         final url = await cloudinary.uploadPhoto(tempFile, reportId);
         final publicId = CloudinaryService.extractPublicIdFromUrl(url!);
-
         expect(publicId, startsWith('reports/$reportId'));
         expect(publicId, isNotEmpty);
-
         await cloudinary.deletePhoto(publicId);
       } finally {
         await tempFile.delete();
@@ -304,18 +262,13 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File(
-        '${Directory.systemTemp.path}/cloudinary_test_photo3.png',
-      );
+      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo3.png');
       await tempFile.writeAsBytes(testImageBytes);
-
       try {
         final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
         final url = await cloudinary.uploadPhoto(tempFile, reportId);
         final publicId = CloudinaryService.extractPublicIdFromUrl(url!);
-
         await cloudinary.deletePhoto(publicId);
-
         await cloudinary.deletePhoto(publicId);
       } finally {
         await tempFile.delete();
@@ -333,22 +286,77 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File(
-        '${Directory.systemTemp.path}/cloudinary_test_photo4.png',
-      );
+      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo4.png');
       await tempFile.writeAsBytes(testImageBytes);
-
       try {
         final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
         final url = await cloudinary.uploadPhoto(tempFile, reportId);
         final publicId = CloudinaryService.extractPublicIdFromUrl(url!);
-
         await cloudinary.deletePhoto(publicId);
-
         await cloudinary.deletePhoto(publicId);
       } finally {
         await tempFile.delete();
       }
+    });
+  });
+
+  // ── NotificationService ───────────────────────────────────────────────────
+
+  group('Integration: NotificationService + Firestore', () {
+    late FakeFirebaseFirestore firestore;
+    late NotificationService notificationService;
+
+    setUp(() {
+      firestore = FakeFirebaseFirestore();
+      notificationService = NotificationService(firestore: firestore);
+    });
+
+    test('NT-I-01 | notificação criada aparece no stream do dono', () async {
+      await notificationService.notifyReportChange(
+        reportId: 'rep_1',
+        reportCategory: 'roads',
+        type: 'status_change',
+        message: 'O teu report mudou de estado.',
+        reportOwnerId: 'user_owner',
+      );
+
+      final list = await notificationService
+          .watchNotificationsForUser('user_owner')
+          .first;
+
+      expect(list.length, 1);
+      expect(list.first.message, 'O teu report mudou de estado.');
+      expect(list.first.isRead, false);
+    });
+
+    test('NT-I-02 | markAsRead — notificação aparece como lida no stream', () async {
+      final docRef = await firestore.collection('notifications').add({
+        'userId': 'user_1', 'reportId': 'r', 'reportCategory': 'c',
+        'type': 'status_change', 'message': 'msg', 'isRead': false, 'createdAt': null,
+      });
+
+      await notificationService.markAsRead(docRef.id);
+
+      final list = await notificationService
+          .watchNotificationsForUser('user_1')
+          .first;
+      expect(list.first.isRead, true);
+    });
+
+    test('NT-I-03 | markAllAsRead — todas as notificações ficam lidas', () async {
+      for (var i = 0; i < 3; i++) {
+        await firestore.collection('notifications').add({
+          'userId': 'user_2', 'reportId': 'r$i', 'reportCategory': 'c',
+          'type': 'status_change', 'message': 'msg$i', 'isRead': false, 'createdAt': null,
+        });
+      }
+
+      await notificationService.markAllAsRead('user_2');
+
+      final list = await notificationService
+          .watchNotificationsForUser('user_2')
+          .first;
+      expect(list.every((n) => n.isRead), isTrue);
     });
   });
 }

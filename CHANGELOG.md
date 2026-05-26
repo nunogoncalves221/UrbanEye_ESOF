@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [2.3.1]
+
+### Fixed
+- Notification bell reacts to auth state changes via stream instead of a one-time check
+- Notification query avoids Firestore composite index requirement by sorting client-side
+
+# [2.3.0]
+
+### Added
+- Notification system: bell icon with unread badge in Home and All Reports screens
+- Notifications are created when an authority changes a report's status, sets its priority, confirms it, or rejects it
+- Only the report owner and users who favourited the report receive notifications
+- Notifications screen with relative timestamps and colour-coded icons by type
+- "Mark all read" action and tap-to-mark-as-read on individual notifications
+- Bell icon hidden for unauthenticated users and reacts in real time to login/logout
+
 # [2.2.2]
 
 ### Fixed

@@ -811,7 +811,16 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     ReportService reportService,
     StateSetter setModalState,
   ) async {
-    await reportService.confirmProblem(report.id!, userId, confirmed);
+    try {
+      await reportService.confirmProblem(report.id!, userId, confirmed);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Confirmation error: $e')),
+        );
+      }
+      return;
+    }
 
     final exists = await reportService.checkReportExists(report.id!);
     if (!exists) {

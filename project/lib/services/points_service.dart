@@ -41,45 +41,36 @@ class PointsService {
     });
   }
 
-  // Awards +2 to the reporter and +1 to the confirmer when a citizen confirms a report
+  // Awards +1 to the confirmer always, and +2 to the reporter if they have a registered account
   Future<void> onReportConfirmed({
     required String confirmerId,
     required String? reporterId,
   }) async {
-    if (reporterId == null || reporterId.isEmpty) return;
+    await _firestore.collection('users').doc(confirmerId).update({
+      'points': FieldValue.increment(confirmConfirmerBonus),
+    });
+    await _firestore.collection('points_history').add({
+      'userId': confirmerId,
+      'amount': confirmConfirmerBonus,
+      'reason': 'Confirmed a report',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
 
-    final confirmerRef = _firestore.collection('users').doc(confirmerId);
-    final reporterRef = _firestore.collection('users').doc(reporterId);
-    final confirmerHistoryRef = _firestore.collection('points_history').doc();
-    final reporterHistoryRef = _firestore.collection('points_history').doc();
+    final awardReporter = reporterId != null &&
+        reporterId.isNotEmpty &&
+        confirmerId != reporterId;
 
-    await _firestore.runTransaction((transaction) async {
-      final confirmerSnap = await transaction.get(confirmerRef);
-      final confirmerPoints = (confirmerSnap.data()?['points'] as int?) ?? 0;
-      transaction.update(confirmerRef, {
-        'points': confirmerPoints + confirmConfirmerBonus,
+    if (awardReporter) {
+      await _firestore.collection('users').doc(reporterId).update({
+        'points': FieldValue.increment(confirmReporterBonus),
       });
-      transaction.set(confirmerHistoryRef, {
-        'userId': confirmerId,
-        'amount': confirmConfirmerBonus,
-        'reason': 'Confirmed a report',
+      await _firestore.collection('points_history').add({
+        'userId': reporterId,
+        'amount': confirmReporterBonus,
+        'reason': 'Report confirmed by citizen',
         'createdAt': FieldValue.serverTimestamp(),
       });
-
-      if (confirmerId != reporterId) {
-        final reporterSnap = await transaction.get(reporterRef);
-        final reporterPoints = (reporterSnap.data()?['points'] as int?) ?? 0;
-        transaction.update(reporterRef, {
-          'points': reporterPoints + confirmReporterBonus,
-        });
-        transaction.set(reporterHistoryRef, {
-          'userId': reporterId,
-          'amount': confirmReporterBonus,
-          'reason': 'Report confirmed by citizen',
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
-    });
+    }
   }
 
   // Deducts 5 points from the reporter when their report is rejected and deleted

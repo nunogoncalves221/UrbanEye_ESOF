@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [2.4.0]
+
+### Added
+- Points system: registered users earn points for civic engagement
+  - +10 points when a report submitted by the user is resolved by an authority
+  - +2 points when another citizen confirms the user's report
+  - +1 point when the user confirms someone else's report
+  - -5 points (floor 0) when the user's report is rejected by an authority
+- Points balance displayed on the profile screen with a trophy icon
+- Points history screen: tap the points tile to see a full log of point changes (reason and date), newest first
+
+### Tests
+- Unit tests for `PointsService` covering all point award and deduction rules (18 tests)
+- Integration tests for `PointsService` + `ReportService` interaction (7 tests)
+- Acceptance tests for the points history screen (4 tests)
+
 # [2.3.1]
 
 ### Fixed

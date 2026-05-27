@@ -101,7 +101,10 @@ class ProfileScreen extends StatelessWidget {
                   ),
 
                   ListTile(
-                    leading: const Icon(Icons.emoji_events, color: Colors.amber),
+                    leading: const Icon(
+                      Icons.emoji_events,
+                      color: Colors.amber,
+                    ),
                     title: const Text('Points'),
                     subtitle: Text('${(data['points'] as int?) ?? 0} pts'),
                     trailing: const Icon(Icons.chevron_right),

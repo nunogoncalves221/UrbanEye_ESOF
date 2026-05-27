@@ -431,47 +431,75 @@ void main() {
       expect(snap.docs.first.data()['isRead'], false);
     });
 
-    test('NT-02 | cria notificações para utilizadores que marcaram como favorito', () async {
-      await fakeFirestore.collection('user_favourites').add({'reportId': 'r2', 'userId': 'fav_1'});
-      await fakeFirestore.collection('user_favourites').add({'reportId': 'r2', 'userId': 'fav_2'});
+    test(
+      'NT-02 | cria notificações para utilizadores que marcaram como favorito',
+      () async {
+        await fakeFirestore.collection('user_favourites').add({
+          'reportId': 'r2',
+          'userId': 'fav_1',
+        });
+        await fakeFirestore.collection('user_favourites').add({
+          'reportId': 'r2',
+          'userId': 'fav_2',
+        });
 
-      await notificationService.notifyReportChange(
-        reportId: 'r2',
-        reportCategory: 'environment',
-        type: 'priority_change',
-        message: 'Prioridade alterada.',
-      );
+        await notificationService.notifyReportChange(
+          reportId: 'r2',
+          reportCategory: 'environment',
+          type: 'priority_change',
+          message: 'Prioridade alterada.',
+        );
 
-      final snap = await fakeFirestore.collection('notifications').get();
-      expect(snap.docs.length, 2);
-    });
+        final snap = await fakeFirestore.collection('notifications').get();
+        expect(snap.docs.length, 2);
+      },
+    );
 
     test('NT-03 | markAsRead actualiza isRead para true', () async {
       final docRef = await fakeFirestore.collection('notifications').add({
-        'userId': 'u', 'reportId': 'r', 'reportCategory': 'c',
-        'type': 'status_change', 'message': 'msg', 'isRead': false, 'createdAt': null,
+        'userId': 'u',
+        'reportId': 'r',
+        'reportCategory': 'c',
+        'type': 'status_change',
+        'message': 'msg',
+        'isRead': false,
+        'createdAt': null,
       });
 
       await notificationService.markAsRead(docRef.id);
 
-      final doc = await fakeFirestore.collection('notifications').doc(docRef.id).get();
+      final doc = await fakeFirestore
+          .collection('notifications')
+          .doc(docRef.id)
+          .get();
       expect(doc.data()?['isRead'], true);
     });
 
-    test('NT-04 | markAllAsRead marca todas as notificações do utilizador', () async {
-      for (var i = 0; i < 3; i++) {
-        await fakeFirestore.collection('notifications').add({
-          'userId': 'u', 'reportId': 'r$i', 'reportCategory': 'c',
-          'type': 'status_change', 'message': 'msg$i', 'isRead': false, 'createdAt': null,
-        });
-      }
+    test(
+      'NT-04 | markAllAsRead marca todas as notificações do utilizador',
+      () async {
+        for (var i = 0; i < 3; i++) {
+          await fakeFirestore.collection('notifications').add({
+            'userId': 'u',
+            'reportId': 'r$i',
+            'reportCategory': 'c',
+            'type': 'status_change',
+            'message': 'msg$i',
+            'isRead': false,
+            'createdAt': null,
+          });
+        }
 
-      await notificationService.markAllAsRead('u');
+        await notificationService.markAllAsRead('u');
 
-      final snap = await fakeFirestore.collection('notifications').where('userId', isEqualTo: 'u').get();
-      for (final doc in snap.docs) {
-        expect(doc.data()['isRead'], true);
-      }
-    });
+        final snap = await fakeFirestore
+            .collection('notifications')
+            .where('userId', isEqualTo: 'u')
+            .get();
+        for (final doc in snap.docs) {
+          expect(doc.data()['isRead'], true);
+        }
+      },
+    );
   });
 }

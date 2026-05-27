@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../services/notification_service.dart';
@@ -5,24 +6,33 @@ import 'notification_model.dart';
 import 'notifications_screen.dart';
 
 class NotificationBell extends StatelessWidget {
-  const NotificationBell({super.key});
+  final FirebaseAuth? auth;
+  final FirebaseFirestore? firestore;
+
+  const NotificationBell({super.key, this.auth, this.firestore});
+
+  FirebaseAuth get _auth => auth ?? FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+      stream: _auth.authStateChanges(),
       builder: (context, authSnapshot) {
         final user = authSnapshot.data;
         if (user == null) return const SizedBox.shrink();
 
+        // NotificationService is only created when user is logged in,
+        // so FirebaseFirestore.instance is never called in tests with null user.
+        final service = NotificationService(firestore: firestore);
         return StreamBuilder<List<NotificationModel>>(
-          stream: NotificationService().watchNotificationsForUser(user.uid),
+          stream: service.watchNotificationsForUser(user.uid),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               debugPrint('NotificationBell error: ${snapshot.error}');
             }
-            final unreadCount =
-                (snapshot.data ?? []).where((n) => !n.isRead).length;
+            final unreadCount = (snapshot.data ?? [])
+                .where((n) => !n.isRead)
+                .length;
 
             return IconButton(
               tooltip: 'Notifications',

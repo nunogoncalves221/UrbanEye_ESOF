@@ -134,13 +134,15 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
           .collection('reports')
           .doc(report.id)
           .update({'priority': newPriority});
-      unawaited(NotificationService().notifyReportChange(
-        reportId: report.id!,
-        reportCategory: report.category,
-        type: 'priority_change',
-        message: 'Report "${report.category}" priority set to $newPriority.',
-        reportOwnerId: report.userId,
-      ));
+      unawaited(
+        NotificationService().notifyReportChange(
+          reportId: report.id!,
+          reportCategory: report.category,
+          type: 'priority_change',
+          message: 'Report "${report.category}" priority set to $newPriority.',
+          reportOwnerId: report.userId,
+        ),
+      );
       setState(() {
         final idx = _allReports.indexWhere((r) => r.id == report.id);
         if (idx != -1) {
@@ -296,13 +298,15 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
           .collection('reports')
           .doc(report.id)
           .update({'status': newStatus});
-      unawaited(NotificationService().notifyReportChange(
-        reportId: report.id!,
-        reportCategory: report.category,
-        type: 'status_change',
-        message: 'Report "${report.category}" status changed to $newStatus.',
-        reportOwnerId: report.userId,
-      ));
+      unawaited(
+        NotificationService().notifyReportChange(
+          reportId: report.id!,
+          reportCategory: report.category,
+          type: 'status_change',
+          message: 'Report "${report.category}" status changed to $newStatus.',
+          reportOwnerId: report.userId,
+        ),
+      );
       setState(() {
         final idx = _allReports.indexWhere((r) => r.id == report.id);
         if (idx != -1) {
@@ -336,9 +340,9 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
         await PointsService().onReportResolved(report.id!, report.userId);
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Points error: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Points error: $e')));
         }
       }
     }
@@ -736,13 +740,15 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     StateSetter setModalState,
   ) async {
     await reportService.confirmReportByAuthority(report.id!);
-    unawaited(NotificationService().notifyReportChange(
-      reportId: report.id!,
-      reportCategory: report.category,
-      type: 'authority_confirmed',
-      message: 'Report "${report.category}" was confirmed by the authority.',
-      reportOwnerId: report.userId,
-    ));
+    unawaited(
+      NotificationService().notifyReportChange(
+        reportId: report.id!,
+        reportCategory: report.category,
+        type: 'authority_confirmed',
+        message: 'Report "${report.category}" was confirmed by the authority.',
+        reportOwnerId: report.userId,
+      ),
+    );
 
     // Actualizar lista local
     setState(() {
@@ -847,9 +853,9 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
       await reportService.confirmProblem(report.id!, userId, confirmed);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Confirmation error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Confirmation error: $e')));
       }
       return;
     }

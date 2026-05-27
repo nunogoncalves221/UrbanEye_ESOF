@@ -60,7 +60,7 @@ class MainScreen extends StatelessWidget {
         title: const Text('Home Screen'),
         automaticallyImplyLeading: false,
         actions: [
-          const NotificationBell(),
+          NotificationBell(auth: auth, firestore: firestore),
           StreamBuilder<User?>(
             stream: auth.authStateChanges(),
             builder: (context, snapshot) {

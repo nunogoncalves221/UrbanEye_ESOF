@@ -5,7 +5,7 @@ class NotificationService {
   final FirebaseFirestore _firestore;
 
   NotificationService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Creates notifications for the report owner and all users who favourited the report.
   Future<void> notifyReportChange({
@@ -36,13 +36,16 @@ class NotificationService {
     final batch = _firestore.batch();
     for (final userId in usersToNotify) {
       final docRef = _firestore.collection('notifications').doc();
-      batch.set(docRef, NotificationModel(
-        userId: userId,
-        reportId: reportId,
-        reportCategory: reportCategory,
-        type: type,
-        message: message,
-      ).toMap());
+      batch.set(
+        docRef,
+        NotificationModel(
+          userId: userId,
+          reportId: reportId,
+          reportCategory: reportCategory,
+          type: type,
+          message: message,
+        ).toMap(),
+      );
     }
     await batch.commit();
   }
@@ -62,10 +65,9 @@ class NotificationService {
   }
 
   Future<void> markAsRead(String notificationId) async {
-    await _firestore
-        .collection('notifications')
-        .doc(notificationId)
-        .update({'isRead': true});
+    await _firestore.collection('notifications').doc(notificationId).update({
+      'isRead': true,
+    });
   }
 
   Future<void> markAllAsRead(String userId) async {

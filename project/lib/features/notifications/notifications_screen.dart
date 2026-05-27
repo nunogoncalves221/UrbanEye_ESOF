@@ -97,9 +97,7 @@ class NotificationsScreen extends StatelessWidget {
               final color = _typeColors[n.type] ?? Colors.grey;
 
               return InkWell(
-                onTap: n.isRead
-                    ? null
-                    : () => service.markAsRead(n.id!),
+                onTap: n.isRead ? null : () => service.markAsRead(n.id!),
                 child: Container(
                   color: n.isRead ? null : color.withValues(alpha: 0.06),
                   padding: const EdgeInsets.symmetric(

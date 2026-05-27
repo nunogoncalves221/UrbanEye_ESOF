@@ -9,7 +9,7 @@ class PointsService {
   final FirebaseFirestore _firestore;
 
   PointsService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   // Awards +10 points to the reporter when a report is resolved
   Future<void> onReportResolved(String reportId, String? reporterId) async {
@@ -56,7 +56,8 @@ class PointsService {
       'createdAt': FieldValue.serverTimestamp(),
     });
 
-    final awardReporter = reporterId != null &&
+    final awardReporter =
+        reporterId != null &&
         reporterId.isNotEmpty &&
         confirmerId != reporterId;
 

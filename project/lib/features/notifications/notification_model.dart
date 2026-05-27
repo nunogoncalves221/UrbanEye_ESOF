@@ -5,7 +5,8 @@ class NotificationModel {
   final String userId;
   final String reportId;
   final String reportCategory;
-  final String type; // 'status_change', 'priority_change', 'authority_confirmed', 'authority_rejected'
+  final String
+  type; // 'status_change', 'priority_change', 'authority_confirmed', 'authority_rejected'
   final String message;
   final bool isRead;
   final DateTime createdAt;

@@ -902,45 +902,43 @@ void main() {
       },
     );
 
-    testWidgets(
-      'Acceptance Test: Positive point entries show green amount',
-      (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: PointsHistoryScreen(
-              userId: 'user123',
-              entriesStream: Stream.value([
-                {'amount': 10, 'reason': 'Report resolved'},
-              ]),
-            ),
+    testWidgets('Acceptance Test: Positive point entries show green amount', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PointsHistoryScreen(
+            userId: 'user123',
+            entriesStream: Stream.value([
+              {'amount': 10, 'reason': 'Report resolved'},
+            ]),
           ),
-        );
-        await tester.pumpAndSettle();
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        final amountText = tester.widget<Text>(find.text('+10'));
-        expect(amountText.style?.color, equals(Colors.green));
-      },
-    );
+      final amountText = tester.widget<Text>(find.text('+10'));
+      expect(amountText.style?.color, equals(Colors.green));
+    });
 
-    testWidgets(
-      'Acceptance Test: Negative point entries show red amount',
-      (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: PointsHistoryScreen(
-              userId: 'user123',
-              entriesStream: Stream.value([
-                {'amount': -5, 'reason': 'Report rejected'},
-              ]),
-            ),
+    testWidgets('Acceptance Test: Negative point entries show red amount', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PointsHistoryScreen(
+            userId: 'user123',
+            entriesStream: Stream.value([
+              {'amount': -5, 'reason': 'Report rejected'},
+            ]),
           ),
-        );
-        await tester.pumpAndSettle();
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        final amountText = tester.widget<Text>(find.text('-5'));
-        expect(amountText.style?.color, equals(Colors.red));
-      },
-    );
+      final amountText = tester.widget<Text>(find.text('-5'));
+      expect(amountText.style?.color, equals(Colors.red));
+    });
   });
 
   // Photo Button in Popups
@@ -1153,10 +1151,7 @@ void main() {
           appBar: AppBar(
             title: const Text('Notifications'),
             actions: [
-              TextButton(
-                onPressed: () {},
-                child: const Text('Mark all read'),
-              ),
+              TextButton(onPressed: () {}, child: const Text('Mark all read')),
             ],
           ),
           body: notifications.isEmpty
@@ -1164,11 +1159,16 @@ void main() {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.notifications_none,
-                          size: 64, color: Colors.grey),
+                      Icon(
+                        Icons.notifications_none,
+                        size: 64,
+                        color: Colors.grey,
+                      ),
                       SizedBox(height: 12),
-                      Text('No notifications yet',
-                          style: TextStyle(color: Colors.grey, fontSize: 16)),
+                      Text(
+                        'No notifications yet',
+                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                      ),
                     ],
                   ),
                 )
@@ -1178,13 +1178,14 @@ void main() {
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, i) {
                     final n = notifications[i];
-                    final icon =
-                        typeIcons[n.type] ?? Icons.notifications;
+                    final icon = typeIcons[n.type] ?? Icons.notifications;
                     final color = typeColors[n.type] ?? Colors.grey;
                     return Container(
                       color: n.isRead ? null : color.withValues(alpha: 0.06),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1215,7 +1216,9 @@ void main() {
                                 Text(
                                   formatDate(n.createdAt),
                                   style: const TextStyle(
-                                      color: Colors.grey, fontSize: 12),
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
@@ -1224,8 +1227,7 @@ void main() {
                             Container(
                               width: 8,
                               height: 8,
-                              margin:
-                                  const EdgeInsets.only(top: 6, left: 8),
+                              margin: const EdgeInsets.only(top: 6, left: 8),
                               decoration: const BoxDecoration(
                                 color: Colors.red,
                                 shape: BoxShape.circle,
@@ -1266,8 +1268,7 @@ void main() {
 
         await tester.pumpWidget(buildNotificationList([notification]));
 
-        expect(
-            find.text('Your report is now In Progress.'), findsOneWidget);
+        expect(find.text('Your report is now In Progress.'), findsOneWidget);
         expect(find.text('Just now'), findsOneWidget);
       },
     );
@@ -1403,9 +1404,7 @@ void main() {
             home: Scaffold(
               appBar: AppBar(
                 title: const Text('Home'),
-                actions: const [
-                  Icon(Icons.notifications_outlined),
-                ],
+                actions: const [Icon(Icons.notifications_outlined)],
               ),
               body: const SizedBox(),
             ),
@@ -1485,10 +1484,10 @@ void main() {
                         context,
                         MaterialPageRoute(
                           builder: (_) => Scaffold(
-                            appBar:
-                                AppBar(title: const Text('Notifications')),
+                            appBar: AppBar(title: const Text('Notifications')),
                             body: const Center(
-                                child: Text('No notifications yet')),
+                              child: Text('No notifications yet'),
+                            ),
                           ),
                         ),
                       ),

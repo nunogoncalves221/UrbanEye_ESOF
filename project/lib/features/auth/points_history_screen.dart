@@ -32,15 +32,15 @@ class PointsHistoryScreen extends StatelessWidget {
         .where('userId', isEqualTo: userId)
         .snapshots()
         .map((snap) {
-      final docs = snap.docs.map((d) => d.data()).toList()
-        ..sort((a, b) {
-          final aTime = a['createdAt'];
-          final bTime = b['createdAt'];
-          if (aTime is! Timestamp || bTime is! Timestamp) return 0;
-          return bTime.compareTo(aTime);
+          final docs = snap.docs.map((d) => d.data()).toList()
+            ..sort((a, b) {
+              final aTime = a['createdAt'];
+              final bTime = b['createdAt'];
+              if (aTime is! Timestamp || bTime is! Timestamp) return 0;
+              return bTime.compareTo(aTime);
+            });
+          return docs;
         });
-      return docs;
-    });
   }
 
   @override

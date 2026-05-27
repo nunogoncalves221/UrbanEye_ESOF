@@ -136,10 +136,9 @@ class ReportService extends ReportServiceBase {
       // +1 to the citizen who confirmed, +2 to the original reporter
       final reportDoc = await reportRef.get();
       final reporterId = reportDoc.data()?['userId'] as String?;
-      await PointsService(firestore: _firestore).onReportConfirmed(
-        confirmerId: userId,
-        reporterId: reporterId,
-      );
+      await PointsService(
+        firestore: _firestore,
+      ).onReportConfirmed(confirmerId: userId, reporterId: reporterId);
     } else {
       await reportRef.update({
         'not_exists_confirmations': FieldValue.increment(1),

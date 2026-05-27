@@ -174,18 +174,26 @@ void main() {
 
     test('watchReportsByUser returns reports for specific user', () async {
       await firestore.collection('reports').doc('r1').set({
-        'category': 'Pothole', 'description': 'Test 1',
-        'latitude': 41.0, 'longitude': -8.0,
-        'userId': 'test_user_123', 'status': 'pending',
+        'category': 'Pothole',
+        'description': 'Test 1',
+        'latitude': 41.0,
+        'longitude': -8.0,
+        'userId': 'test_user_123',
+        'status': 'pending',
         'createdAt': Timestamp.now(),
-        'exists_confirmations': 0, 'not_exists_confirmations': 0,
+        'exists_confirmations': 0,
+        'not_exists_confirmations': 0,
       });
       await firestore.collection('reports').doc('r2').set({
-        'category': 'Trash', 'description': 'Test 2',
-        'latitude': 41.1, 'longitude': -8.1,
-        'userId': 'other_user', 'status': 'pending',
+        'category': 'Trash',
+        'description': 'Test 2',
+        'latitude': 41.1,
+        'longitude': -8.1,
+        'userId': 'other_user',
+        'status': 'pending',
         'createdAt': Timestamp.now(),
-        'exists_confirmations': 0, 'not_exists_confirmations': 0,
+        'exists_confirmations': 0,
+        'not_exists_confirmations': 0,
       });
 
       final reports = await service.getReportsByUser('test_user_123');
@@ -196,17 +204,25 @@ void main() {
 
     test('deleteReport removes report from Firestore', () async {
       await firestore.collection('reports').doc('r1').set({
-        'category': 'Pothole', 'description': 'To be deleted',
-        'latitude': 41.0, 'longitude': -8.0,
-        'userId': 'test_user_123', 'status': 'pending',
+        'category': 'Pothole',
+        'description': 'To be deleted',
+        'latitude': 41.0,
+        'longitude': -8.0,
+        'userId': 'test_user_123',
+        'status': 'pending',
         'createdAt': Timestamp.now(),
-        'exists_confirmations': 0, 'not_exists_confirmations': 0,
+        'exists_confirmations': 0,
+        'not_exists_confirmations': 0,
       });
 
       final report = ReportModel(
-        id: 'r1', category: 'Pothole', description: 'To be deleted',
-        latitude: 41.0, longitude: -8.0,
-        userId: 'test_user_123', status: 'pending',
+        id: 'r1',
+        category: 'Pothole',
+        description: 'To be deleted',
+        latitude: 41.0,
+        longitude: -8.0,
+        userId: 'test_user_123',
+        status: 'pending',
       );
 
       await service.deleteReport(report);
@@ -229,7 +245,11 @@ void main() {
 
     Future<String> seedReport(String reporterId) async {
       final ref = firestore.collection('reports').doc();
-      await ref.set({'userId': reporterId, 'status': 'pending', 'points_awarded': false});
+      await ref.set({
+        'userId': reporterId,
+        'status': 'pending',
+        'points_awarded': false,
+      });
       return ref.id;
     }
 
@@ -359,14 +379,19 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo.png');
+      final tempFile = File(
+        '${Directory.systemTemp.path}/cloudinary_test_photo.png',
+      );
       await tempFile.writeAsBytes(testImageBytes);
       try {
         final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
         final url = await cloudinary.uploadPhoto(tempFile, reportId);
         final publicId = CloudinaryService.extractPublicIdFromUrl(url!);
         expect(url, isNotNull);
-        expect(url, contains('res.cloudinary.com/${CloudinaryConfig.cloudName}'));
+        expect(
+          url,
+          contains('res.cloudinary.com/${CloudinaryConfig.cloudName}'),
+        );
         await cloudinary.deletePhoto(publicId);
       } finally {
         await tempFile.delete();
@@ -377,7 +402,9 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo2.png');
+      final tempFile = File(
+        '${Directory.systemTemp.path}/cloudinary_test_photo2.png',
+      );
       await tempFile.writeAsBytes(testImageBytes);
       try {
         final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
@@ -395,7 +422,9 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo3.png');
+      final tempFile = File(
+        '${Directory.systemTemp.path}/cloudinary_test_photo3.png',
+      );
       await tempFile.writeAsBytes(testImageBytes);
       try {
         final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
@@ -419,7 +448,9 @@ void main() {
       final testImageBytes = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
       );
-      final tempFile = File('${Directory.systemTemp.path}/cloudinary_test_photo4.png');
+      final tempFile = File(
+        '${Directory.systemTemp.path}/cloudinary_test_photo4.png',
+      );
       await tempFile.writeAsBytes(testImageBytes);
       try {
         final reportId = 'test-${DateTime.now().millisecondsSinceEpoch}';
@@ -462,34 +493,50 @@ void main() {
       expect(list.first.isRead, false);
     });
 
-    test('NT-I-02 | markAsRead — notificação aparece como lida no stream', () async {
-      final docRef = await firestore.collection('notifications').add({
-        'userId': 'user_1', 'reportId': 'r', 'reportCategory': 'c',
-        'type': 'status_change', 'message': 'msg', 'isRead': false, 'createdAt': null,
-      });
-
-      await notificationService.markAsRead(docRef.id);
-
-      final list = await notificationService
-          .watchNotificationsForUser('user_1')
-          .first;
-      expect(list.first.isRead, true);
-    });
-
-    test('NT-I-03 | markAllAsRead — todas as notificações ficam lidas', () async {
-      for (var i = 0; i < 3; i++) {
-        await firestore.collection('notifications').add({
-          'userId': 'user_2', 'reportId': 'r$i', 'reportCategory': 'c',
-          'type': 'status_change', 'message': 'msg$i', 'isRead': false, 'createdAt': null,
+    test(
+      'NT-I-02 | markAsRead — notificação aparece como lida no stream',
+      () async {
+        final docRef = await firestore.collection('notifications').add({
+          'userId': 'user_1',
+          'reportId': 'r',
+          'reportCategory': 'c',
+          'type': 'status_change',
+          'message': 'msg',
+          'isRead': false,
+          'createdAt': null,
         });
-      }
 
-      await notificationService.markAllAsRead('user_2');
+        await notificationService.markAsRead(docRef.id);
 
-      final list = await notificationService
-          .watchNotificationsForUser('user_2')
-          .first;
-      expect(list.every((n) => n.isRead), isTrue);
-    });
+        final list = await notificationService
+            .watchNotificationsForUser('user_1')
+            .first;
+        expect(list.first.isRead, true);
+      },
+    );
+
+    test(
+      'NT-I-03 | markAllAsRead — todas as notificações ficam lidas',
+      () async {
+        for (var i = 0; i < 3; i++) {
+          await firestore.collection('notifications').add({
+            'userId': 'user_2',
+            'reportId': 'r$i',
+            'reportCategory': 'c',
+            'type': 'status_change',
+            'message': 'msg$i',
+            'isRead': false,
+            'createdAt': null,
+          });
+        }
+
+        await notificationService.markAllAsRead('user_2');
+
+        final list = await notificationService
+            .watchNotificationsForUser('user_2')
+            .first;
+        expect(list.every((n) => n.isRead), isTrue);
+      },
+    );
   });
 }

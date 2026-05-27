@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 
 class PointsHistoryScreen extends StatelessWidget {
   final String userId;
+  final FirebaseFirestore? firestore;
 
-  const PointsHistoryScreen({super.key, required this.userId});
+  const PointsHistoryScreen({super.key, required this.userId, this.firestore});
+
+  FirebaseFirestore get _firestore => firestore ?? FirebaseFirestore.instance;
 
   String _formatDate(Timestamp ts) {
     final d = ts.toDate();
@@ -16,7 +19,7 @@ class PointsHistoryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Points History')),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance
+        stream: _firestore
             .collection('points_history')
             .where('userId', isEqualTo: userId)
             .snapshots(),

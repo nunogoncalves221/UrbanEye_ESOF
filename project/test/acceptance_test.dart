@@ -7,12 +7,15 @@
 
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:project/features/auth/login_screen.dart';
+import 'package:project/features/auth/points_history_screen.dart';
 import 'package:project/features/report/all_reports_screen.dart';
 import 'package:project/features/auth/register_screen.dart';
 import 'package:project/features/report/my_reports_screen.dart';
@@ -855,6 +858,159 @@ void main() {
           find.text('You must be signed in to view your reports.'),
           findsOneWidget,
         );
+      },
+    );
+  });
+
+  // ── Points History ────────────────────────────────────────────────────────
+
+  group('Points History', () {
+    Future<FakeFirebaseFirestore> buildFirestoreWithHistory(
+      List<Map<String, dynamic>> entries,
+    ) async {
+      final firestore = FakeFirebaseFirestore();
+      for (final entry in entries) {
+        await firestore.collection('points_history').add(entry);
+      }
+      return firestore;
+    }
+
+    testWidgets(
+      'Acceptance Test: User with no points history sees empty state message',
+      (tester) async {
+        final firestore = FakeFirebaseFirestore();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: PointsHistoryScreen(
+              userId: 'user123',
+              firestore: firestore,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('No points history yet.'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: User sees points history entries with reasons',
+      (tester) async {
+        final firestore = await buildFirestoreWithHistory([
+          {
+            'userId': 'user123',
+            'amount': 10,
+            'reason': 'Report resolved',
+            'createdAt': Timestamp.fromDate(DateTime(2024, 5, 1)),
+          },
+          {
+            'userId': 'user123',
+            'amount': -5,
+            'reason': 'Report rejected',
+            'createdAt': Timestamp.fromDate(DateTime(2024, 4, 28)),
+          },
+        ]);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: PointsHistoryScreen(
+              userId: 'user123',
+              firestore: firestore,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Report resolved'), findsOneWidget);
+        expect(find.text('Report rejected'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: Positive point entries show green amount',
+      (tester) async {
+        final firestore = await buildFirestoreWithHistory([
+          {
+            'userId': 'user123',
+            'amount': 10,
+            'reason': 'Report resolved',
+            'createdAt': Timestamp.fromDate(DateTime(2024, 5, 1)),
+          },
+        ]);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: PointsHistoryScreen(
+              userId: 'user123',
+              firestore: firestore,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final amountText = tester.widget<Text>(find.text('+10'));
+        expect(amountText.style?.color, equals(Colors.green));
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: Negative point entries show red amount',
+      (tester) async {
+        final firestore = await buildFirestoreWithHistory([
+          {
+            'userId': 'user123',
+            'amount': -5,
+            'reason': 'Report rejected',
+            'createdAt': Timestamp.fromDate(DateTime(2024, 4, 28)),
+          },
+        ]);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: PointsHistoryScreen(
+              userId: 'user123',
+              firestore: firestore,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final amountText = tester.widget<Text>(find.text('-5'));
+        expect(amountText.style?.color, equals(Colors.red));
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: Points history only shows entries for the current user',
+      (tester) async {
+        final firestore = await buildFirestoreWithHistory([
+          {
+            'userId': 'user123',
+            'amount': 10,
+            'reason': 'Report resolved',
+            'createdAt': Timestamp.fromDate(DateTime(2024, 5, 1)),
+          },
+          {
+            'userId': 'other-user',
+            'amount': 2,
+            'reason': 'Report confirmed by citizen',
+            'createdAt': Timestamp.fromDate(DateTime(2024, 5, 2)),
+          },
+        ]);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: PointsHistoryScreen(
+              userId: 'user123',
+              firestore: firestore,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Report resolved'), findsOneWidget);
+        expect(find.text('Report confirmed by citizen'), findsNothing);
       },
     );
   });

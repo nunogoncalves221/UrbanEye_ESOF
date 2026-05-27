@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project/features/auth/edit_profile_screen.dart';
+import 'package:project/features/auth/points_history_screen.dart';
 import 'package:project/services/user_role.dart';
 import 'package:project/services/user_role_service.dart';
 import 'package:project/features/report/my_reports_screen.dart';
@@ -30,8 +31,8 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        future: _firestore.collection('users').doc(user.uid).get(),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: _firestore.collection('users').doc(user.uid).snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -97,6 +98,21 @@ class ProfileScreen extends StatelessWidget {
                   ListTile(
                     title: const Text('Email'),
                     subtitle: Text(data['email']),
+                  ),
+
+                  ListTile(
+                    leading: const Icon(Icons.emoji_events, color: Colors.amber),
+                    title: const Text('Points'),
+                    subtitle: Text('${(data['points'] as int?) ?? 0} pts'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PointsHistoryScreen(userId: user.uid),
+                        ),
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 12),

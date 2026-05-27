@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:project/features/auth/login_screen.dart';
+import 'package:project/features/auth/points_history_screen.dart';
 import 'package:project/features/report/all_reports_screen.dart';
 import 'package:project/features/auth/register_screen.dart';
 import 'package:project/features/report/my_reports_screen.dart';
@@ -856,6 +857,88 @@ void main() {
           find.text('You must be signed in to view your reports.'),
           findsOneWidget,
         );
+      },
+    );
+  });
+
+  // ── Points History ────────────────────────────────────────────────────────
+
+  group('Points History', () {
+    testWidgets(
+      'Acceptance Test: User with no points history sees empty state message',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: PointsHistoryScreen(
+              userId: 'user123',
+              entriesStream: Stream.value([]),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('No points history yet.'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: User sees points history entries with reasons',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: PointsHistoryScreen(
+              userId: 'user123',
+              entriesStream: Stream.value([
+                {'amount': 10, 'reason': 'Report resolved'},
+                {'amount': -5, 'reason': 'Report rejected'},
+              ]),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Report resolved'), findsOneWidget);
+        expect(find.text('Report rejected'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: Positive point entries show green amount',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: PointsHistoryScreen(
+              userId: 'user123',
+              entriesStream: Stream.value([
+                {'amount': 10, 'reason': 'Report resolved'},
+              ]),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final amountText = tester.widget<Text>(find.text('+10'));
+        expect(amountText.style?.color, equals(Colors.green));
+      },
+    );
+
+    testWidgets(
+      'Acceptance Test: Negative point entries show red amount',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: PointsHistoryScreen(
+              userId: 'user123',
+              entriesStream: Stream.value([
+                {'amount': -5, 'reason': 'Report rejected'},
+              ]),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final amountText = tester.widget<Text>(find.text('-5'));
+        expect(amountText.style?.color, equals(Colors.red));
       },
     );
   });

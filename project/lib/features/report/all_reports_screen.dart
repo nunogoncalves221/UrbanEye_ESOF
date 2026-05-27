@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/services/points_service.dart';
 import 'package:project/features/notifications/notification_bell.dart';
 import 'package:project/services/notification_service.dart';
 import 'package:project/services/report_service.dart';
@@ -288,6 +289,8 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
   });
 
   Future<void> _updateStatus(ReportModel report, String newStatus) async {
+    if (report.status == newStatus) return;
+
     try {
       await FirebaseFirestore.instance
           .collection('reports')
@@ -324,6 +327,19 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
+      }
+      return;
+    }
+
+    if (newStatus == 'resolved') {
+      try {
+        await PointsService().onReportResolved(report.id!, report.userId);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Points error: $e')),
+          );
+        }
       }
     }
   }
@@ -792,6 +808,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
 
     if (confirmed != true) return;
 
+    await PointsService().onReportRejected(report.userId);
     // Notificar antes de apagar (favoritos ainda existem no Firestore)
     await NotificationService().notifyReportChange(
       reportId: report.id!,
@@ -826,7 +843,16 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     ReportService reportService,
     StateSetter setModalState,
   ) async {
-    await reportService.confirmProblem(report.id!, userId, confirmed);
+    try {
+      await reportService.confirmProblem(report.id!, userId, confirmed);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Confirmation error: $e')),
+        );
+      }
+      return;
+    }
 
     final exists = await reportService.checkReportExists(report.id!);
     if (!exists) {

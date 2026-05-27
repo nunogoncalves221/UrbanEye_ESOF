@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../features/report/report_model.dart';
 import 'cloudinary_service.dart';
+import 'points_service.dart';
 
 abstract class ReportServiceBase {
   Future<void> submitReport(ReportModel report, {File? photo});
@@ -131,6 +132,14 @@ class ReportService extends ReportServiceBase {
     final reportRef = _firestore.collection('reports').doc(reportId);
     if (confirmed) {
       await reportRef.update({'exists_confirmations': FieldValue.increment(1)});
+
+      // +1 to the citizen who confirmed, +2 to the original reporter
+      final reportDoc = await reportRef.get();
+      final reporterId = reportDoc.data()?['userId'] as String?;
+      await PointsService(firestore: _firestore).onReportConfirmed(
+        confirmerId: userId,
+        reporterId: reporterId,
+      );
     } else {
       await reportRef.update({
         'not_exists_confirmations': FieldValue.increment(1),

@@ -43,9 +43,12 @@ void main() {
   late FakeFirebaseFirestore fakeFirestore;
   late _TestableReportService service;
 
-  setUp(() {
+  setUp(() async {
     fakeFirestore = FakeFirebaseFirestore();
     service = _TestableReportService(firestore: fakeFirestore);
+    for (final uid in ['user-owner', 'user-other', 'user-a', 'user-b']) {
+      await fakeFirestore.collection('users').doc(uid).set({'points': 0});
+    }
   });
 
   // ───────────────────────────────────────────────────────────────────────────

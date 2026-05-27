@@ -41,6 +41,30 @@ Thank you!
 
 ---
 
+## How to Run
+
+### Prerequisites
+
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (Dart SDK `^3.11.0`)
+- [Git](https://git-scm.com/)
+- An Android or iOS device/emulator
+
+### Steps
+
+```bash
+# 1. Clone the repository
+git clone git@github.com:LEIC-ES-2025-26-2LEIC16/T2.git
+cd T2/project
+
+# 2. Install dependencies
+flutter pub get
+
+# 3. Run the app
+flutter run
+```
+
+---
+
 ## Business Modelling
 
 Business modeling in software development involves defining the product's vision, understanding market needs, aligning features with user expectations, and setting the groundwork for strategic planning and execution.

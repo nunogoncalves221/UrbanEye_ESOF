@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:project/features/notifications/notification_bell.dart';
 import 'package:project/features/report/report_screen.dart';
 import 'package:project/features/auth/auth_screen.dart';
 import 'package:project/features/auth/profile_screen.dart';
@@ -59,6 +60,7 @@ class MainScreen extends StatelessWidget {
         title: const Text('Home Screen'),
         automaticallyImplyLeading: false,
         actions: [
+          const NotificationBell(),
           StreamBuilder<User?>(
             stream: auth.authStateChanges(),
             builder: (context, snapshot) {

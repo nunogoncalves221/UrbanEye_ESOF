@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:project/features/report/report_model.dart';
 import 'package:project/services/report_service.dart';
+import 'package:project/services/notification_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Subclasse de ReportService que aceita dependências injectadas (Fake/Mock)
@@ -404,5 +405,73 @@ void main() {
         expect(docB.exists, isTrue);
       },
     );
+  });
+
+  // ── NotificationService ───────────────────────────────────────────────────
+
+  group('NotificationService', () {
+    late NotificationService notificationService;
+
+    setUp(() {
+      notificationService = NotificationService(firestore: fakeFirestore);
+    });
+
+    test('NT-01 | cria notificação para o dono do report', () async {
+      await notificationService.notifyReportChange(
+        reportId: 'r1',
+        reportCategory: 'roads',
+        type: 'status_change',
+        message: 'O teu report está Em Progresso.',
+        reportOwnerId: 'owner_uid',
+      );
+
+      final snap = await fakeFirestore.collection('notifications').get();
+      expect(snap.docs.length, 1);
+      expect(snap.docs.first.data()['userId'], 'owner_uid');
+      expect(snap.docs.first.data()['isRead'], false);
+    });
+
+    test('NT-02 | cria notificações para utilizadores que marcaram como favorito', () async {
+      await fakeFirestore.collection('user_favourites').add({'reportId': 'r2', 'userId': 'fav_1'});
+      await fakeFirestore.collection('user_favourites').add({'reportId': 'r2', 'userId': 'fav_2'});
+
+      await notificationService.notifyReportChange(
+        reportId: 'r2',
+        reportCategory: 'environment',
+        type: 'priority_change',
+        message: 'Prioridade alterada.',
+      );
+
+      final snap = await fakeFirestore.collection('notifications').get();
+      expect(snap.docs.length, 2);
+    });
+
+    test('NT-03 | markAsRead actualiza isRead para true', () async {
+      final docRef = await fakeFirestore.collection('notifications').add({
+        'userId': 'u', 'reportId': 'r', 'reportCategory': 'c',
+        'type': 'status_change', 'message': 'msg', 'isRead': false, 'createdAt': null,
+      });
+
+      await notificationService.markAsRead(docRef.id);
+
+      final doc = await fakeFirestore.collection('notifications').doc(docRef.id).get();
+      expect(doc.data()?['isRead'], true);
+    });
+
+    test('NT-04 | markAllAsRead marca todas as notificações do utilizador', () async {
+      for (var i = 0; i < 3; i++) {
+        await fakeFirestore.collection('notifications').add({
+          'userId': 'u', 'reportId': 'r$i', 'reportCategory': 'c',
+          'type': 'status_change', 'message': 'msg$i', 'isRead': false, 'createdAt': null,
+        });
+      }
+
+      await notificationService.markAllAsRead('u');
+
+      final snap = await fakeFirestore.collection('notifications').where('userId', isEqualTo: 'u').get();
+      for (final doc in snap.docs) {
+        expect(doc.data()['isRead'], true);
+      }
+    });
   });
 }

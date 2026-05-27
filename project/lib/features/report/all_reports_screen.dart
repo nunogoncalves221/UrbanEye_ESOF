@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/features/notifications/notification_bell.dart';
+import 'package:project/services/notification_service.dart';
 import 'package:project/services/report_service.dart';
 import 'package:project/services/user_role.dart';
 import 'package:project/services/user_role_service.dart';
@@ -130,6 +133,13 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
           .collection('reports')
           .doc(report.id)
           .update({'priority': newPriority});
+      unawaited(NotificationService().notifyReportChange(
+        reportId: report.id!,
+        reportCategory: report.category,
+        type: 'priority_change',
+        message: 'Report "${report.category}" priority set to $newPriority.',
+        reportOwnerId: report.userId,
+      ));
       setState(() {
         final idx = _allReports.indexWhere((r) => r.id == report.id);
         if (idx != -1) {
@@ -283,6 +293,13 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
           .collection('reports')
           .doc(report.id)
           .update({'status': newStatus});
+      unawaited(NotificationService().notifyReportChange(
+        reportId: report.id!,
+        reportCategory: report.category,
+        type: 'status_change',
+        message: 'Report "${report.category}" status changed to $newStatus.',
+        reportOwnerId: report.userId,
+      ));
       setState(() {
         final idx = _allReports.indexWhere((r) => r.id == report.id);
         if (idx != -1) {
@@ -703,6 +720,13 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
     StateSetter setModalState,
   ) async {
     await reportService.confirmReportByAuthority(report.id!);
+    unawaited(NotificationService().notifyReportChange(
+      reportId: report.id!,
+      reportCategory: report.category,
+      type: 'authority_confirmed',
+      message: 'Report "${report.category}" was confirmed by the authority.',
+      reportOwnerId: report.userId,
+    ));
 
     // Actualizar lista local
     setState(() {
@@ -768,6 +792,15 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
 
     if (confirmed != true) return;
 
+    // Notificar antes de apagar (favoritos ainda existem no Firestore)
+    await NotificationService().notifyReportChange(
+      reportId: report.id!,
+      reportCategory: report.category,
+      type: 'authority_rejected',
+      message: 'Report "${report.category}" was rejected by the authority.',
+      reportOwnerId: report.userId,
+    );
+
     await reportService.deleteReport(report);
 
     // Remover da lista local
@@ -828,6 +861,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
       appBar: AppBar(
         title: const Text('All Reports'),
         actions: [
+          const NotificationBell(),
           if (_hasActiveFilters)
             TextButton(
               onPressed: _clearFilters,

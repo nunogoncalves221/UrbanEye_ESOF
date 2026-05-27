@@ -16,6 +16,7 @@ import 'package:project/config/cloudinary_config.dart';
 import 'package:project/features/report/report_controller.dart';
 import 'package:project/features/report/report_model.dart';
 import 'package:project/services/cloudinary_service.dart';
+import 'package:project/services/points_service.dart';
 import 'package:project/services/report_service.dart';
 
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
@@ -242,6 +243,138 @@ void main() {
       final doc = await firestore.collection('reports').doc('r1').get();
       expect(doc.exists, isFalse);
     });
+  });
+
+  // ── PointsService + ReportService ─────────────────────────────────────────
+  //
+  // Tests that verify the two services work correctly together:
+  // ReportService triggers PointsService at the right moments and both
+  // Firestore collections (users + points_history) end up in the expected state.
+
+  group('Integration: PointsService + ReportService', () {
+    late FakeFirebaseFirestore firestore;
+    late ReportService reportService;
+    late PointsService pointsService;
+
+    Future<String> seedReport(String reporterId) async {
+      final ref = firestore.collection('reports').doc();
+      await ref.set({'userId': reporterId, 'status': 'pending', 'points_awarded': false});
+      return ref.id;
+    }
+
+    Future<void> seedUser(String uid, {int points = 0}) async {
+      await firestore.collection('users').doc(uid).set({'points': points});
+    }
+
+    Future<int> getPoints(String uid) async {
+      final doc = await firestore.collection('users').doc(uid).get();
+      return (doc.data()?['points'] as int?) ?? 0;
+    }
+
+    Future<int> historyCount(String uid) async {
+      final snap = await firestore
+          .collection('points_history')
+          .where('userId', isEqualTo: uid)
+          .get();
+      return snap.docs.length;
+    }
+
+    setUp(() async {
+      firestore = FakeFirebaseFirestore();
+      reportService = ReportService(firestore: firestore);
+      pointsService = PointsService(firestore: firestore);
+      for (final uid in ['reporter-1', 'confirmer-1', 'confirmer-2']) {
+        await seedUser(uid);
+      }
+    });
+
+    test(
+      'IT-01 | confirmar report dá +1 ao confirmer e +2 ao reporter',
+      () async {
+        final reportId = await seedReport('reporter-1');
+
+        await reportService.confirmProblem(reportId, 'confirmer-1', true);
+
+        expect(await getPoints('confirmer-1'), equals(1));
+        expect(await getPoints('reporter-1'), equals(2));
+      },
+    );
+
+    test(
+      'IT-02 | confirmar report cria entradas no histórico para ambos',
+      () async {
+        final reportId = await seedReport('reporter-1');
+
+        await reportService.confirmProblem(reportId, 'confirmer-1', true);
+
+        expect(await historyCount('confirmer-1'), equals(1));
+        expect(await historyCount('reporter-1'), equals(1));
+      },
+    );
+
+    test(
+      'IT-03 | resolver report dá +10 ao reporter e cria entrada no histórico',
+      () async {
+        final reportId = await seedReport('reporter-1');
+
+        await pointsService.onReportResolved(reportId, 'reporter-1');
+
+        expect(await getPoints('reporter-1'), equals(10));
+        expect(await historyCount('reporter-1'), equals(1));
+      },
+    );
+
+    test(
+      'IT-04 | resolver o mesmo report duas vezes só dá pontos uma vez',
+      () async {
+        final reportId = await seedReport('reporter-1');
+
+        await pointsService.onReportResolved(reportId, 'reporter-1');
+        await pointsService.onReportResolved(reportId, 'reporter-1');
+
+        expect(await getPoints('reporter-1'), equals(10));
+        expect(await historyCount('reporter-1'), equals(1));
+      },
+    );
+
+    test(
+      'IT-05 | rejeitar report deduz 5 pontos ao reporter e cria entrada no histórico',
+      () async {
+        await seedUser('reporter-1', points: 20);
+
+        await pointsService.onReportRejected('reporter-1');
+
+        expect(await getPoints('reporter-1'), equals(15));
+        expect(await historyCount('reporter-1'), equals(1));
+      },
+    );
+
+    test(
+      'IT-06 | várias confirmações acumulam pontos corretamente no reporter',
+      () async {
+        final reportId = await seedReport('reporter-1');
+
+        await reportService.confirmProblem(reportId, 'confirmer-1', true);
+        await reportService.confirmProblem(reportId, 'confirmer-2', true);
+
+        expect(await getPoints('reporter-1'), equals(4));
+        expect(await getPoints('confirmer-1'), equals(1));
+        expect(await getPoints('confirmer-2'), equals(1));
+      },
+    );
+
+    test(
+      'IT-07 | pontos de confirmação e resolução acumulam-se independentemente',
+      () async {
+        final reportId = await seedReport('reporter-1');
+
+        await reportService.confirmProblem(reportId, 'confirmer-1', true);
+        await pointsService.onReportResolved(reportId, 'reporter-1');
+
+        expect(await getPoints('reporter-1'), equals(12));
+        expect(await historyCount('reporter-1'), equals(2));
+      },
+    );
   });
 
   group('CloudinaryService Integration', () {

@@ -7,6 +7,7 @@
 
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../features/report/report_model.dart';
 import 'cloudinary_service.dart';
 import 'points_service.dart';
@@ -36,13 +37,13 @@ class ReportService extends ReportServiceBase {
       String? photoUrl;
       // check for photo
       if (photo != null) {
-        print('Photo detected, uploading...');
+        debugPrint('Photo detected, uploading...');
         // photo taken
         photoUrl = await _cloudinary.uploadPhoto(photo, docRef.id);
-        print('Photo uploaded successfully: $photoUrl');
+        debugPrint('Photo uploaded successfully: $photoUrl');
       } else {
         // no photo taken
-        print('No photo attached to report');
+        debugPrint('No photo attached to report');
       }
 
       final finalReport = ReportModel(
@@ -58,9 +59,9 @@ class ReportService extends ReportServiceBase {
       );
 
       await docRef.set(finalReport.toMap());
-      print('Report saved to Firestore: ${docRef.id}');
+      debugPrint('Report saved to Firestore: ${docRef.id}');
     } catch (e) {
-      print('Submit report error: $e');
+      debugPrint('Submit report error: $e');
       rethrow;
     }
   }

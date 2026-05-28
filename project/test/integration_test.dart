@@ -13,7 +13,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:project/config/cloudinary_config.dart';
-import 'package:project/features/notifications/notification_model.dart';
 import 'package:project/features/report/report_controller.dart';
 import 'package:project/features/report/report_model.dart';
 import 'package:project/services/cloudinary_service.dart';

@@ -6,6 +6,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/cloudinary_config.dart';
 
@@ -57,7 +58,7 @@ class CloudinaryService extends CloudinaryServiceBase {
       request.fields['folder'] = 'reports/$reportId';
       request.files.add(await http.MultipartFile.fromPath('file', photo.path));
 
-      print('Uploading photo to Cloudinary for report: $reportId');
+      debugPrint('Uploading photo to Cloudinary for report: $reportId');
       final streamedResponse = await request.send().timeout(
         const Duration(seconds: 30),
         onTimeout: () =>
@@ -69,15 +70,15 @@ class CloudinaryService extends CloudinaryServiceBase {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final secureUrl = data['secure_url'] as String?;
-        print('Photo uploaded successfully: $secureUrl');
+        debugPrint('Photo uploaded successfully: $secureUrl');
         return secureUrl;
       } else {
-        print('Cloudinary upload failed: ${response.body}');
+        debugPrint('Cloudinary upload failed: ${response.body}');
         throw Exception('Upload failed with status ${response.statusCode}');
       }
     } catch (e) {
-      print('Photo upload error: $e');
-      print('Error type: ${e.runtimeType}');
+      debugPrint('Photo upload error: $e');
+      debugPrint('Error type: ${e.runtimeType}');
       rethrow;
     }
   }
@@ -113,12 +114,12 @@ class CloudinaryService extends CloudinaryServiceBase {
           );
 
       if (response.statusCode == 200) {
-        print('Photo deleted from Cloudinary: $publicId');
+        debugPrint('Photo deleted from Cloudinary: $publicId');
       } else {
-        print('Cloudinary delete failed: ${response.body}');
+        debugPrint('Cloudinary delete failed: ${response.body}');
       }
     } catch (e) {
-      print('Photo delete error: $e');
+      debugPrint('Photo delete error: $e');
     }
   }
 

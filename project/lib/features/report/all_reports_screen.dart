@@ -222,8 +222,9 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
       if (_filterStatus != null && r.status != _filterStatus) return false;
       if (_isAuthority &&
           _filterPriority != null &&
-          r.priority != _filterPriority)
+          r.priority != _filterPriority) {
         return false;
+      }
       if (_filterCategory != null) {
         if (_filterCategory == '__other__') {
           if (_knownCategories.contains(r.category)) return false;
@@ -1051,7 +1052,7 @@ class _AllReportsScreenState extends State<AllReportsScreen> {
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             itemCount: reports.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, i) => ReportCard(
               report: reports[i],
               statusColors: _statusColors,

@@ -319,6 +319,20 @@ Final GitHub Project screenshot:
 Initial GitHub Project screenshot:
 ![Sprint3 Start](docs/images/sprint3_start.png)
 
+Review:
+
+During Sprint 3, the team focused on improving the overall user experience and increasing interaction between users and the platform. Several new functionalities were successfully implemented, including a notification feature integrated into the application, allowing registered users to easily track relevant updates, the possibility of attaching photos to reports in order to provide clearer information about problems, and a points system that rewards users whenever one of their reports is solved. In addition, users can now mark reports as favorites to monitor issues they consider important, and report icons became interactive, allowing access to more detailed information about each report. From the administrative side, authorities gained the ability to reject duplicate or false reports, helping maintain the quality and usefulness of the database. Overall, the sprint objectives were achieved successfully, and the implemented features significantly improved usability, engagement, and platform management.
+
+Retrospectives:
+
+This sprint showed clear improvements in team collaboration and organization compared to previous iterations. Communication between team members became more efficient, and tasks were distributed in a more balanced way, allowing everyone to contribute independently while still maintaining good integration between components. The team also handled the implementation of both user-oriented and administrative features effectively within the sprint timeframe. However, some challenges were encountered during development. Certain tasks, especially those involving notifications and image uploads, required more time than initially estimated due to integration complexity and technical issues. From this sprint, we learned the importance of dividing larger tasks into smaller subtasks, performing integration testing earlier in the process, and maintaining more frequent progress checkpoints to detect blockers sooner and avoid last-minute issues.
+
+Strategy for Improvement:
+
+Although this was the final sprint of the project, there are still several areas that could be improved in future iterations or continued development. One possible enhancement would be introducing optional customization settings for the notification system, allowing users to personalize their experience according to their preferences. The gamification system could also be expanded through the addition of achievements, badges, or ranking systems to further encourage participation. Beyond the implemented features, the project also reinforced the importance of realistic task estimation, continuous communication, and early integration testing throughout the development process. These insights highlighted how effective planning and collaboration contribute significantly to software quality and smoother sprint execution in future projects.
+
+Final GitHub Project screenshot: 
+![Sprint Finish](docs/images/sprint3_finish.png)
 
 ### Final Release
 

@@ -39,7 +39,21 @@ Thank you!
 * Nuno Gonçalves - up202403355@up.pt
 * Raquel Silva - up202404971@up.pt
 
----
+## Pitch
+
+Esta aplicação tem como objetivo dar voz ativa a todos os cidadãos.
+Por vezes passamos por um problema urbano, como por exemplo: um
+poste avariado, lixo na rua ou até mesmo um carro abandonado e não
+sabemos a quem reportar. É a este problema que a nossa aplicação vem
+resolver.
+A partir do telemóvel podemos reportar um problema, marcar a
+localização exata no mapa e ainda incluir uma fotografia, para enviar às
+autoridades, que terão um papel fundamental em toda esta estrutura.
+Quando feito o report, a sua veracidade é confirmada pelos outros
+utilizadores, garantindo fiabilidade dos dados. As autoridades têm um
+painel dedicado para gerir e atualizar o estado de cada ocorrência em
+tempo real.
+Tudo isto leva a uma cidade mais sustentável e transparente.
 
 ## How to Run
 
